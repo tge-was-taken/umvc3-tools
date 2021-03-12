@@ -1,0 +1,163 @@
+//------------------------------------------------
+//--- 010 Editor v11.0 Binary Template
+//
+//      File: 
+//   Authors: 
+//   Version: 
+//   Purpose: 
+//  Category: 
+// File Mask: 
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+
+#ifndef MT_SHARED_BT
+#define MT_SHARED_BT
+
+
+typedef ubyte bool;
+typedef ubyte u8;
+typedef byte s8;
+typedef short s16;
+typedef ushort u16;
+typedef int s32;
+typedef uint u32;
+typedef int64 s64;
+typedef uint64 u64;
+typedef float f32;
+
+// globals
+local bool gIs64Bit = true;
+
+typedef struct
+{
+    f32 X;
+    f32 Y;
+    f32 Z;
+} SVec3;
+
+typedef struct
+{
+    f32 X;
+    f32 Y;
+    f32 Z;
+    f32 W;
+} SVec4;
+
+typedef struct 
+{
+    SVec4 Rows[4];
+} SMtx44;
+
+typedef struct
+{
+    if ( gIs64Bit )
+    {
+        u64 Value;
+    }
+    else
+    {
+        u32 Value;
+    }
+} SNativeInt <read=SNativeIntToString>;
+
+string SNativeIntToString(SNativeInt& v)
+{
+    string s = "";
+    SPrintf( s, "%08X", v.Value );
+    return s;
+}
+
+typedef struct
+{
+    SVec3 Center;
+    f32 Radius;
+} SSphere;
+
+typedef struct
+{
+    SVec4 Min;
+    SVec4 Max;
+} SBoundingBox;
+
+typedef struct
+{
+    s8 Value;
+} rModelCmpFloatS8 <read=rModelCmpFloatS8ToString>;
+
+string rModelCmpFloatS8ToString(rModelCmpFloatS8& v)
+{
+    string s = "";
+    SPrintf( s, "%f", (float)v.Value / 128.0f );
+    return s;
+}
+
+typedef struct
+{
+    s16 Value;
+} rModelCmpFloatS16 <read=rModelCmpFloatS16ToString>;
+
+string rModelCmpFloatS16ToString(rModelCmpFloatS16& v)
+{
+    string s = "";
+    SPrintf( s, "%f", (float)v.Value / 32767.0f );
+    return s;
+}
+
+typedef struct
+{
+    hfloat Value;
+} rModelCmpFloatF16 <read=rModelCmpFloatF16ToString>;
+
+string rModelCmpFloatF16ToString(rModelCmpFloatF16& v)
+{
+    string s = "";
+    SPrintf( s, "%f", (float)v.Value );
+    return s;
+}
+
+typedef u8 color8;
+
+typedef struct
+{
+    u8 R, G, B, A;
+} color32;
+
+typedef struct
+{
+    s16 Value;
+} fs16;
+
+typedef struct
+{
+    s8 Value;
+} fs8;
+
+typedef hfloat f16;
+
+typedef struct
+{
+    u32 Value;
+} vec432;
+
+typedef struct
+{
+    u8 Value;
+} fu8;
+
+#include "mt_shared.generated.bt"
+
+typedef struct
+{
+    u32 Index : 12;
+    rShaderObjectHash Hash : 20;
+} rShaderObjectId <read=rShaderObjectIdToString>;
+
+string rShaderObjectIdToString( rShaderObjectId& id )
+{
+    string s = "";
+    SPrintf( s, "%s (%d)", EnumToString( id.Hash ), id.Index );
+    return s;
+}
+
+#endif

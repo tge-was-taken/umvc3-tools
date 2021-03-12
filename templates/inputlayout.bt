@@ -1,0 +1,86 @@
+//------------------------------------------------
+//--- 010 Editor v11.0 Binary Template
+//
+//      File: 
+//   Authors: 
+//   Version: 
+//   Purpose: 
+//  Category: 
+// File Mask: 
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+
+local uint nDraw__InputLayout__CountLookupTable[15] =
+{ 0, 4, 2, 2, 2, 2, 2, 1, 1, 1, 1, 4, 4, 1, 4 };
+
+#define D3DDECLTYPE_SHORT2 6
+#define D3DDECLTYPE_SHORT2N 9
+#define D3DDECLTYPE_FLOAT16_2 15
+
+uint GetD3DDECLType( uint type, uint count )
+{
+    if ( type == 1 )
+    {
+        if ( count == 1 ) return 0; // 4
+        if ( count == 2 ) return 1; // 8
+        if ( count == 3 ) return 2; // 12
+        if ( count == 4 ) return 3; // 16
+    }
+}
+
+// type to D3DDECLTYPE
+// 4 ->
+// 5 -> D3DDECLTYPE_SHORT2N
+
+
+// Position: (short xyz)
+//  type: 5 (D3DDECLTYPE_SHORT2N)
+//  mult: 3
+//  bucketIdx: 0
+//  flag: 0
+//  count: 2
+//  count2: 6
+//  count3: 6
+
+// Weight:
+//  type: 5
+//  mult: 1
+//  bucketIdx: 6
+//  flag: 0
+//  count: 2
+//  count2: 2
+//  count3: 6
+
+// Normal:
+//  type: 11
+//  mult: 1
+//  bucketIdx: 8
+//  flag: 0
+//  count: 4
+//  count2: 4
+//  count3: 12
+
+// Joint:
+//  type: 4
+//  mult: 2
+//  bucketIdx: C
+//  flag: 0
+//  count: 2
+//  count2: 4
+//  count3: 16
+
+struct
+{
+    int64 NamePtr;
+    int32 Flags;
+    int32 Flags2;
+
+    local int32 type = (Flags >> 6) & 0x1F;
+    local int32 mult = (Flags >> 11) & 0x7F; 
+    local int32 bucketIdx = (Flags >> 22) & 0x1FF;
+    local int32 flag = (Flags >> 31) & 1;
+    local int32 count = nDraw__InputLayout__CountLookupTable[type];
+    local int32 count2 = mult * count;
+    local int32 count3 = count2 + bucketIdx;
+} nDraw__InputLayout[4] <optimize=false>;

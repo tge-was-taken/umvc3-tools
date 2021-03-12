@@ -1,0 +1,45 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <OutputType>WinExe</OutputType>
+    <Platforms>AnyCPU;x64</Platforms>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <OutputPath>$(RELOADEDIIMODS)\ReloadedUMVC3Tests</OutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <OutputPath>$(RELOADEDIIMODS)\ReloadedUMVC3Tests</OutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="ModConfig.json" />
+    <None Remove="Preview.png" />
+    <None Remove="Publish.ps1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="ModConfig.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Reloaded.Memory" Version="3.1.1" />
+    <PackageReference Include="Reloaded.SharedLib.Hooks" Version="1.5.2" />
+    <PackageReference Include="YamlDotNet" Version="9.1.5-issue-templates-0002" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Reloaded.Mod.Interfaces">
+      <HintPath>..\..\..\..\..\..\tools\reloaded2\Mods\reloaded.sharedlib.hooks\x64\Reloaded.Mod.Interfaces.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

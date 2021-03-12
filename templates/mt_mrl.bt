@@ -1,0 +1,160 @@
+//------------------------------------------------
+//--- 010 Editor v11.0 Binary Template
+//
+//      File: 
+//   Authors: 
+//   Version: 
+//   Purpose: 
+//  Category: 
+// File Mask: 
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+
+#include "mt_shared.bt"
+
+typedef struct
+{
+    rShaderObjectId Hash;
+    u32 Field04;
+    u32 Field08;
+    u32 Field0C;
+    u32 Field10;
+    u32 Field14;
+    char Path[64];
+} MrlTextureInfo <bgcolor=0x550000>;
+
+//BitfieldRightToLeft();
+typedef struct
+{
+    u32 Count   : 12; // 0x0000FFF
+    u32 _       : 20; // 0xFFFF000    
+} MrlMaterialCmdListInfo;
+
+typedef enum
+{
+    MrlMaterialCmdType_SetFlag = 0, // guess, toggles features/flags?
+    MrlMaterialCmdType_SetUniformBuffer = 1, // offset to data
+    MrlMaterialCmdType_SetSamplerState = 2, // guess
+    MrlMaterialCmdType_SetTexture = 3, // texture index
+    MrlMaterialCmdType_4 = 4, // hash
+} MrlMaterialCmdType;
+
+typedef struct
+{
+    MrlMaterialCmdType Type    : 4;    // 0x0000000F
+    u32 _                               : 16;   // 0x000FFFF0
+    u32 ShaderObjectIndex               : 12;   // 0xFFF00000
+} MrlMaterialCmdInfo;
+
+typedef union
+{
+    u64 UniformBufferDataOffset; // type 1
+    rShaderObjectId ShaderObject; // type 0, 2, 4
+    u32 TextureIndex; // type 3
+} MrlMaterialCmdValue;
+
+typedef struct( u32 baseOffset )
+{
+    MrlMaterialCmdInfo Info;
+    u32 Field04;
+    MrlMaterialCmdValue Value; // dependent on type
+    rShaderObjectId ShaderObject;
+    u32 Field14;
+
+    if ( Info.Type == MrlMaterialCmdType_SetUniformBuffer )
+    {
+        local u64 p = FTell();
+        local u64 dataOffset = baseOffset + Value.UniformBufferDataOffset;
+        FSeek( dataOffset );
+        
+        Printf( "hash 0x%08X baseOffset 0x%08X dataOffset 0x%08X\n", 
+            ShaderObject.Hash, baseOffset, dataOffset );
+        switch ( ShaderObject.Hash )
+        {
+            case SHADER_CBMaterial: float Data[32]; break;
+            case SHADER__DOLLAR_Globals: float Data[76]; break;
+            case SHADER_CBDiffuseColorCorect: float Data[4]; break;
+            case SHADER_CBHalfLambert: float Data[4]; break;
+            case SHADER_CBToon2: float Data[4]; break;
+            default: Assert( false );
+        }       
+
+
+        FSeek( p );
+    }
+} MrlMaterialCmd <bgcolor=0xAA0000, optimize=false, read=MrlMaterialCmdToString>;
+
+string MrlMaterialCmdToString( MrlMaterialCmd& cmd )
+{
+    local string type = SubStr( EnumToString( cmd.Info.Type ), 
+        Strlen( "MrlMaterialCmdType_" ) );
+
+    local string value = "";
+    if ( cmd.Info.Type == MrlMaterialCmdType_SetUniformBuffer )
+        SPrintf( value, "0x%08X", cmd.Value.UniformBufferDataOffset );
+    else if ( cmd.Info.Type == MrlMaterialCmdType_SetTexture )
+        SPrintf( value, "%s (%d)", 
+            File.Textures[cmd.Value.TextureIndex].Path, 
+            cmd.Value.TextureIndex );
+    else
+        SPrintf( value, "%s", EnumToString( cmd.Value.ShaderObject.Hash ) );
+
+    string s = "";
+    SPrintf( s, "%s %s %s", type, 
+        value, EnumToString( cmd.ShaderObject.Hash ) );
+    return s;
+}
+
+typedef struct
+{
+    u32 TypeHash;
+    u32 Field04;
+    rShaderObjectId Hash08; // hash
+    u32 Offset0C; // offset
+    rShaderObjectId BlendSource;
+    rShaderObjectId DepthStencil;
+    rShaderObjectId RenderSetting;
+    MrlMaterialCmdListInfo CmdListInfo;
+    u32 Flags20;
+    u32 Field24;
+    u32 Field28;
+    u32 Field2C;
+    u32 Field30;
+    u32 Field34;
+    u64 CmdListOffset; // offset
+    u64 Offset40;
+    
+    local u64 p = FTell();
+    if ( CmdListInfo.Count > 0 )
+    {
+        FSeek( CmdListOffset );
+        MrlMaterialCmd Cmd( CmdListOffset )[ CmdListInfo.Count ];
+        FSeek( p );
+    }
+} MrlMaterialInfo <optimize=false, bgcolor=0x005500>;
+
+typedef struct
+{
+    u64 Magic;
+    u32 MaterialCount;
+    u32 TextureCount;
+    u32 Hash;
+    u32 Field14;
+    u64 TextureOffset;
+    u64 MaterialOffset;
+} MrlHeader <bgcolor=0x000055>;
+
+typedef struct
+{
+    MrlHeader Header;
+
+    FSeek( Header.TextureOffset );
+    MrlTextureInfo Textures[Header.TextureCount];
+
+    FSeek( Header.MaterialOffset );
+    MrlMaterialInfo Materials[ Header.MaterialCount ];
+} MrlFile;
+
+MrlFile File;
+

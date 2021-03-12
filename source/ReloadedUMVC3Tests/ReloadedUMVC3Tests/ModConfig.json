@@ -1,0 +1,16 @@
+{
+  "ModId": "ReloadedUMVC3Tests",
+  "ModName": "ReloadedUMVC3Tests",
+  "ModAuthor": "TGE",
+  "ModVersion": "1.0.0",
+  "ModDescription": "Template for a Reloaded Mod Configuration",
+  "ModDll": "ReloadedUMVC3Tests.dll",
+  "ModIcon": "Preview.png",
+  "ModR2RManagedDll32": "x86/ReloadedUMVC3Tests.dll",
+  "ModR2RManagedDll64": "x64/ReloadedUMVC3Tests.dll",
+  "ModNativeDll32": "",
+  "ModNativeDll64": "",
+  "ModDependencies": [ "reloaded.sharedlib.hooks" ],
+  "OptionalDependencies": null,
+  "SupportedAppId": ["umvc3.exe"]
+}

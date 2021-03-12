@@ -1,0 +1,232 @@
+//------------------------------------------------
+//--- 010 Editor v11.0 Binary Template
+//
+//      File: 
+//   Authors: 
+//   Version: 
+//   Purpose: 
+//  Category: 
+// File Mask: 
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+
+typedef ubyte bool;
+typedef ubyte u8;
+typedef byte s8;
+typedef short s16;
+typedef ushort u16;
+typedef int s32;
+typedef uint u32;
+typedef int64 s64;
+typedef uint64 u64;
+typedef hfloat f16;
+typedef float f32;
+typedef double f64;
+
+typedef struct
+{
+    u64 Offset;
+    if ( Offset )
+    {
+        local u64 p = FTell();
+        FSeek( ShaderPackage.StringTableOffset + Offset );
+        string Value;
+        FSeek( p );
+    }
+} rShaderNamePtr <read=rShaderNamePtrToString>;
+
+string rShaderNamePtrToString(rShaderNamePtr& v)
+{
+    if ( v.Offset == 0 ) return "<null>";
+    return v.Value;
+}
+
+typedef struct
+{
+    u32 Type : 6;
+    u32 _ : 26;
+} rShaderObjectFlags;
+
+typedef enum<u32>
+{
+    rShaderInputLayoutElementType_F32 = 1, // 32 bit single precision float
+    rShaderInputLayoutElementType_F16 = 2, // 16 bit half precision float
+    rShaderInputLayoutElementType_IU16 = 3, // guess, 16 bit integer (joint index)
+    rShaderInputLayoutElementType_IS16 = 4, // guess, 16 bit integer (joint index)
+    rShaderInputLayoutElementType_FS16 = 5, // guess, 16 bit normalized compressed float, divisor = 1 << 15 - 1
+    rShaderInputLayoutElementType_IS8 = 7, // guess
+    rShaderInputLayoutElementType_IU8 = 8, // guess, 8 bit unsigned joint index
+    rShaderInputLayoutElementType_FU8  = 9, // guess, 8 bit normalized compressed float, divisor = 255
+    rShaderInputLayoutElementType_FS8 = 10, // guess,  8 bit normalized compressed float, divisor = 127
+    rShaderInputLayoutElementType_11_11_11_10 = 11, // guess, 4 bytes, used for normals
+    rShaderInputLayoutElementType_RGB = 13, // guess, 1 byte, used for colors without alpha
+    rShaderInputLayoutElementType_RGBA = 14, // guess
+} rShaderInputLayoutElementType;
+
+typedef struct
+{
+/*
+    local int32 type = (Flags >> 6) & 0x1F;
+    local int32 mult = (Flags >> 11) & 0x7F; 
+    local int32 bucketIdx = (Flags >> 22) & 0x1FF;
+    local int32 flag = (Flags >> 31) & 1;
+    local int32 count = nDraw__InputLayout__CountLookupTable[type];
+    local int32 count2 = mult * count;
+    local int32 count3 = count2 + bucketIdx;
+*/
+    u32 _1             : 6; // 00-05
+    u32 Type           : 5; // 06-10
+    u32 ComponentCount : 7; // 11-17
+    u32 _2             : 4; // 18-21
+    u32 Offset         : 9; // 22-30
+    u32 Flag           : 1; // 31-31
+} rShaderInputLayoutElementFlags;
+
+typedef struct
+{
+    rShaderNamePtr Name;
+    rShaderInputLayoutElementFlags Flags;
+    u32 Flags2;
+} rShaderInputLayoutElement <optimize=false, bgcolor=0xd7a1de, read=rShaderInputLayoutElementToString>;
+
+string rShaderInputLayoutElementToString(rShaderInputLayoutElement& v)
+{
+    return rShaderNamePtrToString( v.Name );
+}
+
+typedef struct
+{
+    rShaderNamePtr Name;
+    rShaderNamePtr TypeName;
+    rShaderObjectFlags Flags;
+    u16 Field14;
+    u16 Field16;
+    u32 Field18;
+    u32 Field1C;
+    u32 Field20;
+    u32 Field24;
+    u16 ElementCount;
+    u16 Field2A;
+    u32 CountFlags;
+    u32 Field30;
+    u32 Field34;
+
+    if ( Flags.Type == 9 )
+    {
+        rShaderInputLayoutElement Elements[ElementCount];
+    }
+} rShaderObject <bgcolor=0xa49c45, read=rShaderObjectToString>;
+
+string rShaderObjectToString(rShaderObject& v)
+{
+    return rShaderNamePtrToString( v.Name ) + " " + rShaderNamePtrToString( v.TypeName );
+}
+
+typedef struct
+{
+    u64 Offset;
+    local u64 p = FTell();
+    if ( Offset )
+    {
+        FSeek( Offset );
+        rShaderObject Value;
+    }
+    FSeek( p );
+} rShaderObjectPtr <optimize=false, read=rShaderObjectPtrToString>;
+
+string rShaderObjectPtrToString(rShaderObjectPtr& v)
+{
+    if ( v.Offset == 0 ) return "<null>";
+    return rShaderObjectToString( v.Value );
+}
+
+
+typedef struct
+{
+    u32 Magic;
+    u32 Field04;
+    u32 Field08;
+    u32 EntryCount;
+    u64 StringTableOffset;
+    rShaderObjectPtr Entries[EntryCount];
+} rShaderPackage <bgcolor=0x1d603f>;
+
+rShaderPackage ShaderPackage;
+
+void DumpTemplate()
+{
+    local int i = 0;
+    local int j = 0;
+    local string type = "";
+    for ( i = 0; i < ShaderPackage.EntryCount; ++i )
+    {
+        if ( ShaderPackage.Entries[i].Offset == 0 ||
+             ShaderPackage.Entries[i].Value.Flags.Type != 9 )
+        {
+            continue;   
+        }
+        
+        Printf( "typedef struct {\n" );
+        Printf( "\tlocal int64 p = FTell();\n" );
+        for ( j = 0; j < ShaderPackage.Entries[i].Value.ElementCount; j++ )
+        {
+            SPrintf( type, "type(%d)", ShaderPackage.Entries[i].Value.Elements[j].Flags.Type );
+            switch ( ShaderPackage.Entries[i].Value.Elements[j].Flags.Type )
+            {
+                case rShaderInputLayoutElementType_F32: type = "f32"; break;
+                case rShaderInputLayoutElementType_F16: type = "f16"; break;
+                case rShaderInputLayoutElementType_IU16: type = "u16"; break;
+                case rShaderInputLayoutElementType_IS16: type = "s16"; break;
+                case rShaderInputLayoutElementType_FS16: type = "fs16"; break;
+                case rShaderInputLayoutElementType_IS8: type = "s8"; break;
+                case rShaderInputLayoutElementType_IU8: type = "u8"; break;
+                case rShaderInputLayoutElementType_FU8: type = "fu8"; break;
+                case rShaderInputLayoutElementType_FS8: type = "fs8"; break;
+                case rShaderInputLayoutElementType_11_11_11_10: type = "vec432"; break;
+                case rShaderInputLayoutElementType_RGB: type = "color8"; break;
+                case rShaderInputLayoutElementType_RGBA: type = "color32"; break;
+                
+            }
+    
+            Printf( "\tFSeek(p + %d); %s %s[%d];\n", 
+                (u32)ShaderPackage.Entries[i].Value.Elements[j].Flags.Offset,
+                type,
+                ShaderPackage.Entries[i].Value.Elements[j].Name.Value,
+                (u32)ShaderPackage.Entries[i].Value.Elements[j].Flags.ComponentCount
+            );
+        }
+    
+        Printf( "} rModelVertex%s;\n\n", ShaderPackage.Entries[i].Value.Name.Value );
+    }
+}
+
+void DumpCsv()
+{
+    Printf("shader,offset,type,name,componentcount\n");
+
+    local int i = 0;
+    local int j = 0;
+    local string type = "";
+    for ( i = 0; i < ShaderPackage.EntryCount; ++i )
+    {
+        if ( ShaderPackage.Entries[i].Offset == 0 ||
+             ShaderPackage.Entries[i].Value.Flags.Type != 9 )
+        {
+            continue;   
+        }   
+
+        for ( j = 0; j < ShaderPackage.Entries[i].Value.ElementCount; j++ )
+        {
+            Printf( "%s,%d,%d,%s,%d\n", 
+                ShaderPackage.Entries[i].Value.Name.Value, 
+                (u32)ShaderPackage.Entries[i].Value.Elements[j].Flags.Offset, 
+                ShaderPackage.Entries[i].Value.Elements[j].Flags.Type, 
+                ShaderPackage.Entries[i].Value.Elements[j].Name.Value,
+                (u32)ShaderPackage.Entries[i].Value.Elements[j].Flags.ComponentCount );
+        }
+    }
+}
+
+DumpTemplate();
+//DumpCsv();
