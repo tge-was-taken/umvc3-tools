@@ -147,6 +147,19 @@ typedef struct
 
 #include "mt_shared.generated.bt"
 
+string rShaderObjectHashToString( rShaderObjectHash& hash )
+{
+    // mask value to fix erronous hashes (they include index)
+    local u32 tmp = ((u32)hash & 0x000FFFFF);
+    local rShaderObjectHash tmp2 = (rShaderObjectHash)tmp;
+    local string s = EnumToString( tmp2 );
+    if ( s == "" )
+        SPrintf( s, "0x%08X", tmp2 );
+    else
+        s = SubStr( s, Strlen( "SHADER_" ) );
+    return s;
+}
+
 typedef struct
 {
     u32 Index : 12;

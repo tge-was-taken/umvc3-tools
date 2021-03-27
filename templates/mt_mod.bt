@@ -18,54 +18,49 @@
 
 typedef struct
 {
-    u32 JointIndex : 12;
-    u32 MaterialIndex : 12;
-    u32 LodIndex : 8;
-} rModelMaterialIndices;
-
-//typedef struct
-//{
-//    /* 00 */ rModelCmpFloatS16 Vertices[3];
-//    /* 06 */ rModelCmpFloatS16 BoneWeight;
-//    /* 08 */ rModelCmpFloatS8 Normals[4];
-//    /* 0C */ rModelCmpFloatS8 Tangent[2];
-//    /* 0E */ rModelCmpFloatS8 Binormal[2];
-//    /* 10 */ rModelCmpFloatF16 UV1[2];
-//    /* 14 */ rModelCmpFloatF16 BoneIndices[2];
-//} rModelVertex_IASkinTB2wt;
+    // ex. 010000FF (bytes)
+    /* FFF00000 */ u32 JointIndex : 12;        // root joint index
+    /* 000FFF00 */ u32 MaterialIndex : 12;     // index into the material name array
+    /* 000000FF */ u32 LodIndex : 8;           // 0=null, 1=high, 2=mid, 3=low,FF=shadow
+} rModelJointMaterialLodId;
 
 typedef struct
 {
-    /* 00 */ u16 Type;
-    /* 02 */ u16 VertexCount;
-    /* 04 */ rModelMaterialIndices Indices;
-    ///* 07 */ u8 LodIndex; // 0=null, 1=high, 2=mid, 3=low,FF=shadow
-    /* 08 */ u8 Category1; // flags? 0x9=hidden, 0x11=hands, 0x21=visible
-    /* 09 */ u8 Category2; // cont.
-    /* 0A */ u8 VertexStride; 
-    /* 0B */ u8 RenderMode;
-    /* 0C */ u32 VertexStartIndex;      // index of the starting vertex in the buffer slice 
-    /* 10 */ u32 VertexBufferOffset;    // offset into the model vertex buffer
-    /* 14 */ rShaderObjectId Shader;    // shader name crc << 12 | shader index
-    /* 18 */ u32 IndexBufferOffset;     // offset into the model index buffer, in multiples of 2
-    /* 1C */ u32 IndexCount;            // number of indices to render
-    /* 20 */ u32 IndexStartIndex;       // index of the starting index in the buffer slice
-    /* 24 */ u8 BoneIdStart;
-    /* 25 */ u8 PrimitiveJointLinkIdx;
-    /* 26 */ u16 Index;                 // overwritten at load
-                                        // becomes index of unique primitive (same vertex format etc)
-    /* 28 */ u16 MinVertexIndex;        // lowest vertex triangle index in buffer
-    /* 2A */ u16 MaxVertexIndex;        // highest vertex index in buffer
-    /* 2C */ u32 Field2C;
-    /* 30 */ u32 PrimitiveJointLinkPtr;  // overwritten at load
-    /* 34 */ u32 Field34;
+    /* 00 */ u16 Type;                          // ?
+    /* 02 */ u16 VertexCount;                   // no. of vertices drawn by this primitive
+    /* 04 */ rModelJointMaterialLodId JMLId;    // aggregrate of root joint index, material index and lod index
+    /* 08 */ u8 Category1;                      // flags? 0x9=hidden, 0x11=hands, 0x21=visible
+    /* 09 */ u8 Category2;                      // cont.
+    /* 0A */ u8 VertexStride;                   // no. bytes per vertex
+    /* 0B */ u8 RenderMode;                     // ?
+    /* 0C */ u32 VertexStartIndex;              // index of the starting vertex in the buffer slice 
+    /* 10 */ u32 VertexBufferOffset;            // offset into the model vertex buffer
+    /* 14 */ rShaderObjectId Shader;            // shader name crc << 12 | shader index
+    /* 18 */ u32 IndexBufferOffset;             // offset into the model index buffer, in multiples of 2
+    /* 1C */ u32 IndexCount;                    // number of indices to render
+    /* 20 */ u32 IndexStartIndex;               // index of the starting index in the buffer slice
+    /* 24 */ u8 BoneMapStartIndex;              // starting index used for the bone idx -> joint idx map
+    /* 25 */ u8 PrimitiveJointLinkCount;        // no. prim joint links used by this primitive
+    /* 26 */ u16 Index;                         // base 1 unique primitive index; overwritten at load
+                                                // becomes index of unique primitive (same vertex format etc)
+    /* 28 */ u16 MinVertexIndex;                // lowest vertex triangle index in buffer
+    /* 2A */ u16 MaxVertexIndex;                // highest vertex index in buffer
+    /* 2C */ u32 Field2C;                       // ?; always 0 for Ryu
+    /* 30 */ u64 PrimitiveJointLinkPtr;         // overwritten at load
 
     local u64 p = FTell();
     FSeek( File.Header.VertexBufferOffset.Value + VertexBufferOffset );
-    ReadVertexBuffer( (rShaderObjectHash)Shader.Hash, VertexCount );
+    //ReadVertexBuffer( (rShaderObjectHash)Shader.Hash, VertexCount );
 
-    FSeek( File.Header.IndexBufferOffset.Value + ( IndexBufferOffset * 2 ) );
+    local u64 relIndexBufferOffset = IndexBufferOffset + IndexStartIndex;
+    FSeek( File.Header.IndexBufferOffset.Value + ( relIndexBufferOffset * 2 ) );
     u16 IndexBuffer[ IndexCount ];
+
+    //Printf( "%d\n", Type );
+    //Printf( "%08X\n", Type );
+    //Printf( "%d\n", Category2 );
+    //Printf( "%d\n", RenderMode );
+    //Printf( "%d\n", Field2C );
 
     FSeek( p );
 } rModelPrimitive <bgcolor=0x9c171d, optimize=false>;
@@ -74,14 +69,17 @@ typedef struct
 typedef struct
 {
     u32 Field00;
-    u32 Field04;
-    u32 Field08;
-    u32 Field0C;
+    u32 Field04; // always 0 for Ryu
+    u32 Field08; // always 0 for Ryu
+    u32 Field0C; // always 0 for Ryu
     f32 Field10;
     f32 Field14;
     f32 Field18;
     f32 Field1C;
-} rModelGroup <bgcolor=0x254cae>;
+
+    //Printf( "Field00: %d\n", Field00 );
+    //Printf( "Field10: %d\n", Field10 );
+} rModelGroup <bgcolor=0x254cae, optimize=true>;
 
 // size = 0x18
 typedef struct
@@ -89,12 +87,11 @@ typedef struct
     /* 00 */ u8 No; // mNo, id of the joint
     /* 01 */ u8 Parent; // mParent
     /* 02 */ u8 Symmetry; // mSymmetry, index to opposite joint
-    /* 03 */ u8 Field03; // unused (?)
+    /* 03 */ u8 Field03; // always 0 for Ryu
     /* 04 */ f32 Field04; // unused (?)
     /* 08 */ f32 Length; // mLength, distance to parent bone
     /* 0C */ SVec3 Offset; // mOffset, relative to parent
-    // Assert( Field03 == 0 );
-} rModelJoint <bgcolor=0x14c2e9>;
+} rModelJoint <bgcolor=0x14c2e9, optimize=true>;
 
 typedef struct
 {
@@ -108,12 +105,13 @@ typedef struct
     /* 04 */ u32 Field04;
     /* 08 */ u32 Field08;
     /* 0C */ u32 Field0C;
-    /* 10 */ SVec4 BoundingSphere;
-    /* 20 */ SVec4 Min;
-    /* 30 */ SVec4 Max;
-    /* 40 */ SMtx44 LocalMtx;
-    /* 80 */ SVec4 Field80;
-} rModelPrimitiveJointLink <bgcolor=0xbcdd3f>;
+    /* 10 */ SVec4 Vec10;
+    /* 20 */ SVec4 Vec20;
+    /* 30 */ SVec4 Vec30;
+    /* 40 */ SMtx44 Mtx40;
+    /* 80 */ SVec4 Vec80;
+    //Printf( "jointIdx: %d\n", JointIdx );
+} rModelPrimitiveJointLink <bgcolor=0xbcdd3f, optimize=true>;
 
 typedef struct
 {
@@ -126,7 +124,7 @@ typedef struct
     u32 IndexCount; // face count
     u32 PolygonCount; // vertex ids, "number of triangles excluding non-planar edge geometry"
     u32 VertexBufferSize;
-    u32 SecondBufferSize;
+    u32 VertexBuffer2Size;
     SNativeInt GroupCount; // group count
     SNativeInt JointsOffset; // bone offset
     SNativeInt GroupOffset; // group offset
@@ -149,11 +147,14 @@ typedef struct
     local u64 p = FTell();
     rModelHeader Header;
 
-    FSeek( p + Header.JointsOffset.Value );
-    rModelJoint Joints[Header.JointCount];
-    SMtx44 JointLocalMtx[Header.JointCount]; // ?
-    SMtx44 JointWorldMtx[Header.JointCount]; // ?
-    byte BoneMap[256];
+    if ( Header.JointsOffset.Value > 0 )
+    {
+        FSeek( p + Header.JointsOffset.Value );
+        rModelJoint Joints[Header.JointCount];
+        SMtx44 JointLocalMtx[Header.JointCount]; // ?
+        SMtx44 JointWorldMtx[Header.JointCount]; // ?
+        byte BoneMap[256];
+    }
 
     FSeek( p + Header.GroupOffset.Value );
     rModelGroup Groups[Header.GroupCount.Value];

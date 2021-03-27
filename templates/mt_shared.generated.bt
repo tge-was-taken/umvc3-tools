@@ -2777,7 +2777,7 @@ typedef enum<uint> {
  SHADER_FDiffuseColorCorectSH = 0x0013D94C,
  SHADER_FDiffuseColorCorectLightMap = 0x00112BF7,
  SHADER_FDiffuseColorCorectBone = 0x00028C3B,
- SHADER_FSpecularMaskToon = 0x0439DDD7,
+ SHADER_FSpecularMaskToon = 0x0009DDD7,
  SHADER_FToonShaderUroko = 0x002C40DC,
  SHADER_FWorldCoordinateSimple = 0x003E054A,
  SHADER_FWorldCoordinateSimple2 = 0x0030D70B,
@@ -2877,7 +2877,7 @@ typedef enum<uint> {
  SHADER_TMaterialCharAlpha = 0x0006F3C3,
  SHADER_TTVNoisePrimitive = 0x00073AB4,
  SHADER_TMaterialFurSell = 0x00097137,
-} rShaderObjectHash;
+} rShaderObjectHash <read=rShaderObjectHashToString>;
 
 typedef struct {
  local int64 p = FTell();

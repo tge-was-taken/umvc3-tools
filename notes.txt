@@ -1,0 +1,288 @@
+https://forum.xentax.com/viewtopic.php?f=10&t=3057&start=180
+
+*****************************************************************************
+ * mod.bt - Structure definitions for Devil May Cry 4 - mod file related entities.
+ *
+ *****************************************************************************
+ * Revision History:
+ *  2009/11/09 - GWC - Original
+ */
+
+#include "common-types.bt"
+
+SetReadOnly(true);
+
+// #pragma displayname("mod structures")
+// #pragma fileextensions(".mod")
+
+// #pragma byteorder(little_endian)
+LittleEndian();
+
+// mark used bytes with a light green background
+SetBackColor(cLtGreen);
+
+// MOD_FILE File Structure
+struct MOD_FILE
+{
+//	#pragma lockAt(0x00000000)
+
+	// MOD_FILE File Header Structure - 0x90 (144) bytes
+	struct MOD_HEADER
+	{
+		// 0x00
+		char fileID[4]; // "MOD"
+		uint16 fileVersion;
+		uint16 jointCount;
+		uint16 objectCount;
+		uint16 materialCount;
+		uint32 vertexCount;
+		// 0x10
+		uint32 indexCount;
+		uint32 unknown0x14;
+		uint32 vertexDataSize0 <format = hex>; // vertex stream 0 data size
+		uint32 vertexDataSize1 <format = hex>; // vertex stream 1 data size
+		// 0x20
+		uint32 textureCount;
+		uint32 unknownCount0x24;
+		uint32 unknownCount0x28;
+		uint32 jointDataOffset <format = hex>;
+		// 0x30
+		uint32 unknownOffset0x30 <format = hex>;
+		uint32 textureDataOffset <format = hex>;
+		uint32 objectDataOffset <format = hex>;
+		uint32 vertexDataOffset0 <format = hex>; // vertex stream 0 data offset
+		// 0x40
+		uint32 vertexDataOffset1 <format = hex>; // vertex stream 1 data offset
+		uint32 indexDataOffset <format = hex>;
+		uint32 unknown0x48;
+		uint32 unknown0x4C;
+		// 0x50
+		float4 boundingSphere;
+		// 0x060
+		float3 minBounds;
+		uint32 unknown0x6C;
+		// 0x70
+		float3 maxBounds;
+		uint32 unknown0x7C;
+		// 0x80
+		uint32 unknown0x80;
+		uint32 unknown0x84;
+		uint32 unknown0x88;
+		uint32 unknown0x8C;
+	} fileHeader;
+	
+	if (0 != fileHeader.jointDataOffset &&
+		0 < fileHeader.jointCount)
+	{
+		FSeek(fileHeader.jointDataOffset);
+		struct
+		{
+			struct
+			{
+				uint8 cId;
+				uint8 cParent;			// -1 means no parents
+				uint8 cChild;				// child id
+				uint8 cUnknown;
+				float fData[2];			// maybe forces?
+				float3 position;				// translation vector
+			} jointInfo[fileHeader.jointCount];
+			
+			float4x4 relativeTransforms[fileHeader.jointCount];
+			float4x4 absoluteTransforms[fileHeader.jointCount];
+			
+			uint8 unknownData0[0x100];
+			struct
+			{
+				uint32 unknownCount0x00;
+				uint8 unknown0x04[0x20];
+			} unknownData1[fileHeader.unknownCount0x28];
+		} jointData;
+	}
+	
+	if (0 != fileHeader.unknownOffset0x30 &&
+		0 < fileHeader.unknownCount0x24)
+	{
+		FSeek(fileHeader.unknownOffset0x30);
+		struct
+		{
+			uint32 index;
+			uint32 unknown0x04[7];
+		} unknownData0x30[fileHeader.unknownCount0x24];
+	}
+	
+	if (0 != fileHeader.textureDataOffset &&
+		0 < fileHeader.textureCount)
+	{
+		FSeek(fileHeader.textureDataOffset);
+		struct
+		{
+			char textureName[0x40];
+		} textureData[fileHeader.textureCount];
+		
+		struct
+		{
+			// 0x00
+			uint32 uiUnknown0x00 <format = hex>; // material flags
+			uint32 uiUnknown0x04 <format = hex>; // material flags
+			uint32 uiUnknown0x08 <format = hex>; // material id
+			uint32 uiUnknown0x0C <format = hex>;
+			// 0x10
+			uint32 uiUnknown0x10 <format = hex>;
+			uint32 uiUnknown0x14;
+			// 0x18
+			uint32 uiLayers[9];		// tex0 ... tex8 -  base 1, 0 means not bound
+			// 0x3C
+			float fAlpha; // material alpha? - used as float4(1,1,1,fAlpha) in game code
+			// 0x40
+			float fUnknown0x40[3];
+			float fUnknown0x4C;
+			// 0x50
+			float fUnknown0x50[4];	// [3] - ignored, assumed to be 0
+			// 0x60
+			float fUnknown0x60[2];
+			float fUnknown0x68;		// ignored?
+			float fUnknown0x6C;
+			// 0x70
+			float fUnknown0x70[4];
+			// 0x80
+			float fUnknown0x80[4];	// [2] - if < 0, = -1, else =1
+									// [3] - ignored?
+			// 0x90
+			uint32 unknown0x90 <format = hex>;		// some sort of flags/masked values
+			uint32 unknown0x94;						// index
+			uint32 unknown0x98;
+			uint32 uiLayer0x9C;						// tex10
+		} materialData[fileHeader.materialCount];
+	}
+	
+	if (0 != fileHeader.objectDataOffset &&
+		0 < fileHeader.objectCount)
+	{
+		FSeek(fileHeader.objectDataOffset);
+		struct
+		{
+			struct
+			{
+				// 0x00
+				uint16			usId;				// id from the indes table
+				uint16			usMatId;			// material Id
+				uint16			usFlag0x04[2];		// 0xFF01, 0, the 3rd flag determines what vertex declaration to use
+				uint8			usFlag0x08[4];		// [2] - unknown value, &= 0xFE if (prev.unknown0x0E + 1) != unknown0x2A
+													// [2] - &= 0xBF, if 0 == tex4
+				uint16			usFlag0x0C;			// 0xFF01, 0, the 3rd flag determines what vertex declaration to use
+				uint16			unknown0x0E;		// unknown value, compared to next object.unknown0x2A
+				// 0x10
+				uint16			usFlag0x10[2];		// 0xFF01, 0, the 3rd flag determines what vertex declaration to use
+				uint32			uiBase1;			// base multiple of 32
+				uint32			uiZero;
+				uint32			uiStart;			// start index
+				// 0x20
+				uint32			uiCount;			// faces (indices - 2)
+				uint32			uiBase;
+				uint8			unknown0x28[2];		// [0], [1] - indices, unknown data
+				uint16			unknown0x2A;		// unknown value, compared to previous object.unknown0x0E + 1
+				uint8			unknown0x2C[4];		// [0] - unknownData count, number of unknownData blocks assigned
+													// [1] - if 0x98 == file version, set to ((usFlag0x08[3] >> 1) & 0x0F)
+				// 0x30
+				uint32			unknown0x30 <format = hex>; // seems to be unused, overwritten with unknownData start address
+			} objectData[fileHeader.objectCount];
+			
+			struct
+			{
+				// 0x00
+				uint32 unknownCount0x00;
+				union
+				{
+					uint8 dataBytes[0x90];
+					struct
+					{
+						// 0x00
+						uint32 parentJoint; // index
+						uint32 unknown0x04[3];
+						// 0x10
+						float4 boundingSphere;
+						// 0x20
+						float4 minBounds;
+						// 0x30
+						float4 maxBounds;
+						// 0x40
+						float4x4 transformMatrix;
+						// 0x80
+						float3 unknown0x80;
+						uint32 unknown0x8C <format = hex>;
+					} unknownData;
+				} unknownData0x04[unknownCount0x00];
+			} unknownData;
+		} objectData;
+	}
+	
+	if (0 != fileHeader.vertexDataOffset0 &&
+		0 < fileHeader.vertexDataSize0)
+	{
+		FSeek(fileHeader.vertexDataOffset0);
+		union
+		{
+			uint8 dataBytes[fileHeader.vertexDataSize0];
+			// NOTE: still need to determine vertex declaration selection
+			struct
+			{
+				int16	x, y, z, w;			// w always 0x7FFF (32767, divisor?)
+				uint8	bone[4];
+				uint8	weight[4];
+				int8	nx, ny, nz, nw;
+				int8	tx, ty, tz, tw;		// tangent not textures !!
+				int16	u0, v0;
+				int16	u1, v1;				// seems to be always 0xFFFF 0xFFFF
+			} vertexData[fileHeader.vertexCount];
+		} vertexData0;
+	}
+	
+	if (0 != fileHeader.vertexDataOffset1 &&
+		0 < fileHeader.vertexDataSize1)
+	{
+		FSeek(fileHeader.vertexDataOffset1);
+		union
+		{
+			uint8 dataBytes[fileHeader.vertexDataSize1];
+			// NOTE: still need to determine vertex declaration selection
+		} vertexData1;
+	}
+	
+	if (0 != fileHeader.indexDataOffset &&
+		0 < fileHeader.indexCount)
+	{
+		FSeek(fileHeader.indexDataOffset);
+		uint16 indexData[fileHeader.indexCount - 1];
+	}
+};
+
+struct MOD_FILE fileInfo;
+
+struct
+{
+	// 0x00
+	uint16    usId0 : 5;              // used as power of 2, tested against value indexed by usId1
+	uint16    usId1 : 11;             // used as an index into a list of 32-bit (4-byte) values
+	uint16    usMatId;                // material Id
+	uint8     usFlag0x04[2];          // [0] - processing skipped if == 0
+	                                  // [1] - tested against an unknown bitmask
+	uint16    usFlag0x06;             //
+	uint8     usFlag0x08[4];          // [2] - unknown value, &= 0xFE if (prev.endVertex0x0E + 1) != startVertex0x2A
+	                                  // [2] - &= 0xBF, if 0 == tex4
+	uint16    vertexCount0x0C;        // vertex count
+	uint16    endVertex0x0E;          // end vertex - last vertex index used, compared to next object.startVertex0x2A
+	// 0x10
+	uint32    minVertex0x10;          // min vertex index
+	uint32    streamOffset0_0x14;     // start offset for vertex stream 0 (in bytes)
+	uint32    streamOffset1_0x18;     // start offset for vertex stream 1 (in bytes)
+	uint32    startIndex0x1C;         // start index
+	// 0x20
+	uint32    indexCount0x20;         // index count - faces (indices - 2)
+	uint32    uiBase0x24;             //
+	uint8     unknown0x28[2];         // [0], [1] - indices into vertex declarations
+	uint16    startVertex0x2A;        // start vertex, compared to previous object.endVertex0x0E + 1
+	uint8     unknown0x2C[4];         // [0] - unknownData count, number of unknownData blocks assigned
+	                                  // [1] - if 0x98 == file version, set to ((usFlag0x08[3] >> 1) & 0x0F)
+	// 0x30
+	uint32    unknown0x30 <format = hex>;    // seems to be unused, overwritten with unknownData start address
+} objectData[fileHeader.objectCount];

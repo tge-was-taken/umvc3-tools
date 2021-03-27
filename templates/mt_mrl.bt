@@ -98,7 +98,7 @@ string MrlMaterialCmdToString( MrlMaterialCmd& cmd )
             File.Textures[cmd.Value.TextureIndex].Path, 
             cmd.Value.TextureIndex );
     else
-        SPrintf( value, "%s", EnumToString( cmd.Value.ShaderObject.Hash ) );
+        SPrintf( value, "%s", rShaderObjectHashToString( cmd.Value.ShaderObject.Hash ) );
 
     string s = "";
     SPrintf( s, "%s %s %s", type, 

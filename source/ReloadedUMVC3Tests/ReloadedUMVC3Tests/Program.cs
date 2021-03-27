@@ -13,6 +13,7 @@ using System.Linq;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 using System.IO;
+using System.Timers;
 
 namespace ReloadedUMVC3Tests
 {
@@ -151,6 +152,35 @@ namespace ReloadedUMVC3Tests
         public byte UsageIndex;
     }
 
+    /* 148 */
+    [StructLayout( LayoutKind.Sequential, Pack = 1 )]
+    public unsafe struct TypeInfo_mbmr
+    {
+        public sbyte* Name;
+        public ulong qword10;
+        public fixed byte gap18[ 8 ];
+        public TypeInfo* Parent;
+        public TypeInfo* qword28;
+        public int AllocatorId;
+        public int NameHash;
+    };
+
+    /* 146 */
+    [StructLayout( LayoutKind.Sequential, Pack = 1 )]
+    public unsafe struct TypeInfo
+    {
+        public TypeInfo_vtbl* __vftable;
+        public TypeInfo_mbmr m;
+    };
+
+    [StructLayout( LayoutKind.Sequential, Pack = 1 )]
+    public unsafe struct TypeInfo_vtbl
+    {
+        public void* field_0;
+        public void* field_8;
+        public void* field_10;
+    };
+
     public unsafe class Functions
     {
         [Function( CallingConventions.Microsoft), UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -159,13 +189,24 @@ namespace ReloadedUMVC3Tests
         [Function( CallingConventions.Microsoft ), UnmanagedFunctionPointer( CallingConvention.Cdecl )]
         public unsafe delegate nDraw__InputLayout* nDraw__InputLayout__ctor_Delegate( nDraw__InputLayout* This, nDraw__InputLayoutElement* pElements, uint elementCount );
 
+        [Function( CallingConventions.Microsoft ), UnmanagedFunctionPointer( CallingConvention.Cdecl )]
+        public unsafe delegate TypeInfo* TypeInfo__ctor_Delegate( TypeInfo* @this, sbyte* name, TypeInfo* root, ulong a4, int nameHash, int a6, char a7 );
+
+        [Function( CallingConventions.Microsoft ), UnmanagedFunctionPointer( CallingConvention.Cdecl )]
+        public unsafe delegate int CRC32__Calculate_Delegate(sbyte* name, uint init);
+
         public IFunction<sShader2__SortShaderObjects_Delegate> sShader2__SortShaderObjects { get; }
         public IFunction<nDraw__InputLayout__ctor_Delegate> nDraw__InputLayout__ctor { get; }
+        public IFunction<TypeInfo__ctor_Delegate> TypeInfo_ctor { get; }
+        public IFunction<CRC32__Calculate_Delegate> CRC32__Calculate { get; }
 
         public Functions( IReloadedHooks hooks )
         {
             sShader2__SortShaderObjects = hooks.CreateFunction<sShader2__SortShaderObjects_Delegate>( 0x0000000140654BF0 );
             nDraw__InputLayout__ctor = hooks.CreateFunction<nDraw__InputLayout__ctor_Delegate>( 0x0000000140903520 );
+            TypeInfo_ctor = hooks.CreateFunction<TypeInfo__ctor_Delegate>( 0x0000000140456210 );
+            CRC32__Calculate = hooks.CreateFunction<CRC32__Calculate_Delegate>( 0x00000001404BD540 );
+
         }
     }
 
@@ -190,6 +231,179 @@ namespace ReloadedUMVC3Tests
         public ShaderInfo()
         {
             Elements = new List<ShaderElementInfo>();
+        }
+    }
+
+    public class TypeInfoData
+    {
+        public string Name { get; set; }
+        public int Hash { get; set; }
+    }
+
+    public unsafe abstract class Dumper
+    {
+        public bool HasChanges { get; private set; }
+
+        public Dumper()
+        {
+
+        }
+
+        public void EnableSaving()
+        {
+            HasChanges = true;
+        }
+
+        public void DisableSaving()
+            => HasChanges = false;
+
+        public void Save()
+        {
+            if ( !HasChanges )
+                return;
+
+            SaveCore();
+            HasChanges = false;
+        }
+
+        protected abstract void SaveCore();
+    }
+
+    public unsafe class StringHashesDumper : Dumper
+    {
+        private IHook<Functions.CRC32__Calculate_Delegate> mCRC32Hook;
+        private Dictionary<uint, string> mStringHashes;
+
+        public StringHashesDumper( Functions functions, IReloadedHooks hooks )
+        {
+            mStringHashes = new Dictionary<uint, string>();
+            mCRC32Hook = functions.CRC32__Calculate.Hook( CRC32Hook );
+            mCRC32Hook.Activate();
+        }
+
+        private unsafe int CRC32Hook( sbyte* pName, uint init )
+        {
+            DisableSaving();
+            var res = mCRC32Hook.OriginalFunction( pName, init );
+            var name = new string( pName );
+            if ( !mStringHashes.Contains(new KeyValuePair<uint, string>((uint)res, name)) )
+            {
+                Console.WriteLine( $"0x{res:X8} {name}" );
+                mStringHashes[ (uint)res ] = new string( pName );
+            }
+
+            EnableSaving();
+            return res;
+        }
+
+        protected override void SaveCore()
+        {
+            using var writer = File.CreateText( "hashes.csv" );
+            writer.WriteLine( "hash,name" );
+            foreach ( var kvp in mStringHashes )
+                writer.WriteLine( $"0x{kvp.Key:X8},{kvp.Value}" );
+        }
+    }
+
+    public unsafe class TypeInfoDumper : Dumper
+    {
+        private IHook<Functions.TypeInfo__ctor_Delegate> mTypeInfoCtorHook;
+        private List<TypeInfoData> mTypes;
+
+        public TypeInfoDumper( Functions functions, IReloadedHooks hooks )
+        {
+            mTypes = new List<TypeInfoData>();
+            mTypeInfoCtorHook = functions.TypeInfo_ctor.Hook( TypeInfoCtorHook );
+            mTypeInfoCtorHook.Activate();
+        }
+
+        private TypeInfo* TypeInfoCtorHook( TypeInfo* @this, sbyte* name, TypeInfo* root, ulong a4, int nameHash, int a6, char a7 )
+        {
+            DisableSaving();
+            mTypeInfoCtorHook.OriginalFunction( @this, name, root, a4, nameHash, a6, a7 );
+            var typeData = new TypeInfoData() { Name = new string( name ), Hash = @this->m.NameHash };
+            mTypes.Add( typeData );
+            Console.WriteLine( $"Added {typeData.Name} {typeData.Hash:X8}" );
+            EnableSaving( );
+            return @this;
+        }
+
+        protected override void SaveCore()
+        {
+            using var writer = File.CreateText( "types.csv" );
+            writer.WriteLine( "hash,name" );
+            foreach ( var type in mTypes )
+                writer.WriteLine( $"0x{type.Hash:X8},{type.Name}" );
+        }
+    }
+
+    public unsafe class ShaderInfoDumper : Dumper
+    {
+        private List<ShaderInfo> mShaders;
+        private IHook<Functions.sShader2__SortShaderObjects_Delegate> mSortShaderObjectsHook;
+        private IHook<Functions.nDraw__InputLayout__ctor_Delegate> mInputLayoutCtorHook;
+
+        public ShaderInfoDumper( Functions functions, IReloadedHooks hooks )
+        {
+            mShaders = new List<ShaderInfo>();
+
+            mSortShaderObjectsHook = functions.sShader2__SortShaderObjects.Hook( SortShadersHook );
+            mSortShaderObjectsHook.Activate();
+
+            mInputLayoutCtorHook = functions.nDraw__InputLayout__ctor.Hook( InputLayoutCtorHook );
+            mInputLayoutCtorHook.Activate();
+        }
+
+
+        private nDraw__InputLayout* InputLayoutCtorHook( nDraw__InputLayout* This, nDraw__InputLayoutElement* pElements, uint elementCount )
+        {
+            DisableSaving();
+            var result = mInputLayoutCtorHook.OriginalFunction( This, pElements, elementCount );
+
+            var shaderObjectAddress = (long)( (byte*)pElements - 0x38 );
+            var shader = mShaders.FirstOrDefault( x => x.ShaderObjectAddress == shaderObjectAddress );
+
+            for ( int i = 0; i < elementCount; i++ )
+            {
+                var element = pElements[ i ];
+                shader.Elements.Add( new ShaderElementInfo() { Name = pElements[ i ].Name, Element = This->mpElements[ i ] } );
+            }
+
+            EnableSaving( );
+            return result;
+        }
+
+        private unsafe void SortShadersHook( sShader2* This )
+        {
+            DisableSaving();
+            mSortShaderObjectsHook.OriginalFunction( This );
+            for ( int i = 0; i < This->m.ShaderObjectCount; i++ )
+            {
+                var shaderObj = This->m.ShaderObjects[ i ];
+                var shaderCacheEntry = This->m.ShaderCache[ i ];
+
+                if ( shaderObj != null && shaderObj->Name != null )
+                {
+                    mShaders.Add( new ShaderInfo() { ShaderObjectAddress = (long)shaderObj, Index = i, Name = shaderObj->Name, Hash = shaderCacheEntry.ShaderHash } );
+                    Console.WriteLine( $"{i},{shaderObj->Name},{shaderCacheEntry.ShaderHash:X8}" );
+                }
+                else
+                {
+                    mShaders.Add( new ShaderInfo() { ShaderObjectAddress = (long)shaderObj, Index = i, Name = null, Hash = 0 } );
+                    Console.WriteLine( $"{i},," );
+                }
+            }
+
+            EnableSaving( );
+        }
+
+        protected override void SaveCore()
+        {
+            var serializer = new SerializerBuilder()
+                .Build();
+            var yaml = serializer.Serialize( mShaders );
+            //System.Console.WriteLine( yaml );
+            File.WriteAllText( "shaders.yaml", yaml );
         }
     }
 
@@ -223,10 +437,13 @@ namespace ReloadedUMVC3Tests
         private IReloadedHooks _hooks;
 
         private Functions mFunctions;
+        private Timer mSaveTimer;
+        private List<Dumper> mDumpers;
+
         private IHook<Functions.sShader2__SortShaderObjects_Delegate> mSortShaderObjectsHook;
         private IHook<Functions.nDraw__InputLayout__ctor_Delegate> mInputLayoutCtorHook;
+        private IHook<Functions.TypeInfo__ctor_Delegate> mTypeInfoCtorHook;
 
-        private List<ShaderInfo> mShaders;
 
         /// <summary>
         /// Entry point for your mod.
@@ -246,66 +463,28 @@ namespace ReloadedUMVC3Tests
             _configuration = configurator.GetConfiguration<Config>( 0 );
             _configuration.ConfigurationUpdated += OnConfigurationUpdated;
 
-            mShaders = new List<ShaderInfo>();
-
-            /* Your mod code starts here. */
             mFunctions = new Functions( _hooks );
-            mSortShaderObjectsHook = mFunctions.sShader2__SortShaderObjects.Hook( SortShadersHook );
-            mSortShaderObjectsHook.Activate();
 
-            mInputLayoutCtorHook = mFunctions.nDraw__InputLayout__ctor.Hook( InputLayoutCtorHook );
-            mInputLayoutCtorHook.Activate();
-        }
-
-        private void Save()
-        {
-            var serializer = new SerializerBuilder()
-                .Build();
-            var yaml = serializer.Serialize( mShaders );
-            //System.Console.WriteLine( yaml );
-            File.WriteAllText( "dump.yaml", yaml );
-        }
-
-        private nDraw__InputLayout* InputLayoutCtorHook( nDraw__InputLayout* This, nDraw__InputLayoutElement* pElements, uint elementCount )
-        {
-            var result = mInputLayoutCtorHook.OriginalFunction( This, pElements, elementCount );
-
-            var shaderObjectAddress = (long)((byte*)pElements - 0x38);
-            var shader = mShaders.FirstOrDefault( x => x.ShaderObjectAddress == shaderObjectAddress );
-
-            for ( int i = 0; i < elementCount; i++ )
+            mDumpers = new List<Dumper>()
             {
-                var element = pElements[ i ];
-                shader.Elements.Add( new ShaderElementInfo() { Name = pElements[ i ].Name, Element = This->mpElements[ i ] } );
-            }
+                //new ShaderInfoDumper( mFunctions, _hooks ),
+                //new TypeInfoDumper( mFunctions, _hooks ),
+                new StringHashesDumper( mFunctions, _hooks ),
+            };
 
-            Save();
-
-            return result;
+            mSaveTimer = new Timer( TimeSpan.FromSeconds( 1 ).TotalMilliseconds );
+            mSaveTimer.Elapsed += MSaveTimer_Elapsed;
+            mSaveTimer.Start();
         }
 
-        private unsafe void SortShadersHook( sShader2* This )
+        private void MSaveTimer_Elapsed( object sender, ElapsedEventArgs e )
         {
-            mSortShaderObjectsHook.OriginalFunction( This );
-            for ( int i = 0; i < This->m.ShaderObjectCount; i++ )
+            foreach ( var dumper in mDumpers )
             {
-                var shaderObj = This->m.ShaderObjects[ i ];
-                var shaderCacheEntry = This->m.ShaderCache[ i ];
-
-                if ( shaderObj != null && shaderObj->Name != null )
-                {
-                    mShaders.Add( new ShaderInfo() { ShaderObjectAddress = (long)shaderObj, Index = i, Name = shaderObj->Name, Hash = shaderCacheEntry.ShaderHash } );
-                    Console.WriteLine( $"{i},{shaderObj->Name},{shaderCacheEntry.ShaderHash:X8}" );
-                }
-                else
-                {
-                    mShaders.Add( new ShaderInfo() { ShaderObjectAddress = (long)shaderObj, Index = i, Name = null, Hash = 0 } );
-                    Console.WriteLine( $"{i},," );
-                }
+                dumper.Save();
             }
-
-            Save();
         }
+
 
         private void OnConfigurationUpdated( IConfigurable obj )
         {
@@ -375,8 +554,6 @@ namespace ReloadedUMVC3Tests
         */
         public static void Main() 
         {
-            var deserializer = new DeserializerBuilder().Build();
-            var shaders = deserializer.Deserialize<List<ShaderInfo>>( File.ReadAllText( @"X:\games\pc\Ultimate Marvel vs. Capcom 3\dump.yaml" ) );
         }
     }
 }
