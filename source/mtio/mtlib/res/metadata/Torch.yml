@@ -1,0 +1,12 @@
+version: 1
+name: Torch
+joints:
+  id, name, field03, field04, length, parentId, symmetryId, offset:
+  - [200, knee_twist2_l, 0, 39.57676315307617, 18.027755737304688, -1, -1, [-10.0, 0.0, -15.0]]
+groups:
+  id, name, field04, field08, field0c, boundingSphere:
+  - [0, grp_0, 0, 0, 0, [10.0, 0.04219484329223633, 17.96051025390625, 21.545249938964844]]
+primitives:
+  id, name, links:
+  - [1, prm_1, []]
+  - [2, prm_2, []]

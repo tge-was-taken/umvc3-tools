@@ -1,0 +1,12 @@
+version: 1
+name: '0014'
+joints:
+  id, name, field03, field04, length, parentId, symmetryId, offset:
+  - [3, spine, 0, 265.846923828125, 100.0, -1, 3, [0.0, 100.0, 0.0]]
+groups:
+  id, name, field04, field08, field0c, boundingSphere:
+  - [0, grp_0, 0, 0, 0, [7.62939453125e-06, 76.85643768310547, 0.0, 194.91070556640625]]
+primitives:
+  id, name, links:
+  - [1, prm_1, []]
+  - [2, prm_2, []]

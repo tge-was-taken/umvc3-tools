@@ -1,0 +1,11 @@
+convertToZUp = True
+scale = 1
+importWeights = True
+importFilePath = ''
+importConvertTexturesToDDS = True
+importProfile = ''
+importNormals = True
+importGroups = True
+importSkeleton = True
+importPrimitives = True
+importSaveMrlYml = True

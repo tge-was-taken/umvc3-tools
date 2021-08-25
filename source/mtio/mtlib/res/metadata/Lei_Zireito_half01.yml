@@ -1,0 +1,12 @@
+version: 1
+name: Lei_Zireito_half01
+joints:
+  id, name, field03, field04, length, parentId, symmetryId, offset:
+  - [3, spine, 0, 114.23812103271484, 100.0, -1, 3, [0.0, 0.0, 100.0]]
+groups:
+  id, name, field04, field08, field0c, boundingSphere:
+  - [0, grp_0, 0, 0, 0, [0.0, 5.129518985748291, -51.77240753173828, 63.92882537841797]]
+primitives:
+  id, name, links:
+  - [1, prm_1, []]
+  - [2, prm_2, []]

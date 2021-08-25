@@ -1,0 +1,9 @@
+version: 1
+name: TrnGun
+joints: {}
+groups:
+  id, name, field04, field08, field0c, boundingSphere:
+  - [0, grp_0, 0, 0, 0, [0.0, 3.8160400390625, 12.233485221862793, 18.305557250976562]]
+primitives:
+  id, name, links:
+  - [1, prm_1, []]

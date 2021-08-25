@@ -1,0 +1,12 @@
+version: 1
+name: Rudra
+joints:
+  id, name, field03, field04, length, parentId, symmetryId, offset:
+  - [1, root, 0, 95.81978607177734, 0.0, -1, 1, [0.0, 0.0, 0.0]]
+groups:
+  id, name, field04, field08, field0c, boundingSphere:
+  - [0, grp_0, 0, 0, 0, [0.0, 17.471904754638672, 35.547325134277344, 65.06922149658203]]
+primitives:
+  id, name, links:
+  - [1, prm_1, []]
+  - [2, prm_2, []]

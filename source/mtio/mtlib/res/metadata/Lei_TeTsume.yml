@@ -1,0 +1,15 @@
+version: 1
+name: Lei_TeTsume
+joints:
+  id, name, field03, field04, length, parentId, symmetryId, offset:
+  - [3, spine, 0, 71.81438446044922, 0.0, -1, 3, [0.0, 0.0, 0.0]]
+groups:
+  id, name, field04, field08, field0c, boundingSphere:
+  - [0, grp_0, 0, 0, 0, [0.0, 5.48174524307251, 43.35456848144531, 31.759540557861328]]
+  - [1, grp_1, 0, 0, 0, [0.0, 0.28994011878967285, 9.581670761108398, 22.33808708190918]]
+primitives:
+  id, name, links:
+  - [1, prm_1, []]
+  - [2, prm_2, []]
+  - [3, prm_3, []]
+  - [4, prm_4, []]

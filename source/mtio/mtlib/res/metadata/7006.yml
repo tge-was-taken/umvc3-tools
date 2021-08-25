@@ -1,0 +1,12 @@
+version: 1
+name: '7006'
+joints:
+  id, name, field03, field04, length, parentId, symmetryId, offset:
+  - [1, root, 0, 30.585947036743164, 0.0, -1, 1, [0.0, 0.0, 0.0]]
+groups:
+  id, name, field04, field08, field0c, boundingSphere:
+  - [0, grp_0, 0, 0, 0, [-0.6543331146240234, -2.602780342102051, 0.0, 42.706153869628906]]
+primitives:
+  id, name, links:
+  - [1, prm_1, []]
+  - [2, prm_2, []]

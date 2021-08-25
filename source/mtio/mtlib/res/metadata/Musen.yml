@@ -1,0 +1,16 @@
+version: 1
+name: Musen
+joints:
+  id, name, field03, field04, length, parentId, symmetryId, offset:
+  - [1, root, 0, 36.38867950439453, 0.0, -1, 1, [0.0, 0.0, 0.0]]
+  - [2, pelvis, 0, 5.203105449676514, 0.0, 1, 2, [0.0, 0.0, 0.0]]
+groups:
+  id, name, field04, field08, field0c, boundingSphere:
+  - [1, grp_1, 0, 0, 0, [0.29789507389068604, 0.0, 16.05745506286621, 21.10239028930664]]
+  - [2, grp_2, 0, 0, 0, [0.6423550844192505, -5.0067901611328125e-06, 0.0, 9.26009750366211]]
+primitives:
+  id, name, links:
+  - [1, prm_1, []]
+  - [2, prm_2, []]
+  - [3, prm_3, []]
+  - [4, prm_4, []]

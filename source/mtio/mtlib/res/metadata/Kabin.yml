@@ -1,0 +1,18 @@
+version: 1
+name: Kabin
+joints:
+  id, name, field03, field04, length, parentId, symmetryId, offset:
+  - [1, root, 0, 38.98163986206055, 30.712221145629883, 2, 1, [0.0, 30.712221145629883, 0.0]]
+  - [2, pelvis, 0, 0.4330126941204071, 0.0, -1, 2, [0.0, 0.0, 0.0]]
+groups:
+  id, name, field04, field08, field0c, boundingSphere:
+  - [0, grp_0, 0, 0, 0, [-0.14550065994262695, 3.750960350036621, 1.7639002799987793, 37.265533447265625]]
+  - [127, grp_debug_cube, 0, 0, 0, [0.0, 0.0, 0.0, 0.4330126941204071]]
+primitives:
+  id, name, links:
+  - [1, prm_1, []]
+  - [2, prm_2, []]
+  - [3, prm_3, []]
+  - [4, prm_4, []]
+  - [5, prm_5, []]
+  - [6, prm_6, []]

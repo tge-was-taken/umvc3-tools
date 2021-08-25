@@ -126,7 +126,14 @@ typedef struct
 typedef struct
 {
     s16 Value;
-} fs16;
+} fs16 <read=fs16ToString>;
+
+string fs16ToString( fs16& v )
+{
+    string s = "";
+    SPrintf( s, "%f", (float)v.Value / 32767 );
+    return s;
+}
 
 typedef struct
 {

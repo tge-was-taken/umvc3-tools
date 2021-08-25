@@ -1,0 +1,12 @@
+version: 1
+name: 0002_dante_Rgun
+joints:
+  id, name, field03, field04, length, parentId, symmetryId, offset:
+  - [192, jnt_192, 0, 35.579246520996094, 0.0, -1, 192, [0.0, 0.0, 0.0]]
+groups:
+  id, name, field04, field08, field0c, boundingSphere:
+  - [0, grp_0, 0, 0, 0, [0.0, -12.938448905944824, 1.881199836730957, 23.50117301940918]]
+primitives:
+  id, name, links:
+  - [1, prm_1, []]
+  - [2, prm_2, []]

@@ -1,0 +1,9 @@
+version: 1
+name: '7017_03'
+joints: {}
+groups:
+  id, name, field04, field08, field0c, boundingSphere:
+  - [0, grp_0, 0, 0, 0, [5.002355575561523, 3.088047504425049, 2.1245625019073486, 13.31547737121582]]
+primitives:
+  id, name, links:
+  - [1, prm_1, []]

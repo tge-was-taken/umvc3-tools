@@ -1,0 +1,9 @@
+version: 1
+name: '0005_00'
+joints: {}
+groups:
+  id, name, field04, field08, field0c, boundingSphere:
+  - [0, grp_0, 0, 0, 0, [-0.21642303466796875, 115.59114837646484, 1.0973148345947266, 156.0860137939453]]
+primitives:
+  id, name, links:
+  - [1, prm_1, []]

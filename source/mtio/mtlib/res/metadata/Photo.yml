@@ -1,0 +1,15 @@
+version: 1
+name: Photo
+joints:
+  id, name, field03, field04, length, parentId, symmetryId, offset:
+  - [1, root, 0, 14.453624725341797, 8.25, 2, 1, [0.0, 8.25, 0.0]]
+  - [2, pelvis, 0, 0.6123724579811096, 0.0, -1, 2, [0.0, 0.0, 0.0]]
+groups:
+  id, name, field04, field08, field0c, boundingSphere:
+  - [0, grp_0, 0, 0, 0, [0.0, 4.76837158203125e-07, 0.8812849521636963, 14.371621131896973]]
+  - [127, grp_debug_cube, 0, 0, 0, [0.0, 0.25, 0.0, 0.4330126941204071]]
+primitives:
+  id, name, links:
+  - [1, prm_1, []]
+  - [2, prm_2, []]
+  - [3, prm_3, []]

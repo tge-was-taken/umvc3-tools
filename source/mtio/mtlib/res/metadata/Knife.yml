@@ -1,0 +1,12 @@
+version: 1
+name: Knife
+joints:
+  id, name, field03, field04, length, parentId, symmetryId, offset:
+  - [192, jnt_192, 0, 35.65740966796875, 0.0, -1, 192, [0.0, 0.0, 0.0]]
+groups:
+  id, name, field04, field08, field0c, boundingSphere:
+  - [0, grp_0, 0, 0, 0, [-13.237683296203613, 0.0, 0.0014807581901550293, 23.43902015686035]]
+primitives:
+  id, name, links:
+  - [1, prm_1, []]
+  - [2, prm_2, []]

@@ -1,0 +1,16 @@
+version: 1
+name: Tonosaman
+joints:
+  id, name, field03, field04, length, parentId, symmetryId, offset:
+  - [1, root, 0, 57.17482376098633, 29.415576934814453, 2, -1, [11.291600227355957, 26.919998168945312, -3.617959976196289]]
+  - [2, pelvis, 0, 0.6123724579811096, 0.0, -1, 2, [0.0, 0.0, 0.0]]
+groups:
+  id, name, field04, field08, field0c, boundingSphere:
+  - [0, grp_0, 0, 0, 0, [-3.814697265625e-06, 1.9073486328125e-06, 3.814697265625e-06, 62.74091339111328]]
+  - [127, grp_debug_cube, 0, 0, 0, [0.0, 0.25, 0.0, 0.4330126941204071]]
+primitives:
+  id, name, links:
+  - [1, prm_1, []]
+  - [2, prm_2, []]
+  - [3, prm_3, []]
+  - [4, prm_4, []]

@@ -1,0 +1,17 @@
+version: 1
+name: Lei_inken
+joints:
+  id, name, field03, field04, length, parentId, symmetryId, offset:
+  - [190, attach_hand_l, 0, 48.65907287597656, 0.0, -1, 190, [0.0, 0.0, 0.0]]
+  - [191, attach_hand_r, 0, 5.85567569732666, 13.0, -1, 191, [0.0, 0.0, -13.0]]
+  - [192, jnt_192, 0, 10.408302307128906, 17.045129776000977, 191, 192, [0.0, -13.908740043640137, 9.853090286254883]]
+groups:
+  id, name, field04, field08, field0c, boundingSphere:
+  - [0, grp_0, 0, 0, 0, [0.0, -0.6635851860046387, 19.563461303710938, 29.980005264282227]]
+primitives:
+  id, name, links:
+  - [1, prm_1, []]
+  - [2, prm_2, []]
+  - [3, prm_3, []]
+  - [4, prm_4, []]
+  - [5, prm_5, []]

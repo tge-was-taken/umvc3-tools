@@ -12,10 +12,11 @@
 //------------------------------------------------
 
 #include "mt_shared.bt"
+#include "mvc3_types.bt"
 
 typedef struct
 {
-    rShaderObjectId Hash;
+    Mvc3TypeNameHash TypeHash; // usually rTexture
     u32 Field04;
     u32 Field08;
     u32 Field0C;
@@ -34,7 +35,7 @@ typedef struct
 typedef enum
 {
     MrlMaterialCmdType_SetFlag = 0, // guess, toggles features/flags?
-    MrlMaterialCmdType_SetUniformBuffer = 1, // offset to data
+    MrlMaterialCmdType_SetConstantBuffer = 1, // offset to data
     MrlMaterialCmdType_SetSamplerState = 2, // guess
     MrlMaterialCmdType_SetTexture = 3, // texture index
     MrlMaterialCmdType_4 = 4, // hash
@@ -49,7 +50,7 @@ typedef struct
 
 typedef union
 {
-    u64 UniformBufferDataOffset; // type 1
+    u64 ConstantBufferDataOffset; // type 1
     rShaderObjectId ShaderObject; // type 0, 2, 4
     u32 TextureIndex; // type 3
 } MrlMaterialCmdValue;
@@ -62,10 +63,10 @@ typedef struct( u32 baseOffset )
     rShaderObjectId ShaderObject;
     u32 Field14;
 
-    if ( Info.Type == MrlMaterialCmdType_SetUniformBuffer )
+    if ( Info.Type == MrlMaterialCmdType_SetConstantBuffer )
     {
         local u64 p = FTell();
-        local u64 dataOffset = baseOffset + Value.UniformBufferDataOffset;
+        local u64 dataOffset = baseOffset + Value.ConstantBufferDataOffset;
         FSeek( dataOffset );
         
         Printf( "hash 0x%08X baseOffset 0x%08X dataOffset 0x%08X\n", 
@@ -83,6 +84,10 @@ typedef struct( u32 baseOffset )
 
         FSeek( p );
     }
+    else if ( Info.Type == MrlMaterialCmdType_SetTexture )
+    {
+        //Printf( "%d\n", Value.TextureIndex );
+    }
 } MrlMaterialCmd <bgcolor=0xAA0000, optimize=false, read=MrlMaterialCmdToString>;
 
 string MrlMaterialCmdToString( MrlMaterialCmd& cmd )
@@ -91,12 +96,18 @@ string MrlMaterialCmdToString( MrlMaterialCmd& cmd )
         Strlen( "MrlMaterialCmdType_" ) );
 
     local string value = "";
-    if ( cmd.Info.Type == MrlMaterialCmdType_SetUniformBuffer )
-        SPrintf( value, "0x%08X", cmd.Value.UniformBufferDataOffset );
+    if ( cmd.Info.Type == MrlMaterialCmdType_SetConstantBuffer )
+        SPrintf( value, "0x%08X", cmd.Value.ConstantBufferDataOffset );
     else if ( cmd.Info.Type == MrlMaterialCmdType_SetTexture )
+    {
+        local string texName = "<none>";
+        if ( cmd.Value.TextureIndex > 0 )
+            texName = File.Textures[ cmd.Value.TextureIndex - 1 ].Path;
+
         SPrintf( value, "%s (%d)", 
-            File.Textures[cmd.Value.TextureIndex].Path, 
+            texName, 
             cmd.Value.TextureIndex );
+    }
     else
         SPrintf( value, "%s", rShaderObjectHashToString( cmd.Value.ShaderObject.Hash ) );
 
@@ -106,32 +117,254 @@ string MrlMaterialCmdToString( MrlMaterialCmd& cmd )
     return s;
 }
 
+typedef enum<u32>
+{
+    MrlMaterialInfoFlags_Bit0 = 1 << 0,
+    MrlMaterialInfoFlags_Bit1 = 1 << 1,
+    MrlMaterialInfoFlags_Bit2 = 1 << 2,
+    MrlMaterialInfoFlags_Bit3 = 1 << 3,
+    MrlMaterialInfoFlags_Bit4 = 1 << 4,
+    MrlMaterialInfoFlags_Bit5 = 1 << 5,
+    MrlMaterialInfoFlags_Bit6 = 1 << 6,
+    MrlMaterialInfoFlags_Bit7 = 1 << 7,
+    MrlMaterialInfoFlags_Bit8 = 1 << 8,
+    MrlMaterialInfoFlags_Bit9 = 1 << 9,
+    MrlMaterialInfoFlags_Bit10 = 1 << 10,
+    MrlMaterialInfoFlags_Bit11 = 1 << 11,
+    MrlMaterialInfoFlags_Bit12 = 1 << 12,
+    MrlMaterialInfoFlags_Bit13 = 1 << 13,
+    MrlMaterialInfoFlags_Bit14 = 1 << 14,
+    MrlMaterialInfoFlags_Bit15 = 1 << 15,
+    MrlMaterialInfoFlags_Bit16 = 1 << 16,
+    MrlMaterialInfoFlags_Bit17 = 1 << 17,
+    MrlMaterialInfoFlags_Bit18 = 1 << 18,
+    MrlMaterialInfoFlags_Bit19 = 1 << 19,
+    MrlMaterialInfoFlags_Bit20 = 1 << 20,
+    MrlMaterialInfoFlags_Bit21 = 1 << 21,
+    MrlMaterialInfoFlags_Bit22 = 1 << 22,
+    MrlMaterialInfoFlags_Bit23 = 1 << 23,
+    MrlMaterialInfoFlags_Bit24 = 1 << 24,
+    MrlMaterialInfoFlags_Bit25 = 1 << 25,
+    MrlMaterialInfoFlags_Bit26 = 1 << 26,
+    MrlMaterialInfoFlags_Bit27 = 1 << 27,
+    MrlMaterialInfoFlags_Bit28 = 1 << 28,
+    MrlMaterialInfoFlags_Bit29 = 1 << 29,
+    MrlMaterialInfoFlags_Bit30 = 1 << 30,
+    MrlMaterialInfoFlags_Bit31 = 1 << 31,
+} MrlMaterialInfoFlags <read=MrlMaterialInfoFlagsToString>;
+
+string MrlMaterialInfoFlagsToString( MrlMaterialInfoFlags& f )
+{
+    local int fInt = (int)f;
+    local string s = "";
+    local int i = 0;
+    local int mask = 0;
+    local MrlMaterialInfoFlags temp;
+    for ( i = 0; i < 32; ++i )
+    {
+        mask = 1 << i;
+        if ( fInt & mask )
+        {
+            temp = (MrlMaterialInfoFlags)mask;
+            s += SubStr( EnumToString( temp ), Strlen( "MrlMaterialInfoFlags_" ) );
+            if ( i != 31 )
+                s += " | ";
+        }
+    }
+
+    s += " (0x%08X)";
+    SPrintf( s, s, fInt );
+
+    return s;
+}
+
 typedef struct
 {
-    u32 TypeHash;
+    u32 Unknown1          :  2; // 00000003
+    u32 Entry2Count       : 16; // 0003FFFC   
+    u32 Entry1Count       : 14; // FFFC0000 
+} MrlMaterialAnimDataEntryInfo;
+
+typedef struct
+{
+    rShaderObjectId ShaderObject;
+} MrlMaterialAnimDataSubEntry1;
+
+/*
+type sizes:
+0: 8 * count + 12
+1: 20 * ( count - 1 ) + 32
+2: 8 * count + 12 (same as 0)
+3: 16 * ( count - 1 ) + 24
+4: 80 * ( count - 1 ) + 92
+5: 8 * count + 8
+6: 24 * ( count - 1 ) + 36
+7: 24 * ( count - 1 ) + 36 (same as 6)
+*/
+
+typedef struct
+{
+    u32 Type              :  4; // 0000000F
+    u32 Unknown1          :  4; // 000000F0 
+    u32 EntryCount        : 24; // FFFFFF00 
+} MrlMaterialAnimDataSubEntry2Info;
+
+typedef struct( u32 count )
+{
+    u8 Header[ 12 ];
+    u8 Entries[ count * 8 ];
+} MrlMaterialAnimDataSubEntry2Type0Data;
+
+typedef struct( u32 count )
+{
+    u8 Header[ 32 ];
+    u8 Entries[ ( count - 1 ) * 20 ];
+} MrlMaterialAnimDataSubEntry2Type1Data;
+
+typedef struct( u32 count )
+{
+    u8 Header[ 12 ];
+    u8 Entries[ count * 8 ];
+} MrlMaterialAnimDataSubEntry2Type2Data;
+
+typedef struct( u32 count )
+{
+    u8 Header[ 24 ];
+    u8 Entries[ ( count - 1 ) * 16  ];
+} MrlMaterialAnimDataSubEntry2Type3Data;
+
+typedef struct( u32 count )
+{
+    u8 Header[ 4 ];
+    u8 Entries[ count * 80 ];
+} MrlMaterialAnimDataSubEntry2Type4Data;
+
+typedef struct( u32 count )
+{
+    u8 Header[ 8 ];
+    u8 Entries[ count * 8 ];
+} MrlMaterialAnimDataSubEntry2Type5Data;
+
+typedef struct( u32 count )
+{
+    u8 Header[ 36 ];
+    u8 Entries[ ( count - 1 ) * 24 ];
+} MrlMaterialAnimDataSubEntry2Type6Data;
+
+typedef struct( u32 count )
+{
+    u8 Header[ 36 ];
+    u8 Entries[ ( count - 1 ) * 24 ];
+} MrlMaterialAnimDataSubEntry2Type7Data;
+
+typedef struct
+{
+    u64 Field00;
+    u64 Field04;
+} MrlMaterialAnimDataSubEntry2TexInfo;
+
+typedef struct
+{
+    rShaderObjectId ShaderObject;
+    MrlMaterialAnimDataSubEntry2Info Info;
+
+    switch ( Info.Type )
+    {
+        case 0: MrlMaterialAnimDataSubEntry2Type0Data Data( Info.EntryCount ); break;
+        case 1: MrlMaterialAnimDataSubEntry2Type1Data Data( Info.EntryCount ); break;
+        case 2: MrlMaterialAnimDataSubEntry2Type2Data Data( Info.EntryCount ); break;
+        case 3: MrlMaterialAnimDataSubEntry2Type3Data Data( Info.EntryCount ); break;
+        case 4: MrlMaterialAnimDataSubEntry2Type4Data Data( Info.EntryCount ); break;
+        case 5: MrlMaterialAnimDataSubEntry2Type5Data Data( Info.EntryCount ); break;
+        case 6: MrlMaterialAnimDataSubEntry2Type6Data Data( Info.EntryCount ); break;
+        case 7: MrlMaterialAnimDataSubEntry2Type7Data Data( Info.EntryCount ); break;     
+    }
+} MrlMaterialAnimDataSubEntry2 <optimize=false, bgcolor=0x8E3FE2>;
+
+typedef struct( u32 base )
+{
+    u32 Field00;
+    MrlMaterialAnimDataEntryInfo Info;
+    u64 EntryList1Offset;
+    u32 Hash;
+    u32 Field14;
+    u64 EntryList2Offset;
+
+    local u64 p = FTell();
+    if ( Info.Entry1Count > 0 )
+    {
+        FSeek( base + EntryList1Offset );
+        MrlMaterialAnimDataSubEntry1 EntryList1[ Info.Entry1Count ];
+    }
+
+    if ( Info.Entry2Count > 0 )
+    {
+        FSeek( base + EntryList2Offset );
+        MrlMaterialAnimDataSubEntry2 EntryList2[ Info.Entry2Count ];
+    }
+    FSeek( p );
+} MrlMaterialAnimDataEntry <bgcolor=0x8E3FE2>;
+
+typedef struct( u32 base )
+{
+    u64 Offset;
+    if ( Offset != 0 )
+    {
+        local u64 p = FTell();
+        FSeek( base + Offset );
+        MrlMaterialAnimDataEntry Data( base );
+        FSeek( p );
+    }
+} MrlMaterialAnimDataEntryOffset <optimize=false, bgcolor=0x8E3FE2>;
+
+typedef struct
+{
+    local u64 start = FTell();
+
+    u32 EntryCount;
     u32 Field04;
-    rShaderObjectId Hash08; // hash
-    u32 Offset0C; // offset
-    rShaderObjectId BlendSource;
-    rShaderObjectId DepthStencil;
-    rShaderObjectId RenderSetting;
+    MrlMaterialAnimDataEntryOffset Entries( start )[ EntryCount ];
+} MrlMaterialAnimData <optimize=false, bgcolor=0xDF0157>;
+
+typedef struct
+{
+    Mvc3TypeNameHash TypeHash;
+    u32 Field04;
+    u32 NameHash;
+    u32 CmdBufferSize; // commands + uniform buffer data
+    rShaderObjectId BlendState; // nDraw::BlendState
+    rShaderObjectId DepthStencilState; // nDraw::DepthStencilState
+    rShaderObjectId RasterizerState; // nDraw::RasterizerState
     MrlMaterialCmdListInfo CmdListInfo;
-    u32 Flags20;
+    MrlMaterialInfoFlags Flags;
     u32 Field24;
     u32 Field28;
     u32 Field2C;
     u32 Field30;
-    u32 Field34;
+    u32 AnimDataSize;
     u64 CmdListOffset; // offset
-    u64 Offset40;
+    u64 AnimDataOffset; // seen in nDraw::MaterialUI
     
     local u64 p = FTell();
     if ( CmdListInfo.Count > 0 )
     {
         FSeek( CmdListOffset );
-        MrlMaterialCmd Cmd( CmdListOffset )[ CmdListInfo.Count ];
+        struct { MrlMaterialCmd Cmd( CmdListOffset )[ CmdListInfo.Count ]; } Cmds;
+        u8 ConstantBufferData[ CmdBufferSize - ( CmdListInfo.Count * 24 ) ];
         FSeek( p );
     }
+
+    if ( AnimDataSize > 0 )
+    {
+        
+        Printf( "AnimDataSize 0x%08X\n", AnimDataSize );
+
+        FSeek( AnimDataOffset );
+        MrlMaterialAnimData AnimData;
+        //u8 AnimData[ AnimDataSize + 0x10 ];
+        FSeek( p );
+    }
+
 } MrlMaterialInfo <optimize=false, bgcolor=0x005500>;
 
 typedef struct

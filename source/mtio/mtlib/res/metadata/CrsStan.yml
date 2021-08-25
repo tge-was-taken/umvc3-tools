@@ -1,0 +1,13 @@
+version: 1
+name: CrsStan
+joints:
+  id, name, field03, field04, length, parentId, symmetryId, offset:
+  - [202, attach_elbow_l, 0, 0.0, 0.0, -1, 202, [0.0, 0.0, 0.0]]
+  - [203, attach_elbow_r, 0, 13.126916885375977, 68.31524658203125, 202, 203, [0.0, 0.0, 68.31524658203125]]
+groups:
+  id, name, field04, field08, field0c, boundingSphere:
+  - [0, grp_0, 0, 0, 0, [-0.23195505142211914, 0.0, -38.00517654418945, 44.438045501708984]]
+primitives:
+  id, name, links:
+  - [1, prm_1, []]
+  - [2, prm_2, []]

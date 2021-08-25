@@ -1,0 +1,12 @@
+version: 1
+name: Lei_Tenraiha
+joints:
+  id, name, field03, field04, length, parentId, symmetryId, offset:
+  - [3, spine, 0, 67.5752182006836, 55.61402893066406, -1, 3, [0.0, 55.61402893066406, 0.0]]
+groups:
+  id, name, field04, field08, field0c, boundingSphere:
+  - [0, grp_0, 0, 0, 0, [0.0, -26.60835838317871, 0.0, 64.26915740966797]]
+primitives:
+  id, name, links:
+  - [1, prm_1, []]
+  - [2, prm_2, []]

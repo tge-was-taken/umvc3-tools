@@ -1,0 +1,12 @@
+version: 1
+name: Kama
+joints:
+  id, name, field03, field04, length, parentId, symmetryId, offset:
+  - [202, attach_elbow_l, 0, 50.64949417114258, 18.867961883544922, -1, -1, [-10.0, -16.0, 0.0]]
+groups:
+  id, name, field04, field08, field0c, boundingSphere:
+  - [0, grp_0, 0, 0, 0, [10.0, 1.0156784057617188, 14.772903442382812, 44.944087982177734]]
+primitives:
+  id, name, links:
+  - [1, prm_1, []]
+  - [2, prm_2, []]

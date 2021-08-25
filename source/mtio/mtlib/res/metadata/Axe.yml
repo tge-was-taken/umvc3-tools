@@ -1,0 +1,12 @@
+version: 1
+name: Axe
+joints:
+  id, name, field03, field04, length, parentId, symmetryId, offset:
+  - [198, jnt_198, 0, 123.32192993164062, 0.0, -1, 198, [0.0, 0.0, 0.0]]
+groups:
+  id, name, field04, field08, field0c, boundingSphere:
+  - [0, grp_0, 0, 0, 0, [0.0, 67.71563720703125, 17.031770706176758, 57.18203353881836]]
+primitives:
+  id, name, links:
+  - [1, prm_1, []]
+  - [2, prm_2, []]

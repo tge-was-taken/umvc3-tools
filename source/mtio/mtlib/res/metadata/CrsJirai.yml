@@ -1,0 +1,14 @@
+version: 1
+name: CrsJirai
+joints:
+  id, name, field03, field04, length, parentId, symmetryId, offset:
+  - [209, jnt_209, 0, 17.69720458984375, 0.0, -1, 209, [0.0, 0.0, 0.0]]
+groups:
+  id, name, field04, field08, field0c, boundingSphere:
+  - [0, grp_0, 0, 0, 0, [-4.427299976348877, 0.0, 0.0, 23.828392028808594]]
+primitives:
+  id, name, links:
+  - [1, prm_1, []]
+  - [2, prm_2, []]
+  - [3, prm_3, []]
+  - [4, prm_4, []]

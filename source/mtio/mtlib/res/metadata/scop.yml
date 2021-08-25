@@ -1,0 +1,22 @@
+version: 1
+name: scop
+joints:
+  id, name, field03, field04, length, parentId, symmetryId, offset:
+  - [1, root, 0, 42.136592864990234, 0.0, -1, 1, [0.0, 0.0, 0.0]]
+groups:
+  id, name, field04, field08, field0c, boundingSphere:
+  - [0, grp_0, 0, 0, 0, [0.0, 0.9387449026107788, 7.495121002197266, 36.17682647705078]]
+primitives:
+  id, name, links:
+  - [1, prm_1, []]
+  - [2, prm_2, []]
+  - [3, prm_3, []]
+  - [4, prm_4, []]
+  - [5, prm_5, []]
+  - [6, prm_6, []]
+  - [7, prm_7, []]
+  - [8, prm_8, []]
+  - [9, prm_9, []]
+  - [10, prm_10, []]
+  - [11, prm_11, []]
+  - [12, prm_12, []]

@@ -1,0 +1,15 @@
+version: 1
+name: 0003_Bat
+joints:
+  id, name, field03, field04, length, parentId, symmetryId, offset:
+  - [1, root, 0, 96.97183990478516, 0.0, -1, 1, [0.0, 0.0, 0.0]]
+groups:
+  id, name, field04, field08, field0c, boundingSphere:
+  - [0, grp_0, 0, 0, 0, [0.0, -0.004290103912353516, 38.92010498046875, 50.85804748535156]]
+  - [1, grp_1, 0, 0, 0, [-0.8916850090026855, 0.5344948768615723, 42.68064880371094, 56.638545989990234]]
+primitives:
+  id, name, links:
+  - [1, prm_1, []]
+  - [2, prm_2, []]
+  - [3, prm_3, []]
+  - [4, prm_4, []]

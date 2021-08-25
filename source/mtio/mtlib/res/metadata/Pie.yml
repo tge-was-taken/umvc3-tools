@@ -1,0 +1,15 @@
+version: 1
+name: Pie
+joints:
+  id, name, field03, field04, length, parentId, symmetryId, offset:
+  - [1, root, 0, 20.656219482421875, 0.0, -1, 1, [0.0, 0.0, 0.0]]
+groups:
+  id, name, field04, field08, field0c, boundingSphere:
+  - [0, grp_0, 0, 0, 0, [2.3376500606536865, -7.206989288330078, 0.18850421905517578, 18.748125076293945]]
+  - [1, grp_1, 0, 0, 0, [-2.3376500606536865, -7.206989288330078, 0.18850421905517578, 18.748125076293945]]
+primitives:
+  id, name, links:
+  - [1, prm_1, []]
+  - [2, prm_2, []]
+  - [3, prm_3, []]
+  - [4, prm_4, []]

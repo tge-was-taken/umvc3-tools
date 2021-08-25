@@ -1,0 +1,14 @@
+version: 1
+name: Katana
+joints:
+  id, name, field03, field04, length, parentId, symmetryId, offset:
+  - [3, spine, 0, 126.07103729248047, 0.0, -1, 3, [0.0, 0.0, 0.0]]
+groups:
+  id, name, field04, field08, field0c, boundingSphere:
+  - [1, grp_1, 0, 0, 0, [0.0, 0.46813011169433594, 51.671661376953125, 74.56532287597656]]
+primitives:
+  id, name, links:
+  - [1, prm_1, []]
+  - [2, prm_2, []]
+  - [3, prm_3, []]
+  - [4, prm_4, []]

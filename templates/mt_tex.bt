@@ -1,0 +1,141 @@
+//------------------------------------------------
+//--- 010 Editor v11.0 Binary Template
+//
+//      File: 
+//   Authors: 
+//   Version: 
+//   Purpose: 
+//  Category: 
+// File Mask: 
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+
+#include "mt_shared.bt"
+
+/*
+v7 = (unsigned int)header.field_8 >> 19 << (HIBYTE(header.field_4) & 0xF);
+*/
+
+typedef struct
+{
+                         // mask shift mask shifted  notes
+    u32 type    : 16;    // FFFF 0     0000FFFF      must be 0x209D or 0xA09D
+    u32 field2  :  8;    // 00FF 16    00FF0000      0
+    u32 shift   :  4;    // 000F 24    0F000000      0
+    u32 dimensions :  4; // 000F 28    F0000000      2 for 2d, 6 for cubemaps
+} rTextureDesc;
+
+typedef struct
+{
+                        // mask shift   mask shifted 
+    u32 mipCount :  6;  // 003F 0       0000003F
+    u32 width    : 13;  // 1FFF 6       0007FFC0    
+    u32 height   : 13;  // 1FFF 19      FFF80000     
+} rTextureDim;
+
+typedef enum<u32>
+{
+    rTextureSurfaceFormat_DXT1   = 0x13,
+    rTextureSurfaceFormat_DXT1_2 = 0x14,
+    rTextureSurfaceFormat_DXT1_3 = 0x19,
+    rTextureSurfaceFormat_DXT1_4 = 0x1A,
+    rTextureSurfaceFormat_DXT1_5 = 0x1E,
+    rTextureSurfaceFormat_DXT1_6 = 0x29,
+    
+    rTextureSurfaceFormat_DXT5_1 = 0x15,
+    rTextureSurfaceFormat_DXT5_2 = 0x16,
+    rTextureSurfaceFormat_DXT5_3 = 0x17,
+    rTextureSurfaceFormat_DXT5_4 = 0x18,
+    rTextureSurfaceFormat_DXT5_5 = 0x1B,
+    rTextureSurfaceFormat_DXT5_6 = 0x1F,
+    rTextureSurfaceFormat_DXT5_7 = 0x20,
+    rTextureSurfaceFormat_DXT5_8 = 0x21,
+    rTextureSurfaceFormat_DXT5_9 = 0x23,
+    rTextureSurfaceFormat_DXT5_10 = 0x24,
+    rTextureSurfaceFormat_DXT5_11 = 0x25,
+    rTextureSurfaceFormat_DXT5_12 = 0x2A,
+    rTextureSurfaceFormat_DXT5_13 = 0x2B,
+    rTextureSurfaceFormat_DXT5_14 = 0x2F,
+} rTextureSurfaceFormat;
+
+typedef struct
+{
+                                                // mask shift  mask shifted notes
+    u32 surfaceCount                    :  8;   // 00FF 0      000000FF     1
+    rTextureSurfaceFormat surfaceFmt    :  8;   // 00FF 8      0000FF00     
+    u32 field3                          : 13;   // 1FFF 16     1FFF0000     1
+    u32 field4                          :  3;   // 0003 29     60000000     0
+} rTextureFmt;
+
+typedef struct
+{
+    u32 magic;
+    rTextureDesc desc;
+    rTextureDim dim;
+    rTextureFmt fmt;
+} rTextureHeader;
+
+typedef struct( u32 mipCount, bool isLast )
+{
+    u64 mipOffsets[ mipCount ];
+    local u64 endPos = FTell();  
+
+    // calculate size of each mip and read data 
+    local u32 i = 0;   
+    local u32 nextOffset = 0;  
+    local u32 mipSize = 0;
+    for ( i = 0; i < mipCount; ++i )
+    {
+        if ( i + 1 < mipCount )
+        {
+            nextOffset = mipOffsets[ i + 1 ];
+        }
+        else
+        {
+            if ( isLast )
+            {
+                // last mip ends at EOF
+                nextOffset = FileSize();
+            }
+            else
+            {
+                // peek next mip offset
+                nextOffset = ReadInt( endPos );
+            }
+        }
+
+        mipSize = nextOffset - mipOffsets[i];
+        FSeek( mipOffsets[ i ] );
+        struct { u8 data[ mipSize ]; } mip <bgcolor=cRed>;
+    }
+    
+    FSeek( endPos );
+} rTextureSurface;
+
+typedef struct
+{
+    f32 field00;
+    f32 negative[3];
+    f32 positive[3];
+    f32 uv[2];
+} rTextureFace;
+
+typedef struct
+{
+    rTextureHeader header;
+
+    if ( header.desc.dimensions == 6 )
+    {
+        // cubemap
+        rTextureFace faces[ 3 ];
+    }
+
+    local u32 i;
+    for ( i = 0; i < header.fmt.surfaceCount; ++i )
+        rTextureSurface surface( header.dim.mipCount, i + 1 == header.fmt.surfaceCount );
+
+
+} rTexture;
+
+rTexture File;

@@ -19,89 +19,15 @@
 typedef struct
 {
     // ex. 010000FF (bytes)
-    /* FFF00000 */ u32 JointIndex : 12;        // root joint index
+    /* FFF00000 */ u32 GroupId : 12;           // group id
     /* 000FFF00 */ u32 MaterialIndex : 12;     // index into the material name array
-    /* 000000FF */ u32 LodIndex : 8;           // 0=null, 1=high, 2=mid, 3=low,FF=shadow
-} rModelJointMaterialLodId;
-
-typedef struct
-{
-    /* 00 */ u16 Type;                          // ?
-    /* 02 */ u16 VertexCount;                   // no. of vertices drawn by this primitive
-    /* 04 */ rModelJointMaterialLodId JMLId;    // aggregrate of root joint index, material index and lod index
-    /* 08 */ u8 Category1;                      // flags? 0x9=hidden, 0x11=hands, 0x21=visible
-    /* 09 */ u8 Category2;                      // cont.
-    /* 0A */ u8 VertexStride;                   // no. bytes per vertex
-    /* 0B */ u8 RenderMode;                     // ?
-    /* 0C */ u32 VertexStartIndex;              // index of the starting vertex in the buffer slice 
-    /* 10 */ u32 VertexBufferOffset;            // offset into the model vertex buffer
-    /* 14 */ rShaderObjectId Shader;            // shader name crc << 12 | shader index
-    /* 18 */ u32 IndexBufferOffset;             // offset into the model index buffer, in multiples of 2
-    /* 1C */ u32 IndexCount;                    // number of indices to render
-    /* 20 */ u32 IndexStartIndex;               // index of the starting index in the buffer slice
-    /* 24 */ u8 BoneMapStartIndex;              // starting index used for the bone idx -> joint idx map
-    /* 25 */ u8 PrimitiveJointLinkCount;        // no. prim joint links used by this primitive
-    /* 26 */ u16 Index;                         // base 1 unique primitive index; overwritten at load
-                                                // becomes index of unique primitive (same vertex format etc)
-    /* 28 */ u16 MinVertexIndex;                // lowest vertex triangle index in buffer
-    /* 2A */ u16 MaxVertexIndex;                // highest vertex index in buffer
-    /* 2C */ u32 Field2C;                       // ?; always 0 for Ryu
-    /* 30 */ u64 PrimitiveJointLinkPtr;         // overwritten at load
-
-    local u64 p = FTell();
-    FSeek( File.Header.VertexBufferOffset.Value + VertexBufferOffset );
-    //ReadVertexBuffer( (rShaderObjectHash)Shader.Hash, VertexCount );
-
-    local u64 relIndexBufferOffset = IndexBufferOffset + IndexStartIndex;
-    FSeek( File.Header.IndexBufferOffset.Value + ( relIndexBufferOffset * 2 ) );
-    u16 IndexBuffer[ IndexCount ];
-
-    //Printf( "%d\n", Type );
-    //Printf( "%08X\n", Type );
-    //Printf( "%d\n", Category2 );
-    //Printf( "%d\n", RenderMode );
-    //Printf( "%d\n", Field2C );
-
-    FSeek( p );
-} rModelPrimitive <bgcolor=0x9c171d, optimize=false>;
-
-
-typedef struct
-{
-    u32 Field00;
-    u32 Field04; // always 0 for Ryu
-    u32 Field08; // always 0 for Ryu
-    u32 Field0C; // always 0 for Ryu
-    f32 Field10;
-    f32 Field14;
-    f32 Field18;
-    f32 Field1C;
-
-    //Printf( "Field00: %d\n", Field00 );
-    //Printf( "Field10: %d\n", Field10 );
-} rModelGroup <bgcolor=0x254cae, optimize=true>;
-
-// size = 0x18
-typedef struct
-{
-    /* 00 */ u8 No; // mNo, id of the joint
-    /* 01 */ u8 Parent; // mParent
-    /* 02 */ u8 Symmetry; // mSymmetry, index to opposite joint
-    /* 03 */ u8 Field03; // always 0 for Ryu
-    /* 04 */ f32 Field04; // unused (?)
-    /* 08 */ f32 Length; // mLength, distance to parent bone
-    /* 0C */ SVec3 Offset; // mOffset, relative to parent
-} rModelJoint <bgcolor=0x14c2e9, optimize=true>;
-
-typedef struct
-{
-    u8 Name[128];   
-} rModelMaterial <bgcolor=0x447e49>;
+    /* 000000FF */ u32 LodIndex : 8;           // 
+} rModelPrimitiveIndices;
 
 // size = 0x90
 typedef struct
 {
-    /* 00 */ u32 JointIdx;
+    /* 00 */ u32 JointIndex;
     /* 04 */ u32 Field04;
     /* 08 */ u32 Field08;
     /* 0C */ u32 Field0C;
@@ -112,6 +38,108 @@ typedef struct
     /* 80 */ SVec4 Vec80;
     //Printf( "jointIdx: %d\n", JointIdx );
 } rModelPrimitiveJointLink <bgcolor=0xbcdd3f, optimize=true>;
+
+typedef struct( u32& primitiveJointLinkIndex )
+{
+    /* 00 */ u16 Flags;                         // ?
+    /* 02 */ u16 VertexCount;                   // no. of vertices drawn by this primitive
+    /* 04 */ rModelPrimitiveIndices Indices;    // aggregrate of root joint index, material index and lod index
+    /* 08 */ u16 VertexFlags;                   // flags? 0x9=hidden, 0x11=hands, 0x21=visible
+    /* 0A */ u8 VertexStride;                   // no. bytes per vertex
+    /* 0B */ u8 RenderMode;                     // ?
+    /* 0C */ u32 VertexStartIndex;              // index of the starting vertex in the buffer slice 
+    /* 10 */ u32 VertexBufferOffset;            // offset into the model vertex buffer
+    /* 14 */ rShaderObjectId Shader;            // shader name crc << 12 | shader index
+    /* 18 */ u32 IndexBufferOffset;             // offset into the model index buffer, in multiples of 2
+    /* 1C */ u32 IndexCount;                    // number of indices to render
+    /* 20 */ u32 IndexStartIndex;               // index of the starting index in the buffer slice
+    /* 24 */ u8 BoneMapStartIndex;              // starting index used for the bone idx -> joint idx map
+    /* 25 */ u8 PrimitiveJointLinkCount;        // no. prim joint links used by this primitive
+    /* 26 */ u16 Id;                            // base 1 unique primitive id; overwritten at load
+                                                // becomes index of unique primitive (same vertex format etc)
+    /* 28 */ u16 MinVertexIndex;                // lowest vertex triangle index in buffer
+    /* 2A */ u16 MaxVertexIndex;                // highest vertex index in buffer
+    /* 2C */ u32 Field2C;                       // ?; always 0 for Ryu
+    /* 30 */ u64 PrimitiveJointLinkPtr;         // overwritten at load
+
+    local u64 p = FTell();
+    FSeek( File.Header.VertexBufferOffset.Value + VertexBufferOffset );
+    ReadVertexBuffer( (rShaderObjectHash)Shader.Hash, VertexCount );
+
+    local u64 relIndexBufferOffset = IndexBufferOffset + IndexStartIndex;
+    FSeek( File.Header.IndexBufferOffset.Value + ( relIndexBufferOffset * 2 ) );
+    u16 IndexBuffer[ IndexCount ];
+
+    FSeek( File.Header.PrimitiveOffset.Value + ( Header.PrimitiveCount * 56 ) + ( primitiveJointLinkIndex * 144 ) );
+    rModelPrimitiveJointLink PrimitiveJointLinks[ PrimitiveJointLinkCount ] <bgcolor=cGreen>;
+    primitiveJointLinkIndex += PrimitiveJointLinkCount;
+
+    //Printf( "%d\n", Type );
+    //Printf( "%08X\n", Type );
+    //Printf( "%d\n", flags2 );
+    //Printf( "%d\n", RenderMode );
+    //Printf( "%d\n", Field2C );
+
+    FSeek( p );
+} rModelPrimitive <bgcolor=0x9c171d, optimize=false>;
+
+
+typedef struct
+{
+    u32 Id;
+    u32 Field04; // always 0 for Ryu
+    u32 Field08; // always 0 for Ryu
+    u32 Field0C; // always 0 for Ryu
+    SSphere BoundingSphere;
+
+    //Printf( "Field00: %d\n", Field00 );
+    //Printf( "Field10: %d\n", Field10 );
+} rModelGroup <bgcolor=0x254cae, optimize=true>;
+
+void ListPrimitiveJointLinksByIndex( u8 index )
+{
+    struct( u8 index )
+    {
+        local u64 p = FTell();
+        local u32 i = 0;
+        local u32 curJointIndex;
+        for ( i = 0; i < File.Header.PrimitiveJointLinkCount; ++i )
+        {
+            FSeek( File.Header.PrimitiveOffset.Value + ( Header.PrimitiveCount * 56 ) + ( i * 144 )  );
+            curJointIndex = ReadInt( FTell() );
+            if ( curJointIndex == index )
+            {
+                rModelPrimitiveJointLink PrimitiveJointLinks;
+            }
+        }
+        FSeek( p );
+    } PrimitiveJointLinks( index );
+}
+
+// size = 0x18
+typedef struct( u32& index )
+{
+    /* 00 */ u8 Id; // mNo, id of the joint
+    /* 01 */ u8 Parent; // mParent
+    /* 02 */ u8 Symmetry; // mSymmetry, index to opposite joint
+    /* 03 */ u8 Field03; // always 0 for Ryu
+    /* 04 */ f32 Field04; // unused (?)
+    /* 08 */ f32 Length; // mLength, distance to parent bone
+    /* 0C */ SVec3 Offset; // mOffset, relative to parent
+
+    ListPrimitiveJointLinksByIndex( index );
+    index++;
+} rModelJoint <bgcolor=0x14c2e9, optimize=false>;
+
+typedef struct
+{
+    u8 Name[128];   
+} rModelMaterial <bgcolor=0x447e49, read=rModelMaterialToString>;
+
+string rModelMaterialToString( rModelMaterial& m )
+{
+    return m.Name;
+}
 
 typedef struct
 {
@@ -142,6 +170,28 @@ typedef struct
     u32 PrimitiveJointLinkCount;
 } rModelHeader <bgcolor=0x0177e2>;
 
+typedef struct 
+{
+    byte JointIndex;
+
+    if ( JointIndex >= 0 )
+    {
+        local u64 p = FTell();
+        FSeek( File.Header.JointsOffset.Value + JointIndex * 0x18 );
+        local u32 jointIndexRef = JointIndex;
+        rModelJoint Joint( jointIndexRef );
+        FSeek( p );
+    }
+} rModelBoneMapEntry <optimize=false, read=rModelBoneMapEntryToString>;
+
+string rModelBoneMapEntryToString( rModelBoneMapEntry& e )
+{
+    if ( e.JointIndex < 0 ) return "<null>";
+    string s = "";
+    SPrintf( s, "idx %03d, id %03d, p %03d, sym %03d", e.JointIndex, e.Joint.Id, e.Joint.Parent, e.Joint.Symmetry );
+    return s; 
+}
+
 typedef struct
 {
     local u64 p = FTell();
@@ -150,10 +200,12 @@ typedef struct
     if ( Header.JointsOffset.Value > 0 )
     {
         FSeek( p + Header.JointsOffset.Value );
-        rModelJoint Joints[Header.JointCount];
+        local u32 jointIndex = 0;
+        struct { rModelJoint Joints( jointIndex )[Header.JointCount]; } Joints;
         SMtx44 JointLocalMtx[Header.JointCount]; // ?
-        SMtx44 JointWorldMtx[Header.JointCount]; // ?
-        byte BoneMap[256];
+        SMtx44 JointInvBindMtx[Header.JointCount]; // ?
+
+        struct { rModelBoneMapEntry BoneMap[256]; } BoneMap;
     }
 
     FSeek( p + Header.GroupOffset.Value );
@@ -163,7 +215,8 @@ typedef struct
     rModelMaterial Materials[Header.MaterialCount];
 
     FSeek( p + Header.PrimitiveOffset.Value );
-    rModelPrimitive Primitives[Header.PrimitiveCount];
+    local u32 primitiveJointLinkIndex = 0;
+    struct { rModelPrimitive Primitives( primitiveJointLinkIndex )[Header.PrimitiveCount]; } Primitives;
     rModelPrimitiveJointLink PrimitiveJointLinks[Header.PrimitiveJointLinkCount];
 
     FSeek( p + Header.VertexBufferOffset.Value );

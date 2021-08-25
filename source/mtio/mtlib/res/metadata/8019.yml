@@ -1,0 +1,13 @@
+version: 1
+name: '8019'
+joints:
+  id, name, field03, field04, length, parentId, symmetryId, offset:
+  - [1, root, 0, 0.0, 0.0, -1, 1, [0.0, 0.0, 0.0]]
+  - [2, pelvis, 0, 41.47892379760742, 0.0, 1, 2, [0.0, 0.0, 0.0]]
+groups:
+  id, name, field04, field08, field0c, boundingSphere:
+  - [0, grp_0, 0, 0, 0, [0.0, 1.0156745910644531, 4.772905349731445, 44.944087982177734]]
+primitives:
+  id, name, links:
+  - [1, prm_1, []]
+  - [2, prm_2, []]

@@ -1,0 +1,41 @@
+primitive 15: body mesh
+vertex 2220 => 234 in original model
+
+imModel
+    field98
+    primitives = []
+    materials = []
+
+imPrimitive:
+    name
+    type
+    flags
+    flags2
+    renderMode
+    vertices = []
+    indices = []
+    links = []
+
+imVertex:
+    position
+    normal
+    tangent
+    binormal
+    uvs
+    weights
+
+imVertexWeight
+    jointIdx
+    weight
+    
+
+imMaterialInfo:
+    ...
+
+imJointInfo:
+    name
+    parent
+    offset
+
+
+

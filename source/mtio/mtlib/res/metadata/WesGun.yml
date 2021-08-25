@@ -1,0 +1,14 @@
+version: 1
+name: WesGun
+joints:
+  id, name, field03, field04, length, parentId, symmetryId, offset:
+  - [190, attach_hand_l, 0, 32.09817886352539, 0.0, -1, 190, [0.0, 0.0, 0.0]]
+groups:
+  id, name, field04, field08, field0c, boundingSphere:
+  - [0, grp_0, 0, 0, 0, [0.12462007999420166, 2.6835598945617676, 12.81244945526123, 20.103212356567383]]
+primitives:
+  id, name, links:
+  - [1, prm_1, []]
+  - [2, prm_2, []]
+  - [3, prm_3, []]
+  - [4, prm_4, []]
