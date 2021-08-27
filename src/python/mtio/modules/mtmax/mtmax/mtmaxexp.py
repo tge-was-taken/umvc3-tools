@@ -7,12 +7,20 @@ def _fixImports():
     if not curDir in sys.path: sys.path.append( curDir )
     packageDir = os.path.realpath( curDir + '/../../' )
     if not packageDir in sys.path: sys.path.append( packageDir )
+        
+def _reloadPackages():
+    packages = ['mtlib', 'mtncl']
+    for i in list(sys.modules.keys()):
+      for package in packages:
+          if i.startswith(package):
+             del(sys.modules[i])
     
 def _attachDebugger():
     import ptvsd
     ptvsd.enable_attach()
         
 _fixImports()
+_reloadPackages()
 #_attachDebugger()
 
 from pymxs import runtime as rt
@@ -41,18 +49,31 @@ class CacheVertex:
     def __hash__( self ):
         return hash((self.position, self.normal, self.tangent, self.uv, self.weights, self.indices))
 
-class MtModelExporter:
+class MtModelExporter(object):
     def __init__( self ):
-        pass
+        self.model = None
+        self.maxNodeToJointMap = None
+        self.jointToMaxNodeMap = None
+        self.jointIdxByName = None
+        
     
     def convertMaxPoint3ToNclVec3( self, v: rt.Point3 ) -> NclVec3:
         return NclVec3((v[0], v[1], v[2]))
+        
+    def convertMaxPoint3ToNclVec4( self, v: rt.Point3, w ) -> NclVec3:
+        return NclVec4((v[0], v[1], v[2], w))
     
     def convertMaxMatrix3ToNclMat43( self, v: rt.Matrix3 ) -> NclMat43:
-        return NclMat43((self.convertMaxPoint3ToNclVec3(v[0]), 
-                         self.convertMaxPoint3ToNclVec3(v[1]), 
-                         self.convertMaxPoint3ToNclVec3(v[2]), 
-                         self.convertMaxPoint3ToNclVec3(v[3])))
+        return nclCreateMat43((self.convertMaxPoint3ToNclVec3(v[0]), 
+                               self.convertMaxPoint3ToNclVec3(v[1]), 
+                               self.convertMaxPoint3ToNclVec3(v[2]), 
+                               self.convertMaxPoint3ToNclVec3(v[3])))
+        
+    def convertMaxMatrix3ToNclMat44( self, v: rt.Matrix3 ) -> nclCreateMat44:
+        return nclCreateMat44((self.convertMaxPoint3ToNclVec4(v[0], 0), 
+                               self.convertMaxPoint3ToNclVec4(v[1], 0), 
+                               self.convertMaxPoint3ToNclVec4(v[2], 0), 
+                               self.convertMaxPoint3ToNclVec4(v[3], 1)))
         
     def getJointIdFromNode( self, node ):
         if node.name.startswith('bone_') and node.name.contains('_sym_'):
@@ -126,33 +147,35 @@ class MtModelExporter:
             if (uv1x != 0):   faceTangent = v1 / uv1x
             elif (uv2x != 0): faceTangent = v2 / uv2x
             else:             faceTangent = NclVec3((0, 0, 0))
-        faceTangent.normalize()
+        nclNormalize( faceTangent )
 
-        mapNormal = NclVec3.cross(uv[1] - uv[0], uv[2] - uv[1])
+        mapNormal = nclCross( uv[1] - uv[0], uv[2] - uv[1] )
         flip = mapNormal.z < 0
 
         tangent = [NclVec3(), NclVec3(), NclVec3()]
         bitangent = [NclVec3(), NclVec3(), NclVec3()]
         for i in range( 0, 3 ):
             # Make tangent perpendicular to normal
-            tangent[i] = faceTangent - NclVec3.dot(norm[i], faceTangent) * norm[i]
-            tangent[i].normalize()
-
-            bitangent[i] = NclVec3.cross(norm[i], tangent[i])
+            tangent[i] = faceTangent - nclDot(norm[i], faceTangent) * norm[i]
+            nclNormalize( tangent[i] )
+            
+            bitangent[i] = nclCross(norm[i], tangent[i])
             if flip: bitangent[i] = -bitangent[i]
         return tangent, bitangent
+        
+    def shouldExportNode( self, node ):
+        return not node.isHidden
     
-    def exportModel( self, path ):
-        print(f'exporting to {path}')
-        
-        # start building intermediate model data for conversion
-        model = imModel()
-        
+    def processBones( self ):
         # convert all joints first
         # so we can reference them when building the primitives
-        maxNodeToJointMap = dict()
-        jointToMaxNodeMap = dict()
+        self.maxNodeToJointMap = dict()
+        self.jointToMaxNodeMap = dict()
+        self.jointIdxByName = dict()
         for maxNode in rt.objects:
+            if not self.shouldExportNode( maxNode ):
+                continue
+            
             maxNodeSuperClass = rt.superClassOf( maxNode )
             if maxNodeSuperClass != rt.Helper:
                 continue
@@ -160,25 +183,30 @@ class MtModelExporter:
             print(f'processing bone: {maxNode.name}')
             joint = imJoint()
             joint.name = maxNode.name
-            joint.worldMtx = self.convertMaxMatrix3ToNclMat43( maxNode.transform )
+            joint.worldMtx = self.convertMaxMatrix3ToNclMat44( maxNode.transform )
             joint.parentIndex = -1 # fix up later
             #joint.id = self.getJointIdFromNode( maxNode )
             #joint.symmetryId = self.getJointSymmetryIdFromNode( maxNode )
             # TODO field03, field04, length from metadata or custom attributes
             
-            maxNodeToJointMap[maxNode] = joint
-            jointToMaxNodeMap[joint] = maxNode
-            model.joints.append( joint )
+            self.maxNodeToJointMap[maxNode] = joint
+            self.jointToMaxNodeMap[joint] = maxNode
+            self.model.joints.append( joint )
+            self.jointIdxByName[ joint.name ] = len( self.model.joints ) - 1
             
         # fix up indices
-        for joint in model.joints:
-            maxNode = jointToMaxNodeMap[joint]
+        for joint in self.model.joints:
+            maxNode = self.jointToMaxNodeMap[joint]
             if maxNode.parent != None:
-                parentJoint = maxNodeToJointMap[maxNode.parent]
-                joint.parentIndex = model.joints.index( parentJoint )
-                
+                parentJoint = self.maxNodeToJointMap[maxNode.parent]
+                joint.parentIndex = self.model.joints.index( parentJoint )
+        
+    def processMeshes( self ):
         # convert meshes
         for maxNode in rt.objects:
+            if not self.shouldExportNode( maxNode ):
+                continue
+            
             maxNodeSuperClass = rt.superClassOf( maxNode )
             if maxNodeSuperClass != rt.GeometryClass:
                 continue
@@ -189,11 +217,17 @@ class MtModelExporter:
             prim.matName = 'defaultMaterial'
             if maxNode.material != None:
                 prim.matName = maxNode.material.name
+                
+            # get skin modifier
+            rt.execute('max modify mode')
+            rt.select( maxNode )
+            maxSkin = rt.modPanel.getCurrentObject()
+            hasSkin = rt.isKindOf( maxSkin, rt.Skin )
+            print( maxSkin, hasSkin )
             
             # get vertex data
             maxMesh = rt.snapshotAsMesh( maxNode )
             faceCount = rt.getNumFaces( maxMesh )
-            #vertexCache: List[CacheVertex] = []
             vertexIdxLookup = dict()
             nextVertexIdx = 0
             for i in range( 0, faceCount ):
@@ -214,44 +248,71 @@ class MtModelExporter:
                     
                 faceTangent, faceBitangent = self.calcTangentBasis( facePos, faceNorm, faceUv )
                 
-                # build cache vertex
+                # build cache vertices
                 for j in range( 0, 3 ):
+                    vertIdx = face[j]
+                    
                     cv = CacheVertex()
                     cv.position = facePos[j]
                     cv.normal = faceNorm[j]
                     cv.uv = faceUv[j]
                     cv.tangent = faceTangent[j]
+                    if hasSkin:
+                        weights = []
+                        indices = []
+                        weightCount = rt.skinOps.getVertexWeightCount( maxSkin, vertIdx )
+                        for k in range( 0, weightCount ):
+                            boneId = rt.skinops.getVertexWeightBoneId( maxSkin, vertIdx, k + 1 )
+                            boneWeight = rt.skinOps.getVertexWeight( maxSkin, vertIdx, k + 1 )
+                            boneName = rt.skinOps.getBoneName( maxSkin, boneId, 0 )
+                            jointIdx = self.jointIdxByName[ boneName ]
+                            weights.append( boneWeight )
+                            indices.append( jointIdx )
+                        cv.weights = tuple( weights )
+                        cv.indices = tuple( indices )
                     
-                    # find existing vertex in cache
-                    # idx = None
-                    # try:
-                    #     idx = vertexCache.index( cv )
-                    # except ValueError:
-                    #     idx = len( vertexCache )
-                    #     vertexCache.append( cv )
                     if cv not in vertexIdxLookup:
                         idx = nextVertexIdx
                         nextVertexIdx += 1
                         vertexIdxLookup[cv] = idx
+                        prim.positions.append( cv.position )
+                        prim.tangents.append( cv.tangent )
+                        prim.normals.append( cv.normal )
+                        prim.uvs.append( cv.uv ) 
+                        
+                        if hasSkin:
+                            vtxWeight = imVertexWeight()
+                            vtxWeight.indices = indices
+                            vtxWeight.weights = weights
+                            prim.weights.append( vtxWeight )
                     else:
                         idx = vertexIdxLookup.get(cv)
-                    
-                    prim.positions.append( cv.position )
-                    prim.tangents.append( cv.tangent )
-                    prim.normals.append( cv.normal )
-                    prim.uvs.append( cv.uv )     
+                        
                     prim.indices.append( idx )
-                    # TODO weights
                     
-            model.primitives.append( prim )
-        
-        binMod = model.toBinaryModel()
+            self.model.primitives.append( prim )
+    
+    def writeBinaries( self ):
+        binMod = self.model.toBinaryModel()
         stream = NclBitStream()
         binMod.write( stream )
-        mtutil.saveByteArrayToFile( path, stream.getBuffer() )
-
-        print('writing file')
-        print('done')
+        mtutil.saveByteArrayToFile( self.outPath, stream.getBuffer() )
+    
+    def exportModel( self, path ):
+        print(f'exporting to {path}')
+        
+        # start building intermediate model data for conversion
+        self.model = imModel()
+        self.outPath = path
+        
+        print('processing scene')
+        self.processBones()
+        self.processMeshes()
+        
+        print('writing files')
+        self.writeBinaries()
+        
+        print('export completed successfully')
         
             
 def _test():

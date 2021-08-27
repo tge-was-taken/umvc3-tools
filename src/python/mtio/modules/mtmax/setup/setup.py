@@ -4,7 +4,7 @@ import subprocess
 from zipfile import ZipFile
 import ctypes
 
-DEPENDENCIES = ['--upgrade pip', 'pyyaml', 'ruamel.yaml', 'numpy']
+DEPENDENCIES = ['--upgrade pip', 'pyyaml', 'ruamel.yaml', 'numpy', 'pyglm']
 MIN_SUPPORTED_VER = 2021
 
 def getScriptDir():

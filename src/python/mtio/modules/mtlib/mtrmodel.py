@@ -274,7 +274,7 @@ class rModelPrimitiveJointLink:
         self.boundingSphere = NclVec4()
         self.min = NclVec4()
         self.max = NclVec4()
-        self.localMtx = NclMat44()
+        self.localMtx = nclCreateMat44()
         self.field80 = NclVec4()
         
     def read( self, stream ):
@@ -805,8 +805,8 @@ class rModelData:
         writer.flush()
         
     def calcModelMtx( self ):
-        modelMtx = NclMat44()
+        modelMtx = nclCreateMat44()
         if len( self.joints ) > 0:
-            modelMtx = self.jointInvBindMtx[0].toMat43() * self.jointLocalMtx[0].toMat43()
+            modelMtx = nclMultiply( self.jointInvBindMtx[0], self.jointLocalMtx[0] )
         return modelMtx
         

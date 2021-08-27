@@ -208,10 +208,6 @@ def main():
     
     mtmaxutil.clearLog()
     
-    
-    exp = MtModelExporter()
-    exp.exportModel( 'test.mod' )
-    
     # import maxscript files
     mtmaxutil.runMaxScript( 'customattributes.ms' )
     mtmaxutil.runMaxScript( 'rollouts.ms' )

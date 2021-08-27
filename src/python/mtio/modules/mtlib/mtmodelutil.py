@@ -11,7 +11,7 @@ class imModelBounds:
 
 def calcWorldMtx( boneList, bone ):
     mtx = bone.getMatrix()
-    parentWorldMtx = NclMat43()
+    parentWorldMtx = nclCreateMat44()
     if bone.parentIndex != -1:
         parentWorldMtx, _ = calcWorldMtx( boneList, boneList[ bone.parentIndex ] )
         mtx *= parentWorldMtx

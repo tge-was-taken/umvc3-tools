@@ -76,7 +76,7 @@ class PrimitiveJointLinkMetadata:
         self.boundingSphere = NclVec4()
         self.min = NclVec4()
         self.max = NclVec4()
-        self.localMtx = NclMat44()
+        self.localMtx = nclCreateMat44()
         self.field80 = NclVec4()
         
 class PrimitiveMetadata:

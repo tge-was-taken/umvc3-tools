@@ -131,10 +131,10 @@ def modLoadModel(data, mdlList):
     
     # set model transform
     # restore bind pose (undo world transform & reapply local transform)
-    modelMtx = NoeMat43()
+    modelMtx = NoeMat44()
     if len( model.joints ) > 0:
-        modelMtx = model.jointInvBindMtx[0].toMat43() * model.jointLocalMtx[0].toMat43()
-        rapi.rpgSetTransform( modelMtx )
+        modelMtx = model.jointInvBindMtx[0] * model.jointLocalMtx[0]
+        rapi.rpgSetTransform( modelMtx.toMat43() )
         
     # build materials
     noeMatList = []    
@@ -229,10 +229,10 @@ def modLoadModel(data, mdlList):
             jointInfo = jointInfoDb.getJointInfoById( joint.id )
             #name = jointInfo.name if jointInfo != None else jointInfoDb.getDefaultJointName( joint.id )
             #print(name)
-            matrix = model.jointLocalMtx[i].toMat43()
+            matrix = model.jointLocalMtx[i]
             
             if DEBUG_INVERSE_BIND_MATRIX:
-                matrix = ( model.jointInvBindMtx[i] ).toMat43() # model-to-world space conversion
+                matrix = ( model.jointInvBindMtx[i] ) # model-to-world space conversion
                 
             #print(matrix)
             
@@ -241,13 +241,13 @@ def modLoadModel(data, mdlList):
                 parent = joint.parentIndex
                 
                 if DEBUG_INVERSE_BIND_MATRIX:
-                    matrix *= model.jointInvBindMtx[i].toMat43()
+                    matrix *= model.jointInvBindMtx[i]
                 
             if DEBUG_INVERSE_BIND_MATRIX:
                 # undo transform
                 parent = -1
             
-            noeBone = NoeBone(i, name, matrix, None, parent)
+            noeBone = NoeBone(i, name, matrix.toMat43(), None, parent)
             noeBones.append(noeBone)
         
         noeBones = rapi.multiplyBones(noeBones)
@@ -275,12 +275,15 @@ def modWriteModel( mdl, bs ):
         mrl.loadYamlFile( inputMrlYamlPath )
     
     imMod = imModel()
-    for m in mdl.primitives:
+    for m in mdl.meshes:
         im = imPrimitive()
         im.name = m.name
         im.matName = m.matName
         im.positions = m.positions
-        im.tangents = m.tangents
+        im.tangents = []
+        for t in m.tangents:
+            im.tangents.append(t[0])
+        
         im.normals = m.normals
         im.uvs = m.uvs
         im.weights = m.weights
@@ -290,7 +293,7 @@ def modWriteModel( mdl, bs ):
     for b in mdl.bones:
         ib = imJoint()
         ib.name = b.name
-        ib.worldMtx = b.getMatrix()
+        ib.worldMtx = b.getMatrix().toMat44()
         ib.parentIndex = b.parentIndex
         imMod.joints.append( ib )
      

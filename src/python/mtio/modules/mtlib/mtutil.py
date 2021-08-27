@@ -178,15 +178,15 @@ def resolveTexturePath( basePath, texturePath ):
         
     return ( textureTEXPath, textureDDSPath )
 
-Y_TO_Z_UP_MATRIX = NclMat43((NclVec3((1,  0,  0)),  # x=x
-                             NclVec3((0,  0,  1)),  # y=z
-                             NclVec3((0, -1,  0)),  # z=-y
-                             NclVec3((0,  0,  0))))
+Y_TO_Z_UP_MATRIX = nclCreateMat44((NclVec4((1,  0,  0, 0)),  # x=x
+                                   NclVec4((0,  0,  1, 0)),  # y=z
+                                   NclVec4((0, -1,  0, 0)),  # z=-y
+                                   NclVec4((0,  0,  0, 1))))
 
-Z_TO_Y_UP_MATRIX = NclMat43((NclVec3((1,  0,  0)),  # x=x
-                             NclVec3((0,  0, -1)),  # y=-z
-                             NclVec3((0,  1,  0)),  # z=y
-                             NclVec3((0,  0,  0))))
+Z_TO_Y_UP_MATRIX = nclCreateMat44((NclVec4((1,  0,  0, 0)),  # x=x
+                                   NclVec4((0,  0, -1, 0)),  # y=-z
+                                   NclVec4((0,  1,  0, 0)),  # z=y
+                                   NclVec4((0,  0,  0, 1))))
 
 def transformMatrixToZUp( mtx ):
     return mtx * Y_TO_Z_UP_MATRIX

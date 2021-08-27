@@ -1,5 +1,4 @@
 import os
-from repo.source.mtio.mtlib.mtmetadata import ModelMetadata
 import sys
 import io
 
@@ -454,6 +453,8 @@ def main():
     baseName = os.path.basename(inputName).split('.')[0]
     basePath = os.path.dirname(inputName)
     data = mtutil.loadIntoByteArray( inputName )
+    
+    processModBatch( testMod )
     
     # jointInfoDb = JointInfoDb()
     # jointInfoDb.loadCsvFromFile("X:/work/umvc3_model/repo/source/mtlib/res/jointinfo.csv")

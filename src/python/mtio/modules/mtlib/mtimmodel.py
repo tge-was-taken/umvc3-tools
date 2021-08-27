@@ -9,6 +9,11 @@ class imModelMaterial:
     def __init__( self ):
         self.name = ''
         self.diffuseTex = ''
+        
+class imVertexWeight:
+    def __init__( self ):
+        self.weights = []
+        self.indices = []
 
 class imPrimitive:
     def __init__( self ):
@@ -24,7 +29,7 @@ class imPrimitive:
 class imJoint:
     def __init__( self ):
         self.name = ''
-        self.worldMtx = NclMat43()
+        self.worldMtx = nclCreateMat44()
         self.parentIndex = -1  
         self.id = None
         self.symmetryId = None
@@ -221,10 +226,11 @@ class imModel:
                 print("bone {} {}".format(boneIndex, bone.name))    
                 worldMtx = bone.worldMtx
                 localMtx = worldMtx
-                parentWorldMtx = NclMat43()
+                parentWorldMtx = nclCreateMat44()
                 if bone.parentIndex != -1:
                     parentWorldMtx = self.joints[ bone.parentIndex ].worldMtx
-                    localMtx = worldMtx * parentWorldMtx.inverse()
+                   # localMtx = worldMtx * nclInverse( parentWorldMtx )
+                    localMtx = nclInverse( parentWorldMtx ) * worldMtx
                     
                 splits = bone.name.split('_')
                 print(splits)
@@ -246,7 +252,7 @@ class imModel:
                 joint.length = mtmodelutil.calcDistance( parentWorldMtx[3], worldMtx[3] )
                 
                 mod.joints.append( joint )
-                mod.jointLocalMtx.append( localMtx.toMat44() )
+                mod.jointLocalMtx.append( nclCreateMat44( localMtx ) )
                 # inverse bind matrix is calculated after processing vertices
             
         
@@ -397,7 +403,6 @@ class imModel:
             elif maxUsedBoneCount == 1:
                 flags = 0x09
             
-            flags2 = 0
             renderMode = 67
             primId = meshIndex
             
@@ -408,7 +413,6 @@ class imModel:
                 elif tag == 'FLG':
                     values = value.split(',')
                     flags = int(values[0])
-                    flags2 = int(values[1])
                 elif tag == 'LOD':
                     lodIdx = int(value)
                 elif tag == 'RM':
@@ -426,7 +430,6 @@ class imModel:
             prim.indices.setLodIndex( lodIdx )
             prim.indices.setMaterialIndex( meshMatIndex )
             prim.vertexFlags = flags
-            prim.flags2 = flags2
             prim.vertexStride = vertexStride
             prim.renderFlags = renderMode
             prim.vertexStartIndex = 0
@@ -470,26 +473,53 @@ class imModel:
         print("vscale {}".format(vscale))
         print("vbias {}".format(vbias))
         
+        # # set up model matrix
+        # modelMtx = nclCreateMat44()
+        # modelMtx[3] = NclVec4((vbias[0], vbias[1], vbias[2], 1))
+        # modelMtx *= (1/vscale)
+        
+        # if len( mod.jointInvBindMtx ) == 0:
+        #     # calculate joint inverse bind matrices
+        #     for boneIndex, bone in enumerate( self.joints ):   
+        #         # apply model matrix to world transform of each joint
+        #         invBindMtx = nclInverse( bone.worldMtx * modelMtx )
+        #         mod.jointInvBindMtx.append( nclCreateMat44( invBindMtx ) )
+        
+        # # normalize vertices
+        # modelMtxNormal = nclTranspose( nclInverse( modelMtx ) )
+        
+        # for v in vertices:
+        #     v.position = nclTransform( v.position, modelMtx )
+            
+        #     # slightly dim...?
+        #     v.normal = nclNormalize( nclTransform( v.normal, modelMtxNormal  ) )
+        
+        #
+        
         # set up model matrix
-        modelMtx = NclMat43()
+        modelMtx = nclCreateMat43()
         modelMtx[3] = vbias
         modelMtx *= (1/vscale)
+        print(modelMtx)
+        modelMtx = nclCreateMat44(modelMtx)
+        print(modelMtx)
         
         if len( mod.jointInvBindMtx ) == 0:
             # calculate joint inverse bind matrices
             for boneIndex, bone in enumerate( self.joints ):   
                 # apply model matrix to world transform of each joint
-                invBindMtx = ( bone.worldMtx * modelMtx ).inverse()
-                mod.jointInvBindMtx.append( invBindMtx.toMat44() )
+                invBindMtx = nclInverse( nclMultiply( bone.worldMtx, modelMtx ) )
+                finalInvBindMtx = nclCreateMat44( invBindMtx )
+                mod.jointInvBindMtx.append( finalInvBindMtx )
         
         # normalize vertices
-        modelMtxNormal = modelMtx.inverse().transpose()
+        modelMtxNormal = nclTranspose( nclInverse( modelMtx ) )
         
         for v in vertices:
-            v.position = ( modelMtx * v.position )
-            
+            v.position = nclTransform( v.position, modelMtx )
+
             # slightly dim...?
-            v.normal = ( modelMtxNormal * v.normal ).normalize()
+            v.normal = nclNormalize( nclTransform( v.normal, modelMtxNormal ) )
         
         # create buffers
         vertexBufferStream = NclBitStream()
@@ -514,8 +544,8 @@ class imModel:
         mod.header.groupCount = len( mod.groups )
         mod.header.center = bounds.center
         mod.header.radius = bounds.radius
-        mod.header.min = bounds.vmin.toVec4()
-        mod.header.max = bounds.vmax.toVec4()
+        mod.header.min = nclCreateVec4( bounds.vmin )
+        mod.header.max = nclCreateVec4( bounds.vmax )
         mod.header.field90 = 1000
         mod.header.field94 = 3000
         mod.header.field98 = 1

@@ -41,7 +41,7 @@ class MtModelImporter:
     def createMaxPoint2( self, x, y ):
         return rt.Point2( rt.Float( x ), rt.Float( y ) )
         
-    def convertNclMat4ToMaxMatrix3( self, nclMtx ):
+    def convertNclMat44ToMaxMatrix3( self, nclMtx ):
         return rt.Matrix3( self.convertNclVec3ToMaxPoint3( nclMtx[0] ), 
                            self.convertNclVec3ToMaxPoint3( nclMtx[1] ), 
                            self.convertNclVec3ToMaxPoint3( nclMtx[2] ), 
@@ -125,16 +125,16 @@ class MtModelImporter:
         return model
     
     def calcTransformMtx( self ):
-        mtx = NclMat43()
+        mtx = nclCreateMat44()
         if mtmaxconfig.flipUpAxis:
             mtx *= mtutil.Y_TO_Z_UP_MATRIX
         if mtmaxconfig.scale != 1:
-            mtx *= NclMat43.createScale( mtmaxconfig.scale )
+            mtx *= nclScale( mtmaxconfig.scale )
         return mtx
         
     def calcModelMtx( self, model: rModelData ):
         modelMtx = model.calcModelMtx() * self.transformMtx
-        return self.convertNclMat4ToMaxMatrix3( modelMtx )
+        return self.convertNclMat44ToMaxMatrix3( modelMtx )
             
     def importGroups( self ):
         self.maxGroupArray = []
@@ -294,12 +294,12 @@ class MtModelImporter:
         self.maxBoneArray = []
         self.maxBoneLookup = dict()
         for i, joint in enumerate( self.model.joints ):
-            localMtx = self.model.jointLocalMtx[i].toMat43()
+            localMtx = self.model.jointLocalMtx[i]
             if not mtutil.isValidByteIndex( joint.parentIndex ):
                 # only transform root
                 localMtx *= self.transformMtx
             
-            tfm = self.convertNclMat43ToMaxMatrix3( localMtx )
+            tfm = self.convertNclMat44ToMaxMatrix3( localMtx )
             maxParentBone = None
             if mtutil.isValidByteIndex( joint.parentIndex ):
                 maxParentBone = self.maxBoneArray[ joint.parentIndex ]
@@ -358,7 +358,7 @@ class MtModelImporter:
         #~ for i, pjl in enumerate( model.primitiveJointLinks ):
             #~ maxPjl = rt.dummy()
             #~ maxPjl.name = "pjl_" + str( i )
-            #~ maxPjl.transform = convertNclMat4ToMaxMatrix3( pjl.localMtx ) * maxBoneArray[ pjl.jointIndex ].transform
+            #~ maxPjl.transform = convertNclMat44ToMaxMatrix3( pjl.localMtx ) * maxBoneArray[ pjl.jointIndex ].transform
             #~ maxPrimitiveJointLinks.append( maxPjl )
         pass
             
