@@ -5,13 +5,8 @@ import argparse
 def getScriptDir():
     return os.path.dirname(os.path.realpath(__file__))
 
-# fix mt_import
-sys.path.append( os.path.realpath( getScriptDir() + "/../mtlib" ) )
-from mtrmodel import *
-from mtrmaterial import *
-from mtimmaterial import *
-from mtncl import *
-import mvc3materialdb
+sys.path.append( os.path.realpath( os.path.dirname( __file__ ) + "/../" ) )
+from modules.mtlib import *
 
 def noneOrEmpty( s ):
     return s == None or len( s ) == 0

@@ -4,6 +4,7 @@
 import zlib
 import math
 import os
+import sys
 
 import mvc3shaderdb
 from mtrshader import rShaderObjectId
@@ -171,7 +172,7 @@ def resolveTexturePath( basePath, texturePath ):
         textureTEXPath, _ = getExtractedResourceFilePath( basePath + '/' + os.path.basename( texturePath ), '241f5deb', 'tex' )
         textureDDSPath =  os.path.join( basePath, os.path.basename( texturePath ) + ".dds" ) # failsafe
         if textureTEXPath == None:
-            print( f'WARNING: TEX file not found: {texturePath}' )  
+            print( 'WARNING: TEX file not found: {}'.format( texturePath ) )  
     else:
         textureDDSPath = os.path.splitext( textureTEXPath )[0] + '.dds'
         

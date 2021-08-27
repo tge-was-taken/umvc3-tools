@@ -55,10 +55,10 @@ rollout MtInfoRollout "MT Framework Importer/Exporter"
 
 rollout MtSettingsRollout "Settings"
 (
-	checkbox chkConvertToZUp "Convert to Z Up" checked:true align:#left;
+	checkbox chkFlipUpAxis "Flip up axis" checked:true align:#left;
 	spinner spnScale "Scale" range:[0,1000000,1] align:#left;
 	
-	on chkConvertToZUp 	changed state do mtExecPythonFunc "MtSettingsRollout" "chkConvertToZUpChanged" #(state)
+	on chkFlipUpAxis 	changed state do mtExecPythonFunc "MtSettingsRollout" "chkFlipUpAxisChanged" #(state)
 	on spnScale 		changed state do mtExecPythonFunc "MtSettingsRollout" "spnScaleChanged" #(state)
 )
 
@@ -107,6 +107,34 @@ rollout MtModelImportRollout "Model import" width:162 height:300
 	on chkImportPrimitives	changed state	do mtCall "chkImportPrimitivesChanged" #(state)
 	on chkConvertDDS		changed state	do mtCall "chkConvertDDSChanged" #(state)
 	on chkSaveMrlYml		changed state	do mtCall "chkSaveMrlYmlChanged" #(state)
+)
+
+rollout MtModelExportRollout "Model export" width:162 height:300
+(
+	label lblFile "File" across:3 align:#left
+	edittext edtFile across:3 width:150 offset:[-35,0]
+	button btnFile "..." align:#right across:3 offset:[10,-2]
+	
+	label lblProfile "Profile" across:2 align:#left
+	edittext edtProfile across:2 width:150 offset:[-70,0]
+	
+	button btnExport "Export" align:#center across:1;
+
+	fn mtCall func args = 
+	(
+		mtExecPythonFunc "MtModelExportRollout" func args
+	)
+	
+	on btnExport 			pressed 		do mtCall "btnExportPressed" #()
+	on btnFile 				pressed 		do mtCall "btnFilePressed" #()
+	on edtFile 				changed state 	do mtCall "edtFileChanged" #(state)
+	on edtProfile 			changed state	do mtCall "edtProfileChanged" #(state)
+	-- on chkImportNormals 	changed state	do mtCall "chkImportNormalsChanged" #(state)
+	-- on chkImportGroups		changed state	do mtCall "chkImportGroupsChanged" #(state)
+	-- on chkImportSkeleton 	changed state	do mtCall "chkImportSkeletonChanged" #(state)
+	-- on chkImportPrimitives	changed state	do mtCall "chkImportPrimitivesChanged" #(state)
+	-- on chkConvertDDS		changed state	do mtCall "chkConvertDDSChanged" #(state)
+	-- on chkSaveMrlYml		changed state	do mtCall "chkSaveMrlYmlChanged" #(state)
 )
 
 rollout MtLogRollout "Log" height:300

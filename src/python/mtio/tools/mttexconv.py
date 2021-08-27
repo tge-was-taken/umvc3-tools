@@ -5,12 +5,8 @@ import argparse
 def getScriptDir():
     return os.path.dirname(os.path.realpath(__file__))
 
-# fix mt_import
-sys.path.append( os.path.realpath( getScriptDir() + "/../mtlib" ) )
-from mtrtexture import *
-from mtncl import *
-from texconv import texconv
-import mtutil
+sys.path.append( os.path.realpath( os.path.dirname( __file__ ) + "/../" ) )
+from modules.mtlib import *
 
 def processFile( inPath, outPath, origPath, forcedFormat ):
     basePath, baseName, exts = mtutil.splitPath( inPath )

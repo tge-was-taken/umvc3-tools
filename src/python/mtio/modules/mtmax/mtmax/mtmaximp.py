@@ -1,133 +1,7 @@
-# TODO
-# - display msg box with errors during import
-# - investigate createMaxPoint3 access violation
-
-import sys
-import os
-
-def getScriptDir():
-    return os.path.dirname(os.path.realpath(__file__))
-    
-def addSysPath( *paths ):
-    for path in paths:
-        normalizedPath = os.path.realpath( path )
-        if not normalizedPath in sys.path:
-            sys.path.append( normalizedPath )
-            
-def dumpSysInfo():
-    print( 'PYTHON SYSTEM INFO' )
-    print( sys.version )
-    print( sys.version_info )
-    print( sys.path )
-
-# really good code right here
-mtmaxioDir = getScriptDir()
-mtioDir = getScriptDir() + '/../'
-mtlibDir = getScriptDir() + '/../mtlib'
-addSysPath( mtmaxioDir, mtioDir, mtlibDir )
-dumpSysInfo()
-
-
+from pymxs import runtime as rt
 from mtlib import *
-from mtrtexture import *
-import mtmaxioconfig
-from mtmetadata import *
-
-import pymxs
-rt = pymxs.runtime
-
-lastWindowUpdateTime = rt.timestamp()
-def lazyUpdateUI():
-    global lastWindowUpdateTime
-    if rt.timestamp() - lastWindowUpdateTime > 1000:
-        rt.windows.processPostedMessages()
-        lastWindowUpdateTime = rt.timestamp()
-
-def isDebugEnv():
-    return True
-    
-def clearLog():
-    rt.clearListener()
-    try:
-        rt.mtLogRollout.edtLog.text = ''
-    except:
-        pass
-    
-def logDebug( msg, *args ):
-    if isDebugEnv():
-        print( msg, *args )
-        
-def logInfo( msg, *args ):
-    print( msg, *args )
-    rt.mtLogRollout.edtLog.text += msg + '\n'
-    
-def selectOpenFile( category, ext ):
-    return rt.getOpenFileName(
-        caption=("Open " + category + " file"),
-        types=( category + " (*." + ext + ")|*." + ext ),
-        historyCategory=( category + " Object Presets" ) )
-    
-def transformImportTranslation( t, convertToZUp, scl ):
-    nt = rt.copy( t )
-    if convertToZUp:
-        nt.x = -t.x
-        nt.y = -t.z
-        nt.z = t.y
-    nt *= scl
-    return nt
-
-def transformImportRotation( r, convertToZUp ):
-    nr = rt.copy( r )
-    if convertToZUp:
-        aa = rt.AngleAxis( r )
-        newAA = rt.AngleAxis( aa.angle, rt.Point3( aa.axis.x, aa.axis.z, -aa.axis.y ) )
-        nr = rt.Quat( newAA )
-    return nr
-
-def transformExportRotation( r, convertToYUp ):
-    nr = rt.copy( r )
-    if convertToYUp:
-        aa = rt.AngleAxis( r )
-        newAA = rt.AngleAxis( aa.angle, [aa.axis.x, -aa.axis.z, aa.axis.y] )
-        nr = rt.Quat( newAA )
-    return nr
-
-def transformImportScale( s, convertToZUp ):
-    ns = rt.copy( s )
-    if convertToZUp:
-        ns.y = s.z
-        ns.z = s.y
-    return ns
-
-def transformImportMatrix( m, convertToZUp, scl ):
-    t = m.translationpart
-    r = m.rotationpart
-    s = m.scalepart
-    
-    t = transformImportTranslation( t, convertToZUp, scl )
-    r = transformImportRotation( r, convertToZUp )
-    s = transformImportScale( s, convertToZUp )
-    
-    m = rt.Matrix3( r )
-    m.translation = t
-    m *= rt.ScaleMatrix( s )
-    return m  
-
-def transformExportTranslation( t, convertToZUp, scl ):
-    nt = rt.copy( t )
-    if convertToZUp:
-        nt.x = -t.x
-        nt.y = t.z
-        nt.z = -t.y
-    nt /= scl
-    return nt
-
-def transformExportScale( s, convertToYUp ):
-	ns = rt.copy( s )
-	if convertToYUp:
-		ns.y = s.z
-		ns.z = s.y
-	return ns
+import mtmaxconfig
+import mtmaxutil
 
 class MtModelImporter:
     def __init__( self ):
@@ -223,14 +97,14 @@ class MtModelImporter:
         else:
             textureTEXPath, textureDDSPath = mtutil.resolveTexturePath( self.basePath, texturePath )
             
-            if mtmaxioconfig.importConvertTexturesToDDS:
+            if mtmaxconfig.importConvertTexturesToDDS:
                 texture = rTextureData()
                 texture.loadBinaryFile( textureTEXPath )
                 textureDDS = texture.toDDS()
                 try:
                     textureDDS.saveFile( textureDDSPath )
                 except:
-                    logInfo( f"ERROR: failed to save TEX file to DDS, make sure you have write permissions to: {textureDDSPath}" )
+                    mtmaxutil.logInfo( f"ERROR: failed to save TEX file to DDS, make sure you have write permissions to: {textureDDSPath}" )
                         
             return rt.BitmapTexture( filename=textureDDSPath )
        
@@ -252,10 +126,10 @@ class MtModelImporter:
     
     def calcTransformMtx( self ):
         mtx = NclMat43()
-        if mtmaxioconfig.convertToZUp:
+        if mtmaxconfig.flipUpAxis:
             mtx *= mtutil.Y_TO_Z_UP_MATRIX
-        if mtmaxioconfig.scale > 1:
-            mtx *= NclMat43.createScale( mtmaxioconfig.scale )
+        if mtmaxconfig.scale != 1:
+            mtx *= NclMat43.createScale( mtmaxconfig.scale )
         return mtx
         
     def calcModelMtx( self, model: rModelData ):
@@ -350,7 +224,7 @@ class MtModelImporter:
         rt.custAttributes.add( maxMesh.baseObject, rt.mtPrimitiveAttributesInstance )
         maxMesh.mtPrimitiveAttributes.flags = hex( primitive.flags )
         maxMesh.mtPrimitiveAttributes.lodIndex = primitive.indices.getLodIndex() 
-        if maxMesh.mtPrimitiveAttributes.lodIndex in [-1, 255]:
+        if not mtutil.isValidByteIndex( maxMesh.mtPrimitiveAttributes.lodIndex ):
             maxMesh.mtPrimitiveAttributes.lodIndex = -1
 
         maxMesh.mtPrimitiveAttributes.vertexFlags = hex( primitive.vertexFlags )
@@ -368,7 +242,7 @@ class MtModelImporter:
         #    self.maxPrimitiveJointLinks[ primitiveJointLinkIndex + j ].parent = maxMesh
 
         # apply weights
-        if len( maxJointArray ) > 0 and mtmaxioconfig.importWeights:
+        if len( maxJointArray ) > 0 and mtmaxconfig.importWeights:
             rt.resumeEditing()
             rt.execute('max modify mode')
             
@@ -383,7 +257,7 @@ class MtModelImporter:
             # set weights
             rt.modPanel.setCurrentObject( maxSkin )
             for j in range( 0, primitive.vertexCount ):
-                lazyUpdateUI()
+                mtmaxutil.lazyUpdateUI()
                 
                 maxVtxJointArray = maxJointArray[j]
                 if j + 1 > len( maxWeightArray ):
@@ -409,8 +283,8 @@ class MtModelImporter:
         vertexStream = NclBitStream( self.model.vertexBuffer )
         primitiveJointLinkIndex = 0
         for i in range( len( self.model.primitives ) ):
-            logInfo( "loading primitive " + str(i) )
-            lazyUpdateUI()
+            mtmaxutil.logInfo( "loading primitive " + str(i) )
+            mtmaxutil.lazyUpdateUI()
             
             primitive = self.model.primitives[i]
             self.importPrimitive( primitive, primitiveJointLinkIndex, indexStream, vertexStream )
@@ -441,10 +315,10 @@ class MtModelImporter:
             maxBone = self.maxBoneArray[ i ]
             rt.custAttributes.add( maxBone.baseObject, rt.mtJointAttributesInstance )
             maxBone.mtJointAttributes.id = joint.id
-            if joint.symmetryIndex not in [-1, 255]:
+            if mtutil.isValidByteIndex( joint.symmetryIndex ):
                 maxBone.mtJointAttributes.symmetryName = self.maxBoneArray[ joint.symmetryIndex ].name
             maxBone.mtJointAttributes.field03 = joint.field03
-            maxBone.mtJointAttributes.field04 = joint.field04        
+            maxBone.mtJointAttributes.field04 = joint.field04
             
     def importMaterials( self ):
         # load mtl
@@ -452,7 +326,7 @@ class MtModelImporter:
         mrlName, _ = mtutil.getExtractedResourceFilePath( self.basePath + '/' + self.baseName, '2749c8a8', 'mrl' )
         if mrlName != None and os.path.exists( mrlName ):
             mtl.loadBinary(NclBitStream(mtutil.loadIntoByteArray(mrlName)))
-            if mtmaxioconfig.importSaveMrlYml:
+            if mtmaxconfig.importSaveMrlYml:
                 mtl.saveYamlFile( mrlName + '.yml' )
         
         self.maxMaterialArray = []
@@ -464,7 +338,7 @@ class MtModelImporter:
             maxMaterial.backfaceCull = True
         
             if material == None:
-                logInfo( "WARNING: model references material {} that does not exist in the mrl".format( materialName ) )
+                mtmaxutil.logInfo( "WARNING: model references material {} that does not exist in the mrl".format( materialName ) )
             else:
                 maxMaterial.base_color_map = self.loadTextureSlot( material, 'tAlbedoMap' )
                 maxMaterial.specular_map = self.loadTextureSlot( material, 'tSpecularMap' )
@@ -491,179 +365,33 @@ class MtModelImporter:
     def importModel( self, modFilePath ):
         startTime = rt.timeStamp()
         
-        if not isDebugEnv():
+        if not mtmaxutil.isDebugEnv():
             rt.disableSceneRedraw()
         
         self.filePath = modFilePath
         self.baseName = os.path.basename( modFilePath ).split('.')[0]
         self.basePath = os.path.dirname( modFilePath )
-        
-        self.metadata = self.loadMetadata( ModelMetadata.getDefaultFilePath( mtmaxioconfig.importProfile ) )
+        self.metadata = self.loadMetadata( ModelMetadata.getDefaultFilePath( mtmaxconfig.importProfile ) )
         self.model = self.loadModel( self.filePath )
         self.transformMtx = self.calcTransformMtx()
         self.maxModelMtx = self.calcModelMtx( self.model )
         self.importMaterials()
-        if mtmaxioconfig.importSkeleton:
+        if mtmaxconfig.importSkeleton:
             self.importSkeleton()
-        if mtmaxioconfig.importGroups:
+        if mtmaxconfig.importGroups:
             self.importGroups()
         self.importPrimitiveJointLinks() 
-        if mtmaxioconfig.importPrimitives:
+        if mtmaxconfig.importPrimitives:
             self.importPrimitives()
         
-        if not isDebugEnv():
+        if not mtmaxutil.isDebugEnv():
             rt.enableSceneRedraw()
             
         endTime = rt.timeStamp()
-        logInfo( 'Import done in ' + str( endTime - startTime ) + ' ms' )
+        mtmaxutil.logInfo( 'Import done in ' + str( endTime - startTime ) + ' ms' )
         
     def selectImportModel( self ):
         filePath = self.selectOpenFile( 'UMVC3 model', 'mod' )
         if filePath != None:
             self.importModel( filePath )
-        
-# Maxscript rollout event handlers        
-class MtSettingsRollout:
-    @staticmethod
-    def sync():
-        rt.MtSettingsRollout.chkConvertToZUp.checked = mtmaxioconfig.convertToZUp
-        rt.MtSettingsRollout.spnScale.value = mtmaxioconfig.scale
     
-    @staticmethod
-    def chkConvertToZUpChanged( state ):
-        mtmaxioconfig.convertToZUp = state
-        
-    @staticmethod
-    def spnScaleChanged( state ):
-        mtmaxioconfig.scale = state
-    
-class MtModelImportRollout:
-    @staticmethod
-    def updateVisibility():
-        rt.MtModelImportRollout.btnImport.enabled = \
-            os.path.isfile( mtmaxioconfig.importFilePath )
-            
-    @staticmethod
-    def sync():
-        rt.MtModelImportRollout.edtFile.text = mtmaxioconfig.importFilePath
-        rt.MtModelImportRollout.edtProfile.text = mtmaxioconfig.importProfile
-        rt.MtModelImportRollout.chkImportWeights.checked = mtmaxioconfig.importWeights
-        rt.MtModelImportRollout.chkImportNormals.checked = mtmaxioconfig.importNormals
-        rt.MtModelImportRollout.chkImportGroups.checked = mtmaxioconfig.importGroups
-        rt.MtModelImportRollout.chkImportSkeleton.checked = mtmaxioconfig.importSkeleton
-        rt.MtModelImportRollout.chkImportPrimitives.checked = mtmaxioconfig.importPrimitives
-        rt.MtModelImportRollout.chkConvertDDS.checked = mtmaxioconfig.importConvertTexturesToDDS
-        rt.MtModelImportRollout.chkSaveMrlYml.checked = mtmaxioconfig.importSaveMrlYml
-        MtModelImportRollout.updateVisibility()
-        
-    @staticmethod
-    def setFilePath( path ):
-        mtmaxioconfig.importFilePath = path
-        mtmaxioconfig.importProfile = os.path.basename( mtmaxioconfig.importFilePath ).split('.')[0]
-        MtModelImportRollout.sync()
-    
-    @staticmethod
-    def chkImportWeightsChanged( state ):
-        mtmaxioconfig.importWeights = state
-        MtModelImportRollout.updateVisibility()
-    
-    @staticmethod
-    def btnImportPressed():
-        clearLog()
-        importer = MtModelImporter()
-        importer.importModel( mtmaxioconfig.importFilePath )
-        MtModelImportRollout.updateVisibility()
-        
-    @staticmethod
-    def btnFilePressed():
-        path = selectOpenFile( 'UMVC3 model', 'mod' )
-        if path == None:
-            path = ''
-        
-        MtModelImportRollout.setFilePath( path )
-        
-    @staticmethod
-    def edtFileChanged( state ):
-        MtModelImportRollout.setFilePath( state )
-        
-    @staticmethod
-    def edtProfileChanged( state ):
-        mtmaxioconfig.importProfile = state
-        MtModelImportRollout.updateVisibility()
-        
-    @staticmethod
-    def chkImportNormalsChanged( state ):
-        mtmaxioconfig.importNormals = state
-        MtModelImportRollout.updateVisibility()
-        
-    @staticmethod
-    def chkImportGroupsChanged( state ):
-        mtmaxioconfig.importGroups = state
-        MtModelImportRollout.updateVisibility()
-    
-    @staticmethod
-    def chkImportSkeletonChanged( state ):
-        mtmaxioconfig.importSkeleton = state
-        MtModelImportRollout.updateVisibility()
-        
-    @staticmethod
-    def chkConvertDDSChanged( state ):
-        mtmaxioconfig.importConvertTexturesToDDS = state
-        MtModelImportRollout.updateVisibility()
-        
-    @staticmethod
-    def chkSaveMrlYmlChanged( state ):
-        mtmaxioconfig.importSaveMrlYml = state
-        MtModelImportRollout.updateVisibility()
-        
-    @staticmethod
-    def chkImportPrimitivesChanged( state ):
-        mtmaxioconfig.importPrimitives = state
-        MtModelImportRollout.updateVisibility()
-        
-def runMaxScript( name ):
-    rt.fileIn( getScriptDir() + '/maxscript/' + name  )
-    
-def getMainWindow():
-    return rt.g_mtWindow
-    
-def createMainWindow():
-    # get coords of window if it's already opened
-    x = 30
-    y = 100
-    w = 250
-    h = 700
-    
-    # ensure a variable exists even if it hasnt been created yet
-    rt.execute( 'g_mtWindow2 = g_mtWindow' )
-    if rt.g_mtWindow2 != None:
-        x = rt.g_mtWindow2.pos.x
-        y = rt.g_mtWindow2.pos.y
-        w = rt.g_mtWindow2.size.x
-        h = rt.g_mtWindow2.size.y
-        rt.closeRolloutFloater( rt.g_mtWindow2 )
-        
-    # create plugin window
-    rt.g_mtWindow = rt.newRolloutFloater( "MT Framework Max IO Plugin", w, h, x, y )
-    for rollout in [rt.MtInfoRollout, rt.MtSettingsRollout, rt.MtModelImportRollout, rt.MtLogRollout]:
-        rt.addRollout( rollout, rt.g_mtWindow )
-        
-    # sync config with UI
-    MtSettingsRollout.sync()
-    MtModelImportRollout.sync()
-
-def main():
-    rt.gc()
-    rt.gc()
-    
-    clearLog()
-    
-    # import maxscript files
-    runMaxScript( 'customattributes.ms' )
-    runMaxScript( 'rollouts.ms' )
-    createMainWindow()
-    
-    rt.gc()
-    rt.gc()
-    
-main()

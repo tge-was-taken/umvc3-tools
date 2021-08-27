@@ -28,7 +28,7 @@ if mttarget.noesis:
 #         return numpy.frombuffer( buffer, dtype=numpy.float16 )[0]
 else:
     def encodeF16( float32 ):
-        return float( struct.unpack( 'H', struct.pack( 'e', float32 ) )[0] )
+        return int( struct.unpack( 'H', struct.pack( 'e', float32 ) )[0] )
     
     def decodeF16( float16 ):
         return float( struct.unpack( 'e', struct.pack( 'H', float16 ) )[0] )
@@ -93,7 +93,8 @@ else:
     #     return struct.unpack( '>f', struct.pack( '>L', float32 ) )[0]
     
 def isNormalizedFloat( v ):
-    return v >= -1 and v <= 1
+    return True
+    #return v >= -1 and v <= 1
 
 def isNormalized( v ):
     if isinstance( v, float ): 

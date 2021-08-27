@@ -1,4 +1,4 @@
-convertToZUp = True
+flipUpAxis = True
 scale = 1
 importWeights = True
 importFilePath = ''

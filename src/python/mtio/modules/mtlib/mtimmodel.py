@@ -10,7 +10,7 @@ class imModelMaterial:
         self.name = ''
         self.diffuseTex = ''
 
-class imMesh:
+class imPrimitive:
     def __init__( self ):
         self.name = ''
         self.matName = ''
@@ -21,13 +21,13 @@ class imMesh:
         self.weights = []
         self.indices = []
         
-class imBone:
+class imJoint:
     def __init__( self ):
         self.name = ''
         self.worldMtx = NclMat43()
         self.parentIndex = -1  
         self.id = None
-        self.symmetryIndex = None
+        self.symmetryId = None
         self.field03 = None
         self.field04 = None
         self.length = None
@@ -188,8 +188,8 @@ class imTag:
         
 class imModel:
     def __init__( self ):
-        self.meshes = []
-        self.bones = []
+        self.primitives = []
+        self.joints = []
         self.materials = []
         
     def fromBinaryModel( self, mod ):
@@ -210,20 +210,20 @@ class imModel:
             mod.boneMap.append(-1)
             
         # create id -> index map
-        for boneIndex, bone in enumerate( self.bones ):
+        for boneIndex, bone in enumerate( self.joints ):
             splits = bone.name.split('_')
             jointId = int(splits[1])
             mod.boneMap[ jointId ] = boneIndex
         
-        # convert bones
+        # convert joints
         if ogmod == None:
-            for boneIndex, bone in enumerate( self.bones ):   
+            for boneIndex, bone in enumerate( self.joints ):   
                 print("bone {} {}".format(boneIndex, bone.name))    
                 worldMtx = bone.worldMtx
                 localMtx = worldMtx
                 parentWorldMtx = NclMat43()
                 if bone.parentIndex != -1:
-                    parentWorldMtx = self.bones[ bone.parentIndex ].worldMtx
+                    parentWorldMtx = self.joints[ bone.parentIndex ].worldMtx
                     localMtx = worldMtx * parentWorldMtx.inverse()
                     
                 splits = bone.name.split('_')
@@ -255,7 +255,7 @@ class imModel:
         vertices = []
         indices = []
         
-        for meshIndex, mesh in enumerate( self.meshes ):
+        for meshIndex, mesh in enumerate( self.primitives ):
             # find material
             meshMatIndex = -1
             for matIndex, mat in enumerate( mod.materials ):
@@ -308,10 +308,15 @@ class imModel:
                 vertexShaderName = 'IASkinTB1wt'
                 maxWeightCount = 1
                 vertexStride = imVertexIASkinTB1wt.SIZE
+            else:
+                # TODO fixme
+                vertexShaderName = 'IASkinTB1wt'
+                maxWeightCount = 0
+                vertexStride = imVertexIASkinTB1wt.SIZE
             
             # convert vertices
             for i in range(0, len(mesh.positions)):
-                t = mesh.tangents[i][0]
+                t = mesh.tangents[i]
                 
                 if vertexShaderName == 'IASkinTB4wt':            
                     vtx = imVertexIASkinTB4wt()
@@ -334,7 +339,12 @@ class imModel:
                 if hasTexCoord:    
                     vtx.texCoord = mesh.uvs[i]
                 
-                if maxWeightCount == 1:
+                if maxWeightCount == 0:
+                    # TODO fixme
+                    jointIndex = 0
+                    primJointIndex = jointIndex
+                    vtx.jointId = jointIndex
+                elif maxWeightCount == 1:
                     jointIndex = mesh.weights[ i ].indices[ 0 ]
                     primJointIndex = jointIndex
                     vtx.jointId = jointIndex
@@ -467,7 +477,7 @@ class imModel:
         
         if len( mod.jointInvBindMtx ) == 0:
             # calculate joint inverse bind matrices
-            for boneIndex, bone in enumerate( self.bones ):   
+            for boneIndex, bone in enumerate( self.joints ):   
                 # apply model matrix to world transform of each joint
                 invBindMtx = ( bone.worldMtx * modelMtx ).inverse()
                 mod.jointInvBindMtx.append( invBindMtx.toMat44() )

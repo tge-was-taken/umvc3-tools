@@ -6,11 +6,14 @@ import os
 from mtrmodel import *
 import mtutil
 from mtncl import *
-import yaml
-import ruamel.yaml
 
-def setYamlFlowStyle(x):
-    retval = ruamel.yaml.comments.CommentedSeq(x)
+try:
+    import ruamel.yaml as yaml
+except:
+    import yaml
+
+def _setYamlFlowStyle(x):
+    retval = yaml.comments.CommentedSeq(x)
     retval.fa.set_flow_style()  # fa -> format attribute
     return retval
 
@@ -151,7 +154,7 @@ class ModelMetadata:
             
         values = list()
         for obj in objs:
-            values.append( setYamlFlowStyle( list( obj.values() ) ) )
+            values.append( _setYamlFlowStyle( list( obj.values() ) ) )
             
         result = dict()
         result[header] = values
@@ -383,9 +386,13 @@ class ModelMetadata:
             yamlObj['joints'] = self._createComplexMapping( joints )
             yamlObj['groups'] = self._createComplexMapping( groups )
             yamlObj['primitives'] = self._createComplexMapping( primitives )
-            yaml = ruamel.yaml.YAML()
-            yaml.width = 1024
-            yaml.dump( yamlObj, f )
+            
+            try:
+                yaml = yaml.YAML()
+                yaml.width = 1024
+                yaml.dump( yamlObj, f )
+            except:
+                f.write( yaml.dump( yamlObj ) )
         
     def getJointById( self, jointId ):
         return self._getObjectById( self.jointLookupById, jointId )

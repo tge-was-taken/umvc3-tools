@@ -13,3 +13,10 @@ try:
     numpy = True
 except:
     pass
+
+max = False
+try:
+    import pymxs
+    max = True
+except:
+    pass
