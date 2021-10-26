@@ -1,5 +1,6 @@
-# Massive dump of utility functions
-# Could probably do with some refactoring!
+'''
+Module containing various utility functions used throughout the library.
+'''
 
 import zlib
 import math

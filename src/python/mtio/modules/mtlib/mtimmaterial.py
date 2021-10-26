@@ -1,4 +1,6 @@
-# high level/intermediate material representation for serialization    
+'''
+Intermediate material library representation for easier editing
+'''
        
 import os
 import yaml

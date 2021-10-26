@@ -6,9 +6,10 @@ def getScriptDir():
     return os.path.dirname(os.path.realpath(__file__))
     
 lastWindowUpdateTime = rt.timestamp()
-def lazyUpdateUI():
+def updateUI():
     global lastWindowUpdateTime
-    if rt.timestamp() - lastWindowUpdateTime > 1000:
+    if rt.timestamp() - lastWindowUpdateTime > 3000:
+        print('UI update triggered')
         rt.windows.processPostedMessages()
         lastWindowUpdateTime = rt.timestamp()
 
@@ -36,6 +37,12 @@ def logInfo( msg, *args ):
 def selectOpenFile( category, ext ):
     return rt.getOpenFileName(
         caption=("Open " + category + " file"),
+        types=( category + " (*." + ext + ")|*." + ext ),
+        historyCategory=( category + " Object Presets" ) )
+
+def selectSaveFile( category, ext ):
+    return rt.getSaveFileName(
+        caption=("Save " + category + " file"),
         types=( category + " (*." + ext + ")|*." + ext ),
         historyCategory=( category + " Object Presets" ) )
     

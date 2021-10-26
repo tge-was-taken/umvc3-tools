@@ -1,3 +1,7 @@
+'''
+Module containing the default set of UMVC3 material names used to resolve their name given only a hash (as stored in MRL).
+'''
+
 import mtutil
 
 # dumped from UMVC3 PC

@@ -2,6 +2,7 @@ from pymxs import runtime as rt
 from mtlib import *
 import mtmaxconfig
 import mtmaxutil
+import plugin
 
 class MtModelImporter:
     def __init__( self ):
@@ -97,7 +98,7 @@ class MtModelImporter:
         else:
             textureTEXPath, textureDDSPath = mtutil.resolveTexturePath( self.basePath, texturePath )
             
-            if mtmaxconfig.importConvertTexturesToDDS:
+            if mtmaxconfig.importConvertTexturesToDDS and textureTEXPath != None and os.path.exists( textureTEXPath ):
                 texture = rTextureData()
                 texture.loadBinaryFile( textureTEXPath )
                 textureDDS = texture.toDDS()
@@ -133,7 +134,7 @@ class MtModelImporter:
         return mtx
         
     def calcModelMtx( self, model: rModelData ):
-        modelMtx = model.calcModelMtx() * self.transformMtx
+        modelMtx = self.transformMtx * model.calcModelMtx()
         return self.convertNclMat44ToMaxMatrix3( modelMtx )
             
     def importGroups( self ):
@@ -217,8 +218,8 @@ class MtModelImporter:
             rt.setTVFace( maxMesh, j + 1, maxFaceArray[j] )
         for j in range( 0, len( maxUV1Array ) ):
             rt.setTVert( maxMesh, j + 1, maxUV1Array[j] )
-        #for j in range( 0, len( maxNormalArray ) ):
-        #    rt.setNormal( maxMesh, j + 1, maxNormalArray[j] )
+        for j in range( 0, len( maxNormalArray ) ):
+           rt.setNormal( maxMesh, j + 1, maxNormalArray[j] )
             
         maxMesh.material = self.maxMaterialArray[ primitive.indices.getMaterialIndex() ]
         rt.custAttributes.add( maxMesh.baseObject, rt.mtPrimitiveAttributesInstance )
@@ -243,29 +244,27 @@ class MtModelImporter:
 
         # apply weights
         if len( maxJointArray ) > 0 and mtmaxconfig.importWeights:
-            rt.resumeEditing()
-            rt.execute('max modify mode')
-            
-            rt.select( maxMesh )
             maxSkin = rt.skin()
             rt.addModifier( maxMesh, maxSkin )
-            
-            # add bones
-            for maxBone in self.maxBoneArray:
-                rt.skinOps.addBone( maxSkin, maxBone, 0 )
-                
-            # set weights
-            rt.modPanel.setCurrentObject( maxSkin )
+
+            # preprocess weights
+            usedMaxBones = []
+            newMaxJointArray = []
+            newMaxWeightArray = []
             for j in range( 0, primitive.vertexCount ):
-                mtmaxutil.lazyUpdateUI()
-                
+                # get weights and indices for this vertex
                 maxVtxJointArray = maxJointArray[j]
+                assert ( len(maxVtxJointArray) > 0 )
                 if j + 1 > len( maxWeightArray ):
-                    rt.append( maxWeightArray, rt.Array() )
-                maxVtxWeightArray = maxWeightArray[j] 
+                    maxVtxWeightArray = rt.Array()
+                else:
+                    maxVtxWeightArray = maxWeightArray[j] 
+
+                for w in maxVtxWeightArray:
+                    assert( w >= 0, f'vertex {j} has a negative weight: {maxVtxWeightArray}' )
                 
-                if len( maxVtxJointArray ) != len( maxVtxWeightArray ):
-                    # calculate remaining weights
+                # calculate remaining weights
+                if len( maxVtxJointArray ) != len( maxVtxWeightArray ):    
                     assert( len( maxVtxJointArray ) > len( maxVtxWeightArray ) )
                     numMissingWeights = len( maxVtxJointArray ) - len( maxVtxWeightArray )
                     weightSum = 0
@@ -275,18 +274,60 @@ class MtModelImporter:
                     weightDelta = weightRemainder / numMissingWeights
                     for k in range( 0, numMissingWeights ):
                         rt.append( maxVtxWeightArray, weightDelta )
+
+                # remove useless weights and track used joints
+                newMaxVtxJointArray = rt.Array()
+                newMaxVtxWeightArray = rt.Array()
+
+                for k in range(len(maxVtxJointArray)):
+                    if maxVtxWeightArray[k] > 0.001:
+                        maxBone = self.maxBoneArray[maxVtxJointArray[k] - 1]
+                        if not maxBone in usedMaxBones: usedMaxBones.append( maxBone )
+                        rt.append( newMaxVtxJointArray, maxVtxJointArray[k] )
+                        rt.append( newMaxVtxWeightArray, maxVtxWeightArray[k] )
+
+                newMaxJointArray.append( newMaxVtxJointArray )
+                newMaxWeightArray.append( newMaxVtxWeightArray )
+            
+            # add used bones to skin modifier
+            for i, maxBone in enumerate( usedMaxBones ):
+                update = i == len( usedMaxBones ) - 1
+                rt.skinOps.addBone( maxSkin, maxBone, update, node=maxMesh )
                 
-                rt.skinOps.setVertexWeights( maxSkin, j + 1, maxJointArray[j], maxWeightArray[j] )
+            # create mapping for our joint indices to skin modifier bone indices
+            maxBoneIndexRemap = dict()
+            maxSkinBoneNodes = rt.skinOps.getBoneNodes( maxSkin )
+            for i, maxBone in enumerate( self.maxBoneArray ):
+                for j, maxSkinBoneNode in enumerate( maxSkinBoneNodes ):
+                    if maxSkinBoneNode == maxBone:
+                        maxBoneIndexRemap[i + 1] = j + 1
+                        break
+
+            # set vertex weights
+            for j in range( 0, primitive.vertexCount ):
+                newMaxVtxJointArray = newMaxJointArray[j]
+                newMaxVtxWeightArray = newMaxWeightArray[j]
+                for k, joint in enumerate( newMaxVtxJointArray ):
+                    # remap the joint indices to the skin modifier bone indices
+                    newMaxVtxJointArray[k] = maxBoneIndexRemap[joint]   
+
+                assert len( newMaxVtxJointArray ) > 0 
+                assert len( newMaxVtxWeightArray ) > 0
+                rt.skinOps.setVertexWeights( maxSkin, j + 1, newMaxVtxJointArray, newMaxVtxWeightArray, node=maxMesh )
+
+        elif len( maxJointArray ) == 0:
+            print( 'primitive {maxMesh.name} has no vertex weights' )
             
     def importPrimitives( self ):
         indexStream = NclBitStream( self.model.indexBuffer )
         vertexStream = NclBitStream( self.model.vertexBuffer )
         primitiveJointLinkIndex = 0
         for i in range( len( self.model.primitives ) ):
-            mtmaxutil.logInfo( "loading primitive " + str(i) )
-            mtmaxutil.lazyUpdateUI()
-            
             primitive = self.model.primitives[i]
+
+            mtmaxutil.logInfo( "loading primitive " + str(i) + " " + self.metadata.getPrimitiveName( primitive.id ) )
+            mtmaxutil.updateUI()
+            
             self.importPrimitive( primitive, primitiveJointLinkIndex, indexStream, vertexStream )
             primitiveJointLinkIndex += primitive.primitiveJointLinkCount
             
@@ -297,7 +338,7 @@ class MtModelImporter:
             localMtx = self.model.jointLocalMtx[i]
             if not mtutil.isValidByteIndex( joint.parentIndex ):
                 # only transform root
-                localMtx *= self.transformMtx
+                localMtx = self.transformMtx * localMtx
             
             tfm = self.convertNclMat44ToMaxMatrix3( localMtx )
             maxParentBone = None
@@ -342,7 +383,7 @@ class MtModelImporter:
             else:
                 maxMaterial.base_color_map = self.loadTextureSlot( material, 'tAlbedoMap' )
                 maxMaterial.specular_map = self.loadTextureSlot( material, 'tSpecularMap' )
-                maxMaterial.norm_map = self.loadTextureSlot( material, 'tNormalMap' )
+                #maxMaterial.norm_map = self.loadTextureSlot( material, 'tNormalMap' )
                 rt.custAttributes.add( maxMaterial, rt.mtMaterialAttributesInstance )
                 maxMaterial.mtMaterialAttributes.type = material.type
                 maxMaterial.mtMaterialAttributes.depthStencilState = material.depthStencilState
@@ -371,10 +412,11 @@ class MtModelImporter:
         self.filePath = modFilePath
         self.baseName = os.path.basename( modFilePath ).split('.')[0]
         self.basePath = os.path.dirname( modFilePath )
-        self.metadata = self.loadMetadata( ModelMetadata.getDefaultFilePath( mtmaxconfig.importProfile ) )
+        self.metadata = self.loadMetadata( mtmaxconfig.importMetadataPath )
         self.model = self.loadModel( self.filePath )
         self.transformMtx = self.calcTransformMtx()
         self.maxModelMtx = self.calcModelMtx( self.model )
+        #self.maxModelMtx = rt.Matrix3(1)
         self.importMaterials()
         if mtmaxconfig.importSkeleton:
             self.importSkeleton()

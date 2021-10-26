@@ -1,3 +1,7 @@
+'''
+Binary texture (.TEX) serialization module. 
+'''
+
 import mtutil
 from mtncl import *
 from mtdds import *

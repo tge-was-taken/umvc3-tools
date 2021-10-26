@@ -1,5 +1,10 @@
+'''
+Vertex component encoding & decoding module.
+'''
+
 import struct
 import binascii
+import math
 
 from mtncl import *
  
@@ -16,81 +21,12 @@ if mttarget.noesis:
     # type 2
     def decodeF16( val ):
         return noesis.getFloat16( val )
-# elif mttarget.numpy:
-#     # Numpy implementation
-#     import numpy
-
-#     def encodeF16( val ):
-#         return struct.unpack( "H", numpy.float16( val ).tobytes() )[0]
-    
-#     def decodeF16( val ):
-#         buffer = struct.pack( "H", val ) 
-#         return numpy.frombuffer( buffer, dtype=numpy.float16 )[0]
 else:
     def encodeF16( float32 ):
         return int( struct.unpack( 'H', struct.pack( 'e', float32 ) )[0] )
     
     def decodeF16( float16 ):
         return float( struct.unpack( 'e', struct.pack( 'H', float16 ) )[0] )
-    
-    # Python implementation
-    # https://davidejones.com/blog/python-precision-floating-point/
-    # def encodeF16( float32 ):
-    #     F16_EXPONENT_BITS = 0x1F
-    #     F16_EXPONENT_SHIFT = 10
-    #     F16_EXPONENT_BIAS = 15
-    #     F16_MANTISSA_BITS = 0x3ff
-    #     F16_MANTISSA_SHIFT =  (23 - F16_EXPONENT_SHIFT)
-    #     F16_MAX_EXPONENT =  (F16_EXPONENT_BITS << F16_EXPONENT_SHIFT)
-
-    #     a = struct.pack('>f',float32)
-    #     b = binascii.hexlify(a)
-
-    #     f32 = int(b,16)
-    #     f16 = 0
-    #     sign = (f32 >> 16) & 0x8000
-    #     exponent = ((f32 >> 23) & 0xff) - 127
-    #     mantissa = f32 & 0x007fffff
-                
-    #     if exponent == 128:
-    #         f16 = sign | F16_MAX_EXPONENT
-    #         if mantissa:
-    #             f16 |= (mantissa & F16_MANTISSA_BITS)
-    #     elif exponent > 15:
-    #         f16 = sign | F16_MAX_EXPONENT
-    #     elif exponent > -15:
-    #         exponent += F16_EXPONENT_BIAS
-    #         mantissa >>= F16_MANTISSA_SHIFT
-    #         f16 = sign | exponent << F16_EXPONENT_SHIFT | mantissa
-    #     else:
-    #         f16 = sign
-    #     return f16
-    
-    # def decodeF16( float16 ):
-    #     s = int((float16 >> 15) & 0x00000001)    # sign
-    #     e = int((float16 >> 10) & 0x0000001f)    # exponent
-    #     f = int(float16 & 0x000003ff)            # fraction
-
-    #     if e == 0:
-    #         if f == 0:
-    #             return int(s << 31)
-    #         else:
-    #             while not (f & 0x00000400):
-    #                 f = f << 1
-    #                 e -= 1
-    #             e += 1
-    #             f &= ~0x00000400
-    #             #print(s,e,f)
-    #     elif e == 31:
-    #         if f == 0:
-    #             return int((s << 31) | 0x7f800000)
-    #         else:
-    #             return int((s << 31) | 0x7f800000 | (f << 13))
-
-    #     e = e + (127 -15)
-    #     f = f << 13
-    #     float32 = int((s << 31) | (e << 23) | f)
-    #     return struct.unpack( '>f', struct.pack( '>L', float32 ) )[0]
     
 def isNormalizedFloat( v ):
     return True
@@ -121,19 +57,10 @@ def decodeS16( val ):
         
 # type 5
 def decodeFS16( val ):
-    '''
-    65534 - 32767 =  32767 / 32767 = 1
-    0     - 32767 = -32767 / 32767 = -1
-    '''
-    '''
-    65534 / 32767 = 2
-    '''
-    assert( val >= 0 )
-
-    # unsigned version
-    #return float( ( val - 32767 ) / 32767 )
-
-    # assumes val is signed
+    #assert( val < 0x8000 )
+    # sign = -1 if val & 0x8000 else 1
+    # imm = val & ~0x8000
+    # return float( ( imm / (0x8000-1) ) * sign )
     return float( val / 32767 )
 
 # type 7
@@ -146,16 +73,11 @@ def decodeU8( val ):
 
 # type 9
 def decodeFS8( val ):
-    # assumes val is unsigned
     return float( ( val - 127 ) / 127 )
 
 # type 10
 def decodeFU8( val ):
-    '''
-    254 - 127 =  127 / 127 =  1
-    0   - 127 = -127 / 127 = -1
-    '''
-    return float( ( val - 127 ) / 127 )
+    return float( val / 255 )
 
 # type 11
 def decompressNormals32_10_10_10_2(bits):
@@ -192,13 +114,11 @@ def encodeU16( val ):
         
 # type 5
 def encodeFS16( val ):
-    '''
-     1  * 32767 =  32767 + 32767 = 65534
-    -1  * 32767 = -32767 + 32767 = 0
-    '''
     assert( isNormalizedFloat( val ) )
-    return int( val * 32767 ) & 0xFFFF
-    #return int( ( val * 32767 ) + 32767 ) & 0xFFFF
+    if val < 0:
+        return int( ~int( abs( val ) * -0x8000 ) + 1 ) & 0xFFFF
+    else:
+        return int( abs( val ) * 0x7FFF ) & 0xFFFF
 
 # type 7
 def encodeS8( val ):
@@ -215,11 +135,8 @@ def encodeFU8( val ):
 
 # type 10
 def encodeFS8( val ):
-    '''
-    1  * 127 =  127 + 127 = 254
-    -1 * 127 = -127 + 127 = 0
-    '''
     assert( isNormalizedFloat( val ) )
+    val = 0 if math.isnan( val ) else val
     return int( ( val * 127 ) + 127 ) & 0xFF
 
 # type 11
@@ -327,6 +244,11 @@ def test():
     decF16Val = decodeF16( encF16Val )
     decF16Val2 = encodeF16( decF16Val )
     assert( decF16Val2 == encF16Val )
+
+    table = [
+        1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.0,
+        -0.0, -0.1, -0.2, -0.3, -0.4, -0.5, -0.6, -0.7, -0.8, -0.9, -1.0
+    ]
     
     
 if __name__ == '__main__':

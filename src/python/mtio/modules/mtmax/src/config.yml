@@ -1,0 +1,23 @@
+exportFilePath: X:\games\pc\Ultimate Marvel vs. Capcom 3\nativePCx64\chr\archive\0001_00
+  - demi\chr\Ryu\model\1p\Ryu.58a15856.mod
+exportGroups: true
+exportMetadataPath: X:\projects\umvc3_model\repo\src\python\mtio\modules\mtlib/res/metadata/Ryu.yml
+exportMrlYml: true
+exportNormals: true
+exportPrimitives: true
+exportRefPath: ''
+exportSkeleton: true
+exportTexturesToTEX: true
+exportWeights: true
+flipUpAxis: false
+importConvertTexturesToDDS: true
+importFilePath: X:\games\pc\Ultimate Marvel vs. Capcom 3\nativePCx64\chr\archive\0001_00
+  - demi\chr\Ryu\model\1p\Ryu.58a15856.mod
+importGroups: true
+importMetadataPath: X:\projects\umvc3_model\repo\src\python\mtio\modules\mtlib/res/metadata/Ryu.yml
+importNormals: true
+importPrimitives: true
+importSaveMrlYml: true
+importSkeleton: true
+importWeights: true
+scale: 1

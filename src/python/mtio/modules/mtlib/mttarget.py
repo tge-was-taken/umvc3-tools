@@ -1,3 +1,7 @@
+'''
+Target runtime module. Used to determine which runtime the library is targetting.
+'''
+
 
 noesis = False
 

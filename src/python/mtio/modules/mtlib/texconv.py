@@ -1,3 +1,7 @@
+'''
+Module containing a texconv wrapper interface to simplify calling texconv from python code.
+'''
+
 import subprocess
 import os
 import io

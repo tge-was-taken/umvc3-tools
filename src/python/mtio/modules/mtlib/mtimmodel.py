@@ -1,3 +1,7 @@
+'''
+Intermediate model representation to simplify model conversion from foreign data structures
+'''
+
 from mtncl import *
 from mtrmodel import *
 import mtvertexcodec
@@ -31,11 +35,11 @@ class imJoint:
         self.name = ''
         self.worldMtx = nclCreateMat44()
         self.parentIndex = -1  
-        self.id = None
-        self.symmetryId = None
-        self.field03 = None
-        self.field04 = None
-        self.length = None
+        self.id = -1
+        self.symmetryId = -1
+        self.field03 = 0
+        self.field04 = 0
+        self.length = 0
         
 '''
 typedef struct {
@@ -200,58 +204,44 @@ class imModel:
     def fromBinaryModel( self, mod ):
         pass
         
-    def toBinaryModel( self, ogmod = None ):
+    def toBinaryModel( self, ref: rModelData = None ):
         mod = rModelData()
         
-        if ogmod != None:
-            mod.groups = ogmod.groups
-            mod.primitiveJointLinks = ogmod.primitiveJointLinks
-            mod.joints = ogmod.joints
-            #mod.jointInvBindMtx = ogmod.jointInvBindMtx
-            mod.jointLocalMtx = ogmod.jointLocalMtx
+        if ref != None:
+            mod.groups = ref.groups
+            mod.primitiveJointLinks = ref.primitiveJointLinks
+            mod.joints = ref.joints
+            #mod.jointInvBindMtx = ref.jointInvBindMtx
+            mod.jointLocalMtx = ref.jointLocalMtx
         
-        nextBoneMapIndex = 1 
         for i in range(0, 256):
             mod.boneMap.append(-1)
             
         # create id -> index map
-        for boneIndex, bone in enumerate( self.joints ):
-            splits = bone.name.split('_')
-            jointId = int(splits[1])
-            mod.boneMap[ jointId ] = boneIndex
+        for i, joint in enumerate( self.joints ):
+            mod.boneMap[ joint.id ] = i
         
         # convert joints
-        if ogmod == None:
-            for boneIndex, bone in enumerate( self.joints ):   
-                print("bone {} {}".format(boneIndex, bone.name))    
-                worldMtx = bone.worldMtx
+        if ref == None:
+            for i, joint in enumerate( self.joints ):     
+                worldMtx = joint.worldMtx
                 localMtx = worldMtx
                 parentWorldMtx = nclCreateMat44()
-                if bone.parentIndex != -1:
-                    parentWorldMtx = self.joints[ bone.parentIndex ].worldMtx
+                if joint.parentIndex != -1:
+                    parentWorldMtx = self.joints[ joint.parentIndex ].worldMtx
                    # localMtx = worldMtx * nclInverse( parentWorldMtx )
                     localMtx = nclInverse( parentWorldMtx ) * worldMtx
                     
-                splits = bone.name.split('_')
-                print(splits)
-                symmetryIndex = 255
-                symmetryId = int(splits[3])
-                try:
-                    symmetryIndex = mod.boneMap[symmetryId]
-                    print("index {} for id {}".format(symmetryIndex, symmetryId))
-                except:
-                    print("missing id", symmetryId)
-                    
-                joint = rModelJoint()
-                joint.id = int(splits[1])
-                joint.parentIndex = bone.parentIndex
-                joint.symmetryIndex = symmetryIndex # improper index causes animation glitches
-                joint.field03 = 0
-                joint.field04 = 0
-                joint.offset = bone.worldMtx[3]
-                joint.length = mtmodelutil.calcDistance( parentWorldMtx[3], worldMtx[3] )
+                modJoint = rModelJoint()
+                modJoint.id = joint.id
+                modJoint.parentIndex = joint.parentIndex
+                modJoint.symmetryIndex = mod.boneMap[ joint.symmetryId ] # improper index causes animation glitches
+                modJoint.field03 = joint.field03
+                modJoint.field04 = joint.field04
+                modJoint.offset = localMtx[3]
+                modJoint.length = nclLength( modJoint.offset ) if not (modJoint.offset[0] == 0 and modJoint.offset[1] == 0 and modJoint.offset[2] == 0) else 0
                 
-                mod.joints.append( joint )
+                mod.joints.append( modJoint )
                 mod.jointLocalMtx.append( nclCreateMat44( localMtx ) )
                 # inverse bind matrix is calculated after processing vertices
             
@@ -299,14 +289,40 @@ class imModel:
             #         primJointIndex = key
                 
             # determine vertex format   
-            vertexShaderName = 'IASkinTB4wt'
-            maxWeightCount = 4
-            vertexStride = imVertexIASkinTB4wt.SIZE
             hasOcclusion = True
             hasTangent = True
-            hasTexCoord = True
-            
-            if maxUsedBoneCount == 2:
+            hasTexCoord = True 
+
+
+            if maxUsedBoneCount > 4:
+                # pick 4 most influential weights and remove the others
+                for k, w in enumerate( mesh.weights ):
+                    weightIndex = []
+                    for k in range( 0, len(w.weights) ):
+                        weightIndex.append((w.weights[k], w.indices[k]))
+                    weightIndex = sorted(weightIndex, key=lambda x: x[0])
+
+                    weightTotal = 0
+                    w.weights = []
+                    w.indices = []
+                    for k in range( 0, len(weightIndex) ):
+                        weight, index = weightIndex[k]
+                        weightTotal += weight
+                        w.weights.append( weight )
+                        w.indices.append( index )
+
+                    # average out the weights
+                    weightRemainder = 1 - weightTotal
+                    weightAvgStep = weightRemainder / len(w.weights)
+                    for k in range( 0, len(w.weights) ):
+                        w.weights[k] += weightAvgStep
+                maxUsedBoneCount = 4
+                
+            if maxUsedBoneCount > 2 and maxUsedBoneCount <= 4:
+                vertexShaderName = 'IASkinTB4wt'
+                maxWeightCount = 4
+                vertexStride = imVertexIASkinTB4wt.SIZE 
+            elif maxUsedBoneCount == 2:
                 vertexShaderName = 'IASkinTB2wt'
                 maxWeightCount = 2
                 vertexStride = imVertexIASkinTB2wt.SIZE
@@ -351,6 +367,7 @@ class imModel:
                     primJointIndex = jointIndex
                     vtx.jointId = jointIndex
                 elif maxWeightCount == 1:
+                    assert ( len(mesh.weights[ i ].indices) > 0 ), 'mesh {} has unrigged vertex at index {}'.format(mesh.name, i)
                     jointIndex = mesh.weights[ i ].indices[ 0 ]
                     primJointIndex = jointIndex
                     vtx.jointId = jointIndex
@@ -381,6 +398,8 @@ class imModel:
                         if weight > 0.001:
                             usedBoneCount += 1
                         
+                    assert usedBoneCount > 0, 'mesh {} has unrigged vertex at index {}'.format(mesh.name, i)
+
                     # adjust for floating point error
                     weightError = 1 - weightSum
                     weightErrorDelta = weightError / usedBoneCount
@@ -446,8 +465,8 @@ class imModel:
             prim.field2c = 0
             prim.primitiveJointLinkPtr = 0
             
-            # if ogmod != None:
-            #     for ogprim in ogmod.primitives:
+            # if ref != None:
+            #     for ogprim in ref.primitives:
             #         if ogprim.index == prim.index:
             #             prim.type = ogprim.type
             #             prim.indices.setGroupId( ogprim.indices.getGroupId() )
@@ -506,9 +525,9 @@ class imModel:
         
         if len( mod.jointInvBindMtx ) == 0:
             # calculate joint inverse bind matrices
-            for boneIndex, bone in enumerate( self.joints ):   
+            for i, joint in enumerate( self.joints ):   
                 # apply model matrix to world transform of each joint
-                invBindMtx = nclInverse( nclMultiply( bone.worldMtx, modelMtx ) )
+                invBindMtx = nclInverse( nclMultiply( joint.worldMtx, modelMtx ) )
                 finalInvBindMtx = nclCreateMat44( invBindMtx )
                 mod.jointInvBindMtx.append( finalInvBindMtx )
         

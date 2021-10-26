@@ -1,3 +1,7 @@
+'''
+DDS utility library for reading and writing DDS files.
+'''
+
 from mtncl import *
 import mtutil
 

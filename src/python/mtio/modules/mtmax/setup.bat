@@ -1,1 +1,1 @@
-py -3 setup/setup.py
+py -3 impl/setup/setup.py

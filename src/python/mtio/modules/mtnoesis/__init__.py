@@ -299,8 +299,8 @@ def modWriteModel( mdl, bs ):
      
     # save mod
     ogmod = None
-    #ogmod = rModelData()  
-    #ogmod.read( NoeBitStream(rapi.loadIntoByteArray("X:/work/umvc3_model/samples/UMVC3ModelSamples/Ryu/Ryu.58a15856.mod") ) )
+    ogmod = rModelData()  
+    ogmod.read( NoeBitStream(rapi.loadIntoByteArray("X:/projects/umvc3_model/samples/UMVC3ModelSamples/Ryu/Ryu.58a15856.mod") ) )
     mod = imMod.toBinaryModel( ogmod ) 
     mod.write( bs )
     

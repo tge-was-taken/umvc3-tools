@@ -1,3 +1,6 @@
+'''
+Intermediate shader object info database utility module for easier access to shader info for parsing vertex buffers.
+'''
 
 class ShaderInputInfo:
     '''Describes a shader input variable'''

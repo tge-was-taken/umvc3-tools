@@ -1,3 +1,7 @@
+'''
+.MOD serialization related classes and functions used to read and write binary model files.
+'''
+
 from mtrshader import rShaderObjectId
 from mtncl import *
 import mtutil

@@ -1,7 +1,8 @@
 ''' 
-Joint info/metadata classes.
-Used for retrieving additional info about model joints like names.
+Metadata classes used for retrieving user-specified info about a model.
+Used to give names to object ids and store online-safe data about a model
 '''
+
 import os
 from mtrmodel import *
 import mtutil
@@ -397,10 +398,10 @@ class ModelMetadata:
     def getJointById( self, jointId ):
         return self._getObjectById( self.jointLookupById, jointId )
         
-    def getJointByName( self, jointName ):
+    def getJointByName( self, jointName ) -> JointMetadata:
         return self._getObjectByName( JointMetadata, self.jointLookupByName, self.jointLookupById, jointName )
        
-    def getJointName( self, id ):
+    def getJointName( self, id ) -> str:
         return self._getObjectName( JointMetadata, self.jointLookupById, id )
         
     def getGroupById( self, groupId ):

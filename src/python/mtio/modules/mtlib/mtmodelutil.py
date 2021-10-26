@@ -1,3 +1,7 @@
+'''
+Various model-related utility functions.
+'''
+
 from mtncl import *
 
 class imModelBounds:

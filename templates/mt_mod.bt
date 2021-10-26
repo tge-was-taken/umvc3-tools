@@ -119,9 +119,11 @@ void ListPrimitiveJointLinksByIndex( u8 index )
 // size = 0x18
 typedef struct( u32& index )
 {
+    // attr, parentIndex, symmetryIndex, no, type
+
     /* 00 */ u8 Id; // mNo, id of the joint
-    /* 01 */ u8 Parent; // mParent
-    /* 02 */ u8 Symmetry; // mSymmetry, index to opposite joint
+    /* 01 */ u8 ParentIndex; // mParent
+    /* 02 */ u8 SymmetryIndex; // mSymmetry, index to opposite joint
     /* 03 */ u8 Field03; // always 0 for Ryu
     /* 04 */ f32 Field04; // unused (?)
     /* 08 */ f32 Length; // mLength, distance to parent bone

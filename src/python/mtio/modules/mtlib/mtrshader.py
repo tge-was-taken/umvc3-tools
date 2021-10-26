@@ -1,3 +1,7 @@
+'''
+Binary shader serialization module.
+'''
+
 class rShaderObjectId:
     SIZE = 0x04
     

@@ -1,3 +1,7 @@
+'''
+Classes and functions for serializing MRL material libraries.
+'''
+
 import yaml
 from collections import namedtuple
 
