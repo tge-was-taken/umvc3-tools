@@ -136,6 +136,54 @@ class MtModelImporter:
     def calcModelMtx( self, model: rModelData ):
         modelMtx = self.transformMtx * model.calcModelMtx()
         return self.convertNclMat44ToMaxMatrix3( modelMtx )
+
+
+    def _addPrimitiveAttribs( self, primitive, shaderInfo, maxMesh ):
+        rt.custAttributes.add( maxMesh.baseObject, rt.mtPrimitiveAttributesInstance )
+        attribs = maxMesh.mtPrimitiveAttributes
+        attribs.flags = hex( primitive.flags )
+        attribs.groupId = "inherit" # inherited from parent
+        attribs.lodIndex = primitive.indices.getLodIndex()
+        attribs.matIndex = str( primitive.indices.getMaterialIndex() )
+        attribs.vertexFlags = hex( primitive.vertexFlags )
+        attribs.vertexStride = str( primitive.vertexStride )
+        attribs.renderFlags = hex( primitive.renderFlags )
+        attribs.vertexStartIndex = str( primitive.vertexStartIndex )
+        attribs.vertexBufferOffset = hex( primitive.vertexBufferOffset )
+        attribs.shaderName = shaderInfo.name
+        attribs.indexBufferOffset = hex( primitive.indexBufferOffset )
+        attribs.indexCount = str( primitive.indexCount )
+        attribs.indexStartIndex = str( primitive.indexStartIndex )
+        attribs.boneMapStartIndex = str( primitive.boneIdStart )
+        attribs.primitiveJointLinkCount = str( primitive.primitiveJointLinkCount )
+        attribs.id = primitive.id
+        attribs.minVertexIndex = str( primitive.minVertexIndex )
+        attribs.maxVertexIndex = str( primitive.maxVertexIndex )
+        attribs.field2c = primitive.field2c
+        attribs.primitiveJointLinkPtr = str( primitive.primitiveJointLinkPtr )
+
+    def _addGroupAttribs( self, group, maxGroup ):
+        rt.custAttributes.add( maxGroup, rt.mtModelGroupAttributesInstance )
+        attribs =  maxGroup.mtModelGroupAttributes
+        attribs.id = group.id
+        attribs.field04 = group.field04
+        attribs.field08 = group.field08
+        attribs.field0c = group.field0c
+        attribs.bsphere = group.boundingSphere
+
+    def _addJointAttribs( self, joint, maxBone ):
+        rt.custAttributes.add( maxBone.baseObject, rt.mtJointAttributesInstance )
+        attribs = maxBone.mtJointAttributes
+        attribs.id = joint.id
+        attribs.parentIndex = joint.parentIndex
+        attribs.symmetryIndex = joint.symmetryIndex
+        attribs.symmetryName = self.maxBoneArray[ joint.symmetryIndex ].name if joint.symmetryIndex != 255 else ""
+        attribs.field03 = joint.field03
+        attribs.field04 = joint.field04
+        attribs.length = str(joint.length)
+        attribs.offsetX = str(joint.offset[0])
+        attribs.offsetY = str(joint.offset[1])
+        attribs.offsetZ = str(joint.offset[2])
             
     def importGroups( self ):
         self.maxGroupArray = []
@@ -144,12 +192,7 @@ class MtModelImporter:
             maxGroup = rt.dummy()
             #maxGroup.pos = rt.Point3( group.boundingSphere[0], group.boundingSphere[1], group.boundingSphere[2] )
             maxGroup.name = self.metadata.getGroupName( group.id )
-            rt.custAttributes.add( maxGroup, rt.mtModelGroupAttributesInstance )
-            maxGroup.mtModelGroupAttributes.id = group.id
-            maxGroup.mtModelGroupAttributes.field04 = group.field04
-            maxGroup.mtModelGroupAttributes.field08 = group.field08
-            maxGroup.mtModelGroupAttributes.field0c = group.field0c
-            maxGroup.mtModelGroupAttributes.bsphere = group.boundingSphere
+            self._addGroupAttribs( group, maxGroup )
             self.maxGroupArray.append( maxGroup )
             self.maxGroupLookup[ group.id ] = maxGroup
             
@@ -222,17 +265,7 @@ class MtModelImporter:
            rt.setNormal( maxMesh, j + 1, maxNormalArray[j] )
             
         maxMesh.material = self.maxMaterialArray[ primitive.indices.getMaterialIndex() ]
-        rt.custAttributes.add( maxMesh.baseObject, rt.mtPrimitiveAttributesInstance )
-        maxMesh.mtPrimitiveAttributes.flags = hex( primitive.flags )
-        maxMesh.mtPrimitiveAttributes.lodIndex = primitive.indices.getLodIndex() 
-        if not mtutil.isValidByteIndex( maxMesh.mtPrimitiveAttributes.lodIndex ):
-            maxMesh.mtPrimitiveAttributes.lodIndex = -1
-
-        maxMesh.mtPrimitiveAttributes.vertexFlags = hex( primitive.vertexFlags )
-        maxMesh.mtPrimitiveAttributes.renderFlags = hex( primitive.renderFlags )
-        maxMesh.mtPrimitiveAttributes.shaderName = shaderInfo.name
-        maxMesh.mtPrimitiveAttributes.id = primitive.id
-        maxMesh.mtPrimitiveAttributes.field2c = primitive.field2c
+        self._addPrimitiveAttribs( primitive, shaderInfo, maxMesh )
 
         # parent to group
         if primitive.indices.getGroupId() in self.maxGroupLookup:
@@ -354,12 +387,7 @@ class MtModelImporter:
         # add custom attributes
         for i, joint in enumerate( self.model.joints ):
             maxBone = self.maxBoneArray[ i ]
-            rt.custAttributes.add( maxBone.baseObject, rt.mtJointAttributesInstance )
-            maxBone.mtJointAttributes.id = joint.id
-            if mtutil.isValidByteIndex( joint.symmetryIndex ):
-                maxBone.mtJointAttributes.symmetryName = self.maxBoneArray[ joint.symmetryIndex ].name
-            maxBone.mtJointAttributes.field03 = joint.field03
-            maxBone.mtJointAttributes.field04 = joint.field04
+            self._addJointAttribs( joint, maxBone )
             
     def importMaterials( self ):
         # load mtl
@@ -383,6 +411,7 @@ class MtModelImporter:
             else:
                 maxMaterial.base_color_map = self.loadTextureSlot( material, 'tAlbedoMap' )
                 maxMaterial.specular_map = self.loadTextureSlot( material, 'tSpecularMap' )
+                # dont assign normal map because it doesn't display properly
                 #maxMaterial.norm_map = self.loadTextureSlot( material, 'tNormalMap' )
                 rt.custAttributes.add( maxMaterial, rt.mtMaterialAttributesInstance )
                 maxMaterial.mtMaterialAttributes.type = material.type

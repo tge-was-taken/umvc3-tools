@@ -53,18 +53,43 @@ rollout MtInfoRollout "MT Framework Importer/Exporter"
 	label lblAuthor "© 2021 TGE" align:#center
 )
 
-rollout MtSettingsRollout "Settings"
+rollout MtAttribsRollout "Attribs"
 (
 	checkbox chkFlipUpAxis "Flip up axis" checked:true align:#left;
 	spinner spnScale "Scale" range:[0,1000000,1] align:#left;
 
 	fn emit args = 
 	(
-		mtCallPythonFunc "MtSettingsRollout" "onEvent" args
+		mtCallPythonFunc "MtAttribsRollout" "onEvent" args
 	)
 	
 	on chkFlipUpAxis 	changed state do emit #("chkFlipUpAxisChanged", state)
 	on spnScale 		changed state do emit #("spnScaleChanged", state)
+)
+
+rollout MtUtilitiesRollout "Utilities"
+(
+	group "Add MT attributes to selected object" (
+		button btnAddJointAttribs "Joint"
+		button btnAddGroupAttribs "Group"
+		button btnAddPmlAttribs "PML"
+		button btnAddPrimAttribs "Primitive"
+	)
+
+	group "Create MT helper" (
+		button btnCreateGroup "Group"
+	)
+
+	fn emit args = 
+	(
+		mtCallPythonFunc "MtUtilitiesRollout" "onEvent" args
+	)
+
+	on btnAddJointAttribs	pressed do emit #("btnAddJointAttribsPressed")
+	on btnAddGroupAttribs	pressed do emit #("btnAddGroupAttribsPressed")
+	on btnAddPmlAttribs		pressed do emit #("btnAddPmlAttribsPressed")
+	on btnAddPrimAttribs	pressed do emit #("btnAddPrimAttribsPressed")
+	on btnCreateGroup 		pressed do emit #("btnCreateGroupPressed")
 )
 
 rollout MtModelImportRollout "Model import"

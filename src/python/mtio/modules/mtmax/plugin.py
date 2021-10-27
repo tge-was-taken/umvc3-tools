@@ -2,7 +2,6 @@
 import sys
 import os 
 import glob
-import importlib
 
 _defaultModules = None
 
@@ -45,18 +44,15 @@ def _bootstrap():
     loadedModules = [x for x in sys.modules if not x in _getDefaultModules()]
     print(f'bootstrapper: loaded modules: {loadedModules}')
 
-def reload():
-    loadedModules = [x for x in sys.modules if not x in _getDefaultModules()]
-    print(loadedModules)
-    for mod in loadedModules:
-        print(f'bootstrapper: deleting module {mod}')
-        del sys.modules[mod]
-
-    for mod in loadedModules:
-        print(f'bootstrapper: importing module {mod}')
-        importlib.import_module(mod)
+def _attachDebugger():
+    try:
+        import ptvsd
+        print( ptvsd.enable_attach() )
+    except:
+        pass
 
 if __name__ == '__main__':
     _bootstrap()
+    _attachDebugger()
     from src import *
     main()

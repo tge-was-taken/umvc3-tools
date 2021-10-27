@@ -21,7 +21,7 @@ class MtRollout:
         else:
             print(f'no event handler for {e}')
 
-        if getattr( cls, 'updateVisibility'): 
+        if hasattr( cls, 'updateVisibility'): 
             cls.updateVisibility()
         else:
             print(f'no update visibility handler defined in {cls}')
@@ -250,6 +250,41 @@ class MtLogRollout(MtRollout):
     @staticmethod
     def loadConfig():
         self = MtLogRollout.getMxsVar()
+
+class MtUtilitiesRollout(MtRollout):
+    @staticmethod
+    def loadConfig():
+        pass
+
+    def _addAttributeToSelection(attr):
+        if len(rt.selection) == 0:
+            return
+        for node in rt.selection: 
+            rt.custAttributes.add( node, attr )
+
+    @staticmethod
+    def btnAddJointAttribsPressed():
+        MtUtilitiesRollout._addAttributeToSelection( rt.mtJointAttributesInstance )
+
+    @staticmethod
+    def btnAddGroupAttribsPressed():
+        MtUtilitiesRollout._addAttributeToSelection( rt.mtModelGroupAttributesInstance )
+
+    #@staticmethod
+    #def btnAddPmlAttribsPressed():
+    #    rt.custAttributes.add( rt.selected, rt.mtModelGroupAttributesInstance )
+
+    @staticmethod
+    def btnAddPrimAttribsPressed():
+        MtUtilitiesRollout._addAttributeToSelection( rt.mtPrimitiveAttributesInstance )
+
+    @staticmethod
+    def btnCreateGroupPressed():
+        group = rt.dummy()
+        group.name = "New group"
+        rt.custAttributes.add( group, rt.mtModelGroupAttributesInstance )
+        rt.select( group )
+    
     
 def getMainWindow():
     return rt.g_mtWindow
@@ -272,7 +307,7 @@ def createMainWindow():
         
     # create plugin window
     rt.g_mtWindow = rt.newRolloutFloater( "MT Framework Max IO Plugin", w, h, x, y )
-    rollouts = [MtInfoRollout, MtSettingsRollout, MtModelImportRollout, MtModelExportRollout, MtLogRollout]
+    rollouts = [MtInfoRollout, MtSettingsRollout, MtModelImportRollout, MtModelExportRollout, MtUtilitiesRollout, MtLogRollout]
     
     for rollout in rollouts:
         rollout.getMxsVar().width = w
