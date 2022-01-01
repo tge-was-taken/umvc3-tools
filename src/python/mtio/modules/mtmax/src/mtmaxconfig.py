@@ -21,7 +21,7 @@ importSaveMrlYml = True
 # export settings
 exportWeights = True
 exportFilePath = ''
-exportTexturesToTEX = True
+exportTexturesToTex = True
 exportMetadataPath = ''
 exportNormals = True
 exportGroups = True
@@ -29,6 +29,7 @@ exportSkeleton = True
 exportPrimitives = True
 exportMrlYml = True
 exportRefPath = ''
+exportMrlYmlPath = ''
 
 def _getModule():
     if not __name__ in sys.modules:

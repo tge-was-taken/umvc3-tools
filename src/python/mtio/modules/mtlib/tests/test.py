@@ -5,15 +5,14 @@ import io
 sys.path.append( os.path.dirname( sys.path[0] ) )
 sys.path.append( os.path.dirname( os.path.dirname( sys.path[0] ) ) )
 
-from mtncl import *
-from mtimmaterial import *
-from mtrmaterial import *
-from mtrmodel import * 
-from mtjointinfo import *
+from ncl import *
+from immaterial import *
+from rmaterial import *
+from rmodel import * 
 import mvc3materialdb
 import mvc3shaderdb
-import mtutil
-from mtrtexture import *
+import util
+from rtexture import *
 
 def areBuffersEqual( a, b ):
     if len( a ) != len( b ): return False
@@ -25,7 +24,7 @@ def areBuffersEqual( a, b ):
 def testMrlYaml( mrlBuffer, modPath ):
     # read model for material names
     mod = rModelData()
-    mod.read( NclBitStream( mtutil.loadIntoByteArray( modPath ) ) )
+    mod.read( NclBitStream( util.loadIntoByteArray( modPath ) ) )
     mvc3materialdb.addNames( mod.materials )
     
     # read mtl into intermediate 
@@ -67,7 +66,7 @@ def dumpMaterialNames():
         for entry in it:
             if entry.name.endswith(".mod") and entry.is_file():
                 print( entry.name )
-                reader = rModelStreamReader( NclBitStream( mtutil.loadIntoByteArray( entry.path ) ) )
+                reader = rModelStreamReader( NclBitStream( util.loadIntoByteArray( entry.path ) ) )
                 for mat in reader.iterMaterials():
                     names.add( mat )
         
@@ -76,14 +75,14 @@ def dumpMaterialNames():
             f.write( name + "\n" )
 
 def testMrl( inputName, ignoreAnim ):
-    basePath, baseName, exts = mtutil.splitPath( inputName )
+    basePath, baseName, exts = util.splitPath( inputName )
     modPath = os.path.join( basePath, baseName + '.58a15856.mod' )
     mrlPath = os.path.join( basePath, baseName + '.2749c8a8.mrl' )
     ymlPath = os.path.join( basePath, baseName + '.2749c8a8.mrl.yml' )
     
     # read mtl
     mrl = rMaterialData()
-    mrlBuffer = mtutil.loadIntoByteArray( mrlPath )
+    mrlBuffer = util.loadIntoByteArray( mrlPath )
     mrl.read(NclBitStream( mrlBuffer ) )
     
     hasAnimData = False
@@ -120,13 +119,13 @@ def processMrlBatch( func, *args ):
                 func( entry.path, *args )
 
 def testMod( inputName ):
-    basePath, baseName, exts = mtutil.splitPath( inputName )
+    basePath, baseName, exts = util.splitPath( inputName )
     modPath = os.path.join( basePath, baseName + '.58a15856.mod' )
     mrlPath = os.path.join( basePath, baseName + '.2749c8a8.mrl' )
     ymlPath = os.path.join( basePath, baseName + '.2749c8a8.mrl.yml' )
     
     # read mod
-    modBuffer = mtutil.loadIntoByteArray( modPath )
+    modBuffer = util.loadIntoByteArray( modPath )
     mod = rModelData()
     mod.read( NclBitStream( modBuffer ) )
 
@@ -173,13 +172,13 @@ def addUnique2( stats, key, a, b ):
         stats[key][a].append( b )
     
 def dumpModStats( inputName, stats ):
-    basePath, baseName, exts = mtutil.splitPath( inputName )
+    basePath, baseName, exts = util.splitPath( inputName )
     modPath = os.path.join( basePath, baseName + '.58a15856.mod' )
     mrlPath = os.path.join( basePath, baseName + '.2749c8a8.mrl' )
     ymlPath = os.path.join( basePath, baseName + '.2749c8a8.mrl.yml' )
     
     # read mod
-    modBuffer = mtutil.loadIntoByteArray( modPath )
+    modBuffer = util.loadIntoByteArray( modPath )
     mod = rModelData()
     mod.read( NclBitStream( modBuffer ) )
     
@@ -214,118 +213,24 @@ def dumpModStats( inputName, stats ):
     for link in mod.primitiveJointLinks:
         addFreq( stats, "link.field04", link.field04 )
         addFreq( stats, "link.field08", link.field08 )
-        addFreq( stats, "link.field0c", link.field0c )
-        
-def genJointInfoCsv( inputName, ref ):
-    basePath, baseName, exts = mtutil.splitPath( inputName )
-    modPath = os.path.join( basePath, baseName + '.58a15856.mod' )
-    mrlPath = os.path.join( basePath, baseName + '.2749c8a8.mrl' )
-    ymlPath = os.path.join( basePath, baseName + '.2749c8a8.mrl.yml' )
-    
-    # read mod
-    modBuffer = mtutil.loadIntoByteArray( modPath )
-    mod = rModelData()
-    mod.read( NclBitStream( modBuffer ) )
-    
-    if len( mod.joints ) > 0:
-        # try to load the existing csv if we have it
-        csvPath = mtutil.getResourceDir() + '/jointinfo/' + baseName + ".csv"
-        jointInfoDb = JointInfoDb()
-        if os.path.exists( csvPath ):
-            jointInfoDb.loadCsvFromFile( csvPath )
-        
-        with open( mtutil.getResourceDir() + '/jointinfo/' + baseName + ".csv", "w" ) as f:
-            f.write( "id\tname\tparentId\tsymmetryId\tfield03\tfield04\tlength\toffset\n" )
-            for joint in sorted( mod.joints, key=lambda j: j.id ):  
-                # find parent id
-                parentId = -1
-                if not joint.parentIndex in [-1, 255]:
-                    parentId = mod.joints[ joint.parentIndex ].id
-                   
-                # find symmetry id
-                symmetryId = -1
-                if not joint.symmetryIndex in [-1, 255]:
-                    symmetryId = mod.joints[ joint.symmetryIndex ].id
-                    
-                # find joint info in db
-                name = JointInfoDb.getDefaultJointName( joint.id )
-                jointInfo = jointInfoDb.getJointInfoById( joint.id )
-                if jointInfo != None and not jointInfo.name.startswith( JointInfoDb.DEFAULT_NAME_PREFIX ):
-                    # the joint name isn't generated, so
-                    # get the name from the joint info
-                    name = jointInfo.name
-                    if symmetryId != -1:
-                        assert( symmetryId == jointInfo.opposite.id )
-                else:
-                    # try to look for a suitable name in the reference joint db
-                    # not perfect, but a close approximation
-                    for refJoint in ref.joints:
-                        if symmetryId == -1 and refJoint.id == joint.id and refJoint.opposite == None:
-                            name = refJoint.name
-                            break
-                            
-                        elif refJoint.id == joint.id and refJoint.opposite.id == symmetryId:
-                            name = refJoint.name
-                            break
-                        
-                # write the entry
-                f.write( f"{joint.id}\t{name}\t{parentId}\t{symmetryId}\t{joint.field03}\t{joint.field04}\t{joint.length}\t{joint.offset}\n")    
+        addFreq( stats, "link.field0c", link.field0c )  
                 
 def genMetadata( inputName, ref ):
-    basePath, baseName, exts = mtutil.splitPath( inputName )
+    basePath, baseName, exts = util.splitPath( inputName )
     modPath = os.path.join( basePath, baseName + '.58a15856.mod' )
     mrlPath = os.path.join( basePath, baseName + '.2749c8a8.mrl' )
     
     # read mod
-    modBuffer = mtutil.loadIntoByteArray( modPath )
+    modBuffer = util.loadIntoByteArray( modPath )
     mod = rModelData()
     mod.read( NclBitStream( modBuffer ) )
     
     if len( mod.joints ) > 0:
         # try to load the existing metadata if we have it
-        filePath = mtutil.getResourceDir() + '/metadata/' + baseName + ".yml"
+        filePath = util.getResourceDir() + '/metadata/' + baseName + ".yml"
         metadata = ModelMetadata()
         if os.path.exists( filePath ):
-            metadata.loadFile( filePath )
-            
-        
-        
-        # with open( mtutil.getResourceDir() + '/jointinfo/' + baseName + ".csv", "w" ) as f:
-        #     f.write( "id\tname\tparentId\tsymmetryId\tfield03\tfield04\tlength\toffset\n" )
-        #     for joint in sorted( mod.joints, key=lambda j: j.id ):  
-        #         # find parent id
-        #         parentId = -1
-        #         if not joint.parentIndex in [-1, 255]:
-        #             parentId = mod.joints[ joint.parentIndex ].id
-                   
-        #         # find symmetry id
-        #         symmetryId = -1
-        #         if not joint.symmetryIndex in [-1, 255]:
-        #             symmetryId = mod.joints[ joint.symmetryIndex ].id
-                    
-        #         # find joint info in db
-        #         name = JointInfoDb.getDefaultJointName( joint.id )
-        #         jointInfo = jointInfoDb.getJointInfoById( joint.id )
-        #         if jointInfo != None and not jointInfo.name.startswith( JointInfoDb.DEFAULT_NAME_PREFIX ):
-        #             # the joint name isn't generated, so
-        #             # get the name from the joint info
-        #             name = jointInfo.name
-        #             if symmetryId != -1:
-        #                 assert( symmetryId == jointInfo.opposite.id )
-        #         else:
-        #             # try to look for a suitable name in the reference joint db
-        #             # not perfect, but a close approximation
-        #             for refJoint in ref.joints:
-        #                 if symmetryId == -1 and refJoint.id == joint.id and refJoint.opposite == None:
-        #                     name = refJoint.name
-        #                     break
-                            
-        #                 elif refJoint.id == joint.id and refJoint.opposite.id == symmetryId:
-        #                     name = refJoint.name
-        #                     break
-                        
-        #         # write the entry
-        #         f.write( f"{joint.id}\t{name}\t{parentId}\t{symmetryId}\t{joint.field03}\t{joint.field04}\t{joint.length}\t{joint.offset}\n")    
+            metadata.loadFile( filePath )  
     
 def processModBatch( func, *args ):
     with os.scandir('X:\\work\\umvc3_model\\samples\\test') as it:
@@ -340,14 +245,14 @@ def processTexBatch( func, *args ):
                 func( entry.path, *args )
                 
 def logMrlWithAnim( inputName, f ):
-    basePath, baseName, exts = mtutil.splitPath( inputName )
+    basePath, baseName, exts = util.splitPath( inputName )
     modPath = os.path.join( basePath, baseName + '.58a15856.mod' )
     mrlPath = os.path.join( basePath, baseName + '.2749c8a8.mrl' )
     ymlPath = os.path.join( basePath, baseName + '.2749c8a8.mrl.yml' )
     
     # read mtl
     mrl = rMaterialData()
-    mrlBuffer = mtutil.loadIntoByteArray( mrlPath )
+    mrlBuffer = util.loadIntoByteArray( mrlPath )
     mrl.read(NclBitStream( mrlBuffer ) )
     
     hasAnimData = False
@@ -371,13 +276,13 @@ class JointStats:
         return "id {:3d} parent {:3d} sym {:3d} uses {:3d} usedBy {}".format( self.id, self.parentId, self.symmetryId, self.uses, self.usedByFiles )
         
 def findSimilarJoints( inputName, stats ):
-    basePath, baseName, exts = mtutil.splitPath( inputName )
+    basePath, baseName, exts = util.splitPath( inputName )
     modPath = os.path.join( basePath, baseName + '.58a15856.mod' )
     mrlPath = os.path.join( basePath, baseName + '.2749c8a8.mrl' )
     ymlPath = os.path.join( basePath, baseName + '.2749c8a8.mrl.yml' )
     
     # read mod
-    modBuffer = mtutil.loadIntoByteArray( modPath )
+    modBuffer = util.loadIntoByteArray( modPath )
     mod = rModelData()
     mod.read( NclBitStream( modBuffer ) )
     
@@ -405,7 +310,7 @@ def findSimilarJoints( inputName, stats ):
     
 def testTex( inputPath ):
     try:
-        texBuffer = mtutil.loadIntoByteArray( inputPath )
+        texBuffer = util.loadIntoByteArray( inputPath )
         if len( texBuffer ) == 0 or texBuffer[0] == 0:
             # skip invalid files
             return
@@ -425,8 +330,8 @@ def testTex( inputPath ):
         assert( areBuffersEqual( texBuffer, newTexBuffer ) )
     except Exception as e:
         print( inputPath + '\t' + str( e ) )
-        mtutil.saveByteArrayToFile( 'test_orig.tex', texBuffer )
-        mtutil.saveByteArrayToFile( 'test.tex', newTexBuffer )
+        util.saveByteArrayToFile( 'test_orig.tex', texBuffer )
+        util.saveByteArrayToFile( 'test.tex', newTexBuffer )
         
 def dumpTexFormatInfo( inputPath, list ):
     baseName = os.path.basename( inputPath ).split('.')[0]
@@ -452,12 +357,9 @@ def main():
     inputName = "X:/work/umvc3_model/samples/UMVC3ModelSamples/Ryu/Ryu.58a15856.mod"
     baseName = os.path.basename(inputName).split('.')[0]
     basePath = os.path.dirname(inputName)
-    data = mtutil.loadIntoByteArray( inputName )
+    data = util.loadIntoByteArray( inputName )
     
     processModBatch( testMod )
-    
-    # jointInfoDb = JointInfoDb()
-    # jointInfoDb.loadCsvFromFile("X:/work/umvc3_model/repo/source/mtlib/res/jointinfo.csv")
     
     # if not os.path.exists("dump/mrl_with_anims.txt"):
     #     with open("dump/mrl_with_anims.txt", "w") as f:

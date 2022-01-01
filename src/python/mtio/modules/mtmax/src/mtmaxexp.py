@@ -6,6 +6,7 @@ from pymxs import runtime as rt
 from mtlib import *
 import mtmaxconfig
 import mtmaxutil
+from mtlib import texconv
 
 class TempVertex:
     '''Trivially hash-able container for optimizing the vertex cache'''
@@ -434,6 +435,130 @@ class MtModelExporter(object):
                 jointMeta = self.metadata.getJointByName( maxNode.name )
                 attribs = MtJointAttribData( maxNode, jointMeta )
                 joint.symmetry = self._processBone( attribs.symmetryNode ) if attribs.symmetryNode != None else None
+                
+    def _convertTextureToTEX( self, inPath, outPath, origPath, forcedFormat ):
+        basePath, baseName, exts = util.splitPath( inPath )
+        inExt = exts[len(exts) - 1]
+        
+        inDDSBasePath = basePath
+        inDDSPath = os.path.join( basePath, baseName )
+        if len(exts) > 1:
+            for i in range(0, len(exts) - 1):
+                inDDSPath += '.' + exts[i]
+        inDDSPath += '.DDS'
+        
+        if outPath == None:
+            outPath = os.path.join( basePath, baseName )
+            if len(exts) > 1:
+                for i in range(0, len(exts) - 1):
+                    outPath += '.' + exts[i]
+            
+            outExt = 'tex'
+            if inExt == 'tex':
+                outExt = 'dds'
+            outPath += '.' + outExt
+                
+        outBasePath, outBaseName, outExts = util.splitPath( outPath )
+
+        
+        outExt = outExts[len(outExts) - 1]
+        
+        origTex = None
+        if origPath != None and origPath != '':
+            origTex = rTextureData()
+            origTex.loadBinaryFile( origPath )
+        
+        if inExt == 'tex':
+            # convert tex to dds
+            print('converting TEX {} to DDS {}'.format(inPath, outPath))
+            tex = rTextureData()
+            tex.loadBinaryFile( inPath )
+            tex.toDDS().saveFile( outPath )
+            
+            if outExt != 'dds':
+                # try to convert with texconv
+                print('\texconv start')
+                texconv( outPath, outPath=outBasePath, fileType=outExt, pow2=False, fmt='RGBA', srgb=True)
+                print('texconv end\n')
+        else:
+            if outExt != 'tex':
+                raise Exception( "Unsupported output format: " + outExt )
+            
+            # detect format from name
+            fmt = forcedFormat
+            if fmt == '' or fmt == None:
+                if origTex != None:
+                    fmt = origTex.header.fmt.surfaceFmt
+                else:
+                    fmt = rTextureSurfaceFmt.getFormatFromTextureName( baseName, True )
+                    if fmt == None:
+                        # not detected, fallback
+                        fmt = rTextureSurfaceFmt.BM_OPA
+            
+            convert = True
+            if inExt.lower() == 'dds':
+                # check if DDS format matches
+                fmtDDS = rTextureSurfaceFmt.getDDSFormat( fmt )
+                dds = DDSFile.fromFile( inPath )
+                if dds.header.ddspf.dwFourCC == fmtDDS:
+                    # don't need to convert to proper format
+                    convert = False
+                    
+            if convert:  
+                # convert file to DDS with texconv
+                fmtDDS = rTextureSurfaceFmt.getDDSFormat( fmt )
+                fmtDDSName = ''
+                if fmtDDS == DDS_FOURCC_DXT1:
+                    fmtDDSName = 'DXT1'
+                elif fmtDDS == DDS_FOURCC_DXT2:
+                    fmtDDSName = 'DXT2'
+                elif fmtDDS == DDS_FOURCC_DXT3:
+                    fmtDDSName = 'DXT3'
+                elif fmtDDS == DDS_FOURCC_DXT4:
+                    fmtDDSName = 'DXT4'
+                elif fmtDDS == DDS_FOURCC_DXT5:
+                    fmtDDSName = 'DXT5'
+                else:
+                    raise Exception("Unhandled dds format: " + str(fmtDDS))
+                
+                print( 'converting input {} to DDS {}'.format(inPath, inDDSPath))
+                print( 'DDS format: {}'.format( fmtDDSName ) )
+                print( '\ntexconv start')
+                texconv( inPath, outPath=inDDSBasePath, fileType='DDS', featureLevel=9.1, pow2=True, fmt=fmtDDSName, overwrite=True, srgb=True )
+                print( 'texconv end\n')
+            
+            print('converting DDS {} to TEX {}'.format( inDDSPath, outPath ))
+            print('TEX format: {}'.format(fmt))
+            dds = DDSFile.fromFile( inDDSPath )
+            tex = rTextureData.fromDDS( dds )
+            tex.header.fmt.surfaceFmt = fmt
+            
+            # copy faces from original cubemap if needed
+            if origTex != None: 
+                for face in origTex.faces:
+                    tex.faces.append( face )
+            
+            tex.saveBinaryFile( outPath )
+            
+    def _convertTextureMap( self, textureMap ):
+        if textureMap != None and os.path.exists(textureMap.filename):
+            if self.outPath.hash != None:
+                outTexPath = os.path.splitext(textureMap.filename)[0] + '.241f5deb.tex'
+            else:
+                outTexPath = os.path.splitext(textureMap.filename)[0] + '.tex'
+            if not os.path.exists(outTexPath):
+                self._convertTextureToTEX( textureMap.filename, outTexPath, None, None )
+     
+    def _processMaterial( self, material ):
+        if mtmaxconfig.exportTexturesToTex:
+            if hasattr(material, 'base_color_map'): self._convertTextureMap( material.base_color_map )
+            if hasattr(material, 'specular_map'): self._convertTextureMap( material.specular_map )
+            if hasattr(material, 'glossiness_map' ): self._convertTextureMap( material.glossiness_map )
+            if hasattr(material, 'ao_map' ): self._convertTextureMap( material.ao_map )
+            if hasattr(material, 'norm_map' ): self._convertTextureMap( material.norm_map )
+            if hasattr(material, 'emit_color_map' ): self._convertTextureMap( material.emit_color_map )
+            if hasattr(material, 'opacity_map' ): self._convertTextureMap( material.opacity_map )
+            if hasattr(material, 'displacement_map' ): self._convertTextureMap( material.displacement_map )
         
     def processMeshes( self ):
         # convert meshes
@@ -479,6 +604,9 @@ class MtModelExporter(object):
                         )
 
                     tempMesh = tempMeshes[matId]
+                    if tempMesh.material != None:
+                        self._processMaterial( tempMesh.material )
+                    
                     tempMesh.positions.append( self._convertMaxPoint3ToNclVec3( rt.getVert( maxMesh, vertIdx ) ) )
                     
                     if self.exportVertexNormals:
@@ -602,7 +730,7 @@ class MtModelExporter(object):
                     field04=attribs.field04 if attribs.field04 != None else 0,
                     field08=attribs.field08 if attribs.field08 != None else 0,
                     field0c=attribs.field0c if attribs.field0c != None else 0,
-                    boundingSphere=attribs.bsphere if attribs.bsphere != None else None,
+                    #boundingSphere=attribs.bsphere if attribs.bsphere != None else None,
                 )
 
     def processPml( self ):
@@ -630,23 +758,34 @@ class MtModelExporter(object):
         binMod = self.model.toBinaryModel()
         stream = NclBitStream()
         binMod.write( stream )
-        mtutil.saveByteArrayToFile( self.outPath, stream.getBuffer() )
+        util.saveByteArrayToFile( self.outPath.fullPath, stream.getBuffer() )
+        
+        if mtmaxconfig.exportMrlYml and self.mrl != None:
+            if self.outPath.hash != None:
+                self.mrl.saveBinaryFile( self.outPath.basePath + '/' + self.outPath.baseName + '.2749c8a8.mrl' )
+            else:
+                self.mrl.saveBinaryFile( self.outPath.basePath + '/' + self.outPath.baseName + '.mrl' )
     
     def exportModel( self, path ):
         print(f'exporting to {path}')
         
         # start building intermediate model data for conversion
         self.model = imModel()
-        self.outPath = path
+        self.outPath = util.ResourcePath(path)
         self.metadata = ModelMetadata()
+        self.mrl = None
 
         if os.path.exists( mtmaxconfig.exportMetadataPath ):
             self.metadata.loadFile( mtmaxconfig.exportMetadataPath )
 
         if os.path.exists( mtmaxconfig.exportRefPath ):
             self.ref = rModelData()
-            self.ref.read( NclBitStream( mtutil.loadIntoByteArray( mtmaxconfig.exportRefPath ) ) )
+            self.ref.read( NclBitStream( util.loadIntoByteArray( mtmaxconfig.exportRefPath ) ) )
             print( mtmaxconfig.exportRefPath )
+            
+        if os.path.exists( mtmaxconfig.exportMrlYmlPath ):
+            self.mrl = imMaterialLib()
+            self.mrl.loadYamlFile( mtmaxconfig.exportMrlYmlPath )
 
         print('processing scene')
         if self.ref != None and self.useRefBounds:

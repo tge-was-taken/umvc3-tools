@@ -57,36 +57,36 @@ class MtModelImporter:
     def decodeInputToMaxPoint3( self, inputInfo, vertexStream ):
         if inputInfo.type == 11:
             # special case for compressed normals
-            x, y, z = mtvertexcodec.decodeVertexComponent( inputInfo.type, vertexStream )
+            x, y, z = vertexcodec.decodeVertexComponent( inputInfo.type, vertexStream )
             return self.createMaxPoint3( x, y, z )
         else:
             assert( inputInfo.componentCount >= 3 )
-            x = mtvertexcodec.decodeVertexComponent( inputInfo.type, vertexStream )[0]
-            y = mtvertexcodec.decodeVertexComponent( inputInfo.type, vertexStream )[0]
-            z = mtvertexcodec.decodeVertexComponent( inputInfo.type, vertexStream )[0]
+            x = vertexcodec.decodeVertexComponent( inputInfo.type, vertexStream )[0]
+            y = vertexcodec.decodeVertexComponent( inputInfo.type, vertexStream )[0]
+            z = vertexcodec.decodeVertexComponent( inputInfo.type, vertexStream )[0]
             return self.createMaxPoint3( x, y, z )
         
     def decodeInputToMaxPoint2( self, inputInfo, vertexStream ):
         assert( inputInfo.componentCount >= 2 )
-        x = mtvertexcodec.decodeVertexComponent( inputInfo.type, vertexStream )[0]
-        y = mtvertexcodec.decodeVertexComponent( inputInfo.type, vertexStream )[0]
+        x = vertexcodec.decodeVertexComponent( inputInfo.type, vertexStream )[0]
+        y = vertexcodec.decodeVertexComponent( inputInfo.type, vertexStream )[0]
         return self.createMaxPoint2( x, y )
         
     def decodeInputToMaxPoint3UV( self, inputInfo, vertexStream ):
         assert( inputInfo.componentCount >= 2 )
-        x = mtvertexcodec.decodeVertexComponent( inputInfo.type, vertexStream )[0]
-        y = mtvertexcodec.decodeVertexComponent( inputInfo.type, vertexStream )[0]
+        x = vertexcodec.decodeVertexComponent( inputInfo.type, vertexStream )[0]
+        y = vertexcodec.decodeVertexComponent( inputInfo.type, vertexStream )[0]
         
         z = 0
         if inputInfo.componentCount > 2:
-            z = mtvertexcodec.decodeVertexComponent( inputInfo.type, vertexStream )[0]
+            z = vertexcodec.decodeVertexComponent( inputInfo.type, vertexStream )[0]
             
         return self.createMaxPoint3( x, 1 - y, z )
         
     def decodeInputToMaxArray( self, inputInfo, vertexStream, maxArray, converter ):
         result = maxArray
         for i in range( 0, inputInfo.componentCount ):
-            dec = mtvertexcodec.decodeVertexComponent( inputInfo.type, vertexStream )
+            dec = vertexcodec.decodeVertexComponent( inputInfo.type, vertexStream )
             assert( len( dec ) == 1 )
             rt.append( result, converter( dec[0] ) )
         return result
@@ -96,7 +96,7 @@ class MtModelImporter:
         if texturePath == '':
             return None
         else:
-            textureTEXPath, textureDDSPath = mtutil.resolveTexturePath( self.basePath, texturePath )
+            textureTEXPath, textureDDSPath = util.resolveTexturePath( self.basePath, texturePath )
             
             if mtmaxconfig.importConvertTexturesToDDS and textureTEXPath != None and os.path.exists( textureTEXPath ):
                 texture = rTextureData()
@@ -121,14 +121,14 @@ class MtModelImporter:
             
     def loadModel( self, path ):
         model = rModelData()
-        model.read( NclBitStream( mtutil.loadIntoByteArray( path ) ) )
+        model.read( NclBitStream( util.loadIntoByteArray( path ) ) )
         mvc3materialdb.addNames( model.materials )
         return model
     
     def calcTransformMtx( self ):
         mtx = nclCreateMat44()
         if mtmaxconfig.flipUpAxis:
-            mtx *= mtutil.Y_TO_Z_UP_MATRIX
+            mtx *= util.Y_TO_Z_UP_MATRIX
         if mtmaxconfig.scale != 1:
             mtx *= nclScale( mtmaxconfig.scale )
         return mtx
@@ -294,7 +294,7 @@ class MtModelImporter:
                     maxVtxWeightArray = maxWeightArray[j] 
 
                 for w in maxVtxWeightArray:
-                    assert( w >= 0, f'vertex {j} has a negative weight: {maxVtxWeightArray}' )
+                    assert w >= 0, f'vertex {j} has a negative weight: {maxVtxWeightArray}'
                 
                 # calculate remaining weights
                 if len( maxVtxJointArray ) != len( maxVtxWeightArray ):    
@@ -369,13 +369,13 @@ class MtModelImporter:
         self.maxBoneLookup = dict()
         for i, joint in enumerate( self.model.joints ):
             localMtx = self.model.jointLocalMtx[i]
-            if not mtutil.isValidByteIndex( joint.parentIndex ):
+            if not util.isValidByteIndex( joint.parentIndex ):
                 # only transform root
                 localMtx = self.transformMtx * localMtx
             
             tfm = self.convertNclMat44ToMaxMatrix3( localMtx )
             maxParentBone = None
-            if mtutil.isValidByteIndex( joint.parentIndex ):
+            if util.isValidByteIndex( joint.parentIndex ):
                 maxParentBone = self.maxBoneArray[ joint.parentIndex ]
                 tfm *= maxParentBone.Transform
                     
@@ -392,9 +392,9 @@ class MtModelImporter:
     def importMaterials( self ):
         # load mtl
         mtl = imMaterialLib()
-        mrlName, _ = mtutil.getExtractedResourceFilePath( self.basePath + '/' + self.baseName, '2749c8a8', 'mrl' )
+        mrlName, _ = util.getExtractedResourceFilePath( self.basePath + '/' + self.baseName, '2749c8a8', 'mrl' )
         if mrlName != None and os.path.exists( mrlName ):
-            mtl.loadBinary(NclBitStream(mtutil.loadIntoByteArray(mrlName)))
+            mtl.loadBinary(NclBitStream(util.loadIntoByteArray(mrlName)))
             if mtmaxconfig.importSaveMrlYml:
                 mtl.saveYamlFile( mrlName + '.yml' )
         

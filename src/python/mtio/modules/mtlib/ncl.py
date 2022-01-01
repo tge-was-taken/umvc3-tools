@@ -4,7 +4,7 @@ Wraps types in an interface mirroring that of Noesis' types.
 '''
 import struct
 import math
-import mttarget
+import libtarget
 
 def nclTupleToList( tup ):
     return [item for item in tup]
@@ -19,7 +19,7 @@ class Endian:
     BIG = 1
     STRUCT_FORMAT = ['<', '>']
 
-if not mttarget.noesis:
+if not libtarget.noesis:
     import glm
     
     NclVec2 = glm.vec2
@@ -749,7 +749,7 @@ NclBitStream.readVec4 = readVec4
 NclBitStream.readMat44 = readMat44
 NclBitStream.readMat43 = readMat43
 
-if mttarget.noesis:
+if libtarget.noesis:
     # bind extensions to NoeBitStream as well
     NoeBitStream.writeVec2 = writeVec2
     NoeBitStream.writeVec3 = writeVec3
@@ -796,7 +796,7 @@ def _testGlm():
     # print( 'inv',  m2.inverse() )
     # print( 'tra  ', m2.transpose() )
     
-if mttarget.noesis:
+if libtarget.noesis:
     _testNoesis() 
     
 if __name__ == '__main__':

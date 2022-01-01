@@ -110,15 +110,12 @@ def modLoadModel(data, mdlList):
     baseName = os.path.basename(rapi.getInputName()).split('.')[0]
     basePath = os.path.dirname(rapi.getInputName())
     
-    jointInfoDb = JointInfoDb()
-    #jointInfoDb.loadCsvFromFile("X:/work/umvc3_model/repo/source/mtio/mtlib/res/jointinfo.csv")
-    
     model = rModelData()
     model.read(NoeBitStream(data))
     mvc3materialdb.addNames( model.materials )
     
     mtl = imMaterialLib()
-    mrlName, _ = mtutil.getExtractedResourceFilePath( basePath + '/' + baseName, '2749c8a8', 'mrl' )
+    mrlName, _ = util.getExtractedResourceFilePath( basePath + '/' + baseName, '2749c8a8', 'mrl' )
     if mrlName != None and os.path.exists( mrlName ):
         mtl.loadBinary(NoeBitStream(rapi.loadIntoByteArray(mrlName)))
         mtl.saveYamlFile( mrlName + '.yml' )
@@ -197,7 +194,7 @@ def modLoadModel(data, mdlList):
         vertexStart = primitive.vertexBufferOffset + (primitive.vertexStartIndex * primitive.vertexStride)
         vertexEnd = vertexStart + (primitive.vertexCount * primitive.vertexStride)
         vertexBuffer = model.vertexBuffer[vertexStart:vertexEnd]
-        decVertexBuffer, decStride, decInputs = mtvertexcodec.decodeVertexBuffer( shaderInfo, vertexBuffer, primitive.vertexCount, primitive.vertexStride )       
+        decVertexBuffer, decStride, decInputs = vertexcodec.decodeVertexBuffer( shaderInfo, vertexBuffer, primitive.vertexCount, primitive.vertexStride )       
         for inputName, inputOffset, inputComponentCount in decInputs:
             if   inputName == "Position":     rapi.rpgBindPositionBufferOfs( decVertexBuffer, noesis.RPGEODATA_FLOAT, decStride, inputOffset )
             elif inputName == "Normal":       rapi.rpgBindNormalBufferOfs( decVertexBuffer, noesis.RPGEODATA_FLOAT, decStride, inputOffset )  

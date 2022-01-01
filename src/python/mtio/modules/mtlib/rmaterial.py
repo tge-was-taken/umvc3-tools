@@ -5,8 +5,8 @@ Classes and functions for serializing MRL material libraries.
 import yaml
 from collections import namedtuple
 
-import mtutil
-from mtrshader import rShaderObjectId
+import util
+from rshader import rShaderObjectId
 import mvc3shaderdb
 import mvc3types
 
@@ -30,7 +30,7 @@ class rMaterialTextureInfo:
         self.field0c = stream.readInt()
         self.field10 = stream.readInt()
         self.field14 = stream.readInt()
-        self.path = mtutil.readCStringBuffer( stream, rMaterialTextureInfo.MAX_NAME_LENGTH )
+        self.path = util.readCStringBuffer( stream, rMaterialTextureInfo.MAX_NAME_LENGTH )
         
     def write( self, stream ):
         stream.writeUInt( self.typeHash )
@@ -39,17 +39,17 @@ class rMaterialTextureInfo:
         stream.writeUInt( self.field0c )
         stream.writeUInt( self.field10 )
         stream.writeUInt( self.field14 )
-        mtutil.writeCStringBuffer( stream, self.path, rMaterialTextureInfo.MAX_NAME_LENGTH )
+        util.writeCStringBuffer( stream, self.path, rMaterialTextureInfo.MAX_NAME_LENGTH )
         
 class rMaterialCmdListInfo:
     def __init__(self, value=0):
         self.value = value
         
     def _unpack(self, mask, bitOffset):
-        return mtutil.bitUnpack( self.value, mask, bitOffset )
+        return util.bitUnpack( self.value, mask, bitOffset )
     
     def _pack(self, mask, bitOffset, index):
-        self.value = mtutil.bitPack( self.value, mask, bitOffset, index )
+        self.value = util.bitPack( self.value, mask, bitOffset, index )
         
     def getCount(self):
         return self._unpack(0x00000FFF, 0)
@@ -80,10 +80,10 @@ class rMaterialCmdInfo:
         self.value = value
         
     def _unpack(self, mask, bitOffset):
-        return mtutil.bitUnpack( self.value, mask, bitOffset )
+        return util.bitUnpack( self.value, mask, bitOffset )
     
     def _pack(self, mask, bitOffset, index):
-        self.value = mtutil.bitPack( self.value, mask, bitOffset, index )
+        self.value = util.bitPack( self.value, mask, bitOffset, index )
         
     def getType( self ):
         return self._unpack( 0x0000000F, 0 )
@@ -293,22 +293,22 @@ class rMaterialAnimEntryHeaderInfo:
         self.value = value
         
     def getUnknown1( self ):
-        return mtutil.bitUnpack( self.value, 0x3, 0 )
+        return util.bitUnpack( self.value, 0x3, 0 )
     
     def setUnknown1( self, value ):
-        self.value = mtutil.bitPack( self.value, 0x3, 0, value )
+        self.value = util.bitPack( self.value, 0x3, 0, value )
         
     def getEntry2Count( self ):
-        return mtutil.bitUnpack( self.value, 0xFFFF, 2 )
+        return util.bitUnpack( self.value, 0xFFFF, 2 )
     
     def setEntry2Count( self, value ):
-        self.value = mtutil.bitPack( self.value, 0xFFFF, 2, value )
+        self.value = util.bitPack( self.value, 0xFFFF, 2, value )
         
     def getEntryCount( self ):
-        return mtutil.bitUnpack( self.value, 0x3FFF, 18 )
+        return util.bitUnpack( self.value, 0x3FFF, 18 )
     
     def setEntryCount( self, value ):
-        self.value = mtutil.bitPack( self.value, 0x3FFF, 18, value )
+        self.value = util.bitPack( self.value, 0x3FFF, 18, value )
         
     def setValue( self, value ):
         self.value = value
@@ -336,22 +336,22 @@ class rMaterialAnimSubEntry2HeaderInfo:
         self.value = value
         
     def getType( self ):
-        return mtutil.bitUnpack( self.value, 0x0000000F, 0 )
+        return util.bitUnpack( self.value, 0x0000000F, 0 )
     
     def setType( self, value ):
-        self.value = mtutil.bitPack( self.value, 0x0000000F, 0, value )
+        self.value = util.bitPack( self.value, 0x0000000F, 0, value )
         
     def getUnknown1( self ):
-        return mtutil.bitUnpack( self.value, 0xF, 4 )
+        return util.bitUnpack( self.value, 0xF, 4 )
     
     def setUnknown1( self, value ):
-        self.value = mtutil.bitPack( self.value, 0xF, 4, value )
+        self.value = util.bitPack( self.value, 0xF, 4, value )
         
     def getEntryCount( self ):
-        return mtutil.bitUnpack( self.value, 0xFFFFFF, 8 )
+        return util.bitUnpack( self.value, 0xFFFFFF, 8 )
     
     def setEntryCount( self, value ):
-        self.value = mtutil.bitPack( self.value, 0xFFFFFF, 8, value )
+        self.value = util.bitPack( self.value, 0xFFFFFF, 8, value )
         
     def setValue( self, value ):
         self.value = value
@@ -877,15 +877,15 @@ class rMaterialStreamReader:
             data = None
             shaderObjectHash = materialCmd.shaderObjectId.getHash() 
             if ( shaderObjectHash == mvc3shaderdb.CBMaterial.hash ):
-                data = mtutil.readFloatBuffer( self.stream, 32 )
+                data = util.readFloatBuffer( self.stream, 32 )
             elif ( shaderObjectHash == mvc3shaderdb._DOLLAR_Globals.hash ):
-                data = mtutil.readFloatBuffer( self.stream, 76 )
+                data = util.readFloatBuffer( self.stream, 76 )
             elif ( shaderObjectHash == mvc3shaderdb.CBDiffuseColorCorect.hash ):
-                data = mtutil.readFloatBuffer( self.stream, 4 )
+                data = util.readFloatBuffer( self.stream, 4 )
             elif ( shaderObjectHash == mvc3shaderdb.CBHalfLambert.hash ):
-                data = mtutil.readFloatBuffer( self.stream, 4 )
+                data = util.readFloatBuffer( self.stream, 4 )
             elif ( shaderObjectHash == mvc3shaderdb.CBToon2.hash ):
-                data = mtutil.readFloatBuffer( self.stream, 4 )
+                data = util.readFloatBuffer( self.stream, 4 )
             else:
                 raise Exception( "Unhandled constant buffer: {}".format( hex( shaderObjectHash ) ) )
                 

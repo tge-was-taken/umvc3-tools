@@ -2,7 +2,7 @@
 Module containing the default set of UMVC3 material names used to resolve their name given only a hash (as stored in MRL).
 '''
 
-import mtutil
+import util
 
 # dumped from UMVC3 PC
 _defaultNames = [
@@ -216,7 +216,7 @@ _hashToName = dict()
 def _addNames( names ):
     global _hashToName
     for n in names:
-        _hashToName[mtutil.computeHash(n)] = n
+        _hashToName[util.computeHash(n)] = n
 
 def _ensureInit():
     global _isInit
@@ -234,7 +234,7 @@ def addNames( names ):
 def getName( hsh ):
     global _hashToName
     _ensureInit()
-    return _hashToName[ mtutil.u32( hsh ) ]
+    return _hashToName[ util.u32( hsh ) ]
 
 def getHash( name ):
-    return mtutil.computeHash( name )
+    return util.computeHash( name )

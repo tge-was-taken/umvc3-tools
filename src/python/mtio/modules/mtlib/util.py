@@ -6,10 +6,11 @@ import zlib
 import math
 import os
 import sys
+import re
 
 import mvc3shaderdb
-from mtrshader import rShaderObjectId
-from mtncl import *
+from rshader import rShaderObjectId
+from ncl import *
 
 def loadIntoByteArray( path ):
     '''Loads the given file into a byte array'''
@@ -149,6 +150,24 @@ def getExtractedResourceFilePath( basePath, hash, ext ):
         return ( newPath, True )
     else:
         return ( None, None )
+    
+def isResourceFilePathWithHash( path ):
+    return re.match(r"\w+\.([0-9]|[a-f]|[A-F])+\.\w{3}", path)
+
+class ResourcePath:
+    def __init__( self, fullPath ):
+        self.fullPath = fullPath
+        self.basePath, self.fullName = os.path.split(fullPath)
+        nameParts = self.fullName.split('.')
+        self.baseName = nameParts[0]
+        self.hash = None
+        if len(nameParts) == 2:
+            self.ext = nameParts[1]
+        elif len(nameParts) == 3:
+            self.hash = nameParts[1]
+            self.ext = nameParts[2]
+        else:
+            raise Exception("Invalid path: " + fullPath)
     
 def resolveTexturePath( basePath, texturePath ):
     # load TEX and convert to DDS before loading the model

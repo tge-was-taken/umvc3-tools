@@ -2,9 +2,9 @@
 .MOD serialization related classes and functions used to read and write binary model files.
 '''
 
-from mtrshader import rShaderObjectId
-from mtncl import *
-import mtutil
+from rshader import rShaderObjectId
+from ncl import *
+import util
 
 class rModelConstants:
     MATERIAL_NAME_LENGTH = 128
@@ -155,7 +155,7 @@ class rModelPrimitive:
         self.vertexStartIndex = 0
         self.vertexBufferOffset = 0
         # 4 vertex weights per bone
-        self.vertexShader = mtutil.getShaderObjectIdFromName( 'IASkinTB4wt' )
+        self.vertexShader = util.getShaderObjectIdFromName( 'IASkinTB4wt' )
         self.indexBufferOffset = 0
         self.indexCount = 0
         self.indexStartIndex = 0

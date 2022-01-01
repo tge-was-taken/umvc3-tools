@@ -4,9 +4,9 @@ Used to give names to object ids and store online-safe data about a model
 '''
 
 import os
-from mtrmodel import *
-import mtutil
-from mtncl import *
+from rmodel import *
+import util
+from ncl import *
 
 try:
     import ruamel.yaml as yaml
@@ -120,7 +120,7 @@ class ModelMetadata:
     @staticmethod   
     def getDefaultFilePath( name ):
         '''Gets the default YML path for the given name'''
-        return mtutil.getResourceDir() + '/metadata/' + name + '.yml'
+        return util.getResourceDir() + '/metadata/' + name + '.yml'
     
     @staticmethod
     def _copyValuesExcept( obj, yObj, excluded ):
@@ -170,9 +170,9 @@ class ModelMetadata:
                 # opposite was not specified in the csv    
                 # find opposite from the name format
                 if jointMeta.name.endswith( self.LEFT_SUFFIX ):
-                    jointMeta.symmetry = self.getJointByName( mtutil.replaceSuffix( jointMeta.name, self.LEFT_SUFFIX, self.RIGHT_SUFFIX ) )
+                    jointMeta.symmetry = self.getJointByName( util.replaceSuffix( jointMeta.name, self.LEFT_SUFFIX, self.RIGHT_SUFFIX ) )
                 elif jointMeta.name.endswith( self.RIGHT_SUFFIX ):
-                    jointMeta.symmetry = self.getJointByName( mtutil.replaceSuffix( jointMeta.name, self.RIGHT_SUFFIX, self.LEFT_SUFFIX ) ) 
+                    jointMeta.symmetry = self.getJointByName( util.replaceSuffix( jointMeta.name, self.RIGHT_SUFFIX, self.LEFT_SUFFIX ) ) 
                 else:
                     jointMeta.symmetry = None 
                     
@@ -214,8 +214,8 @@ class ModelMetadata:
         with os.scandir( path ) as it:
             for entry in it:
                 if entry.name.endswith(".mod") and entry.is_file():
-                    basePath, baseName, exts = mtutil.splitPath( entry.name )
-                    modBuffer = mtutil.loadIntoByteArray( entry.path )
+                    basePath, baseName, exts = util.splitPath( entry.name )
+                    modBuffer = util.loadIntoByteArray( entry.path )
                     mod = rModelData()
                     mod.read( NclBitStream( modBuffer ) )
                     

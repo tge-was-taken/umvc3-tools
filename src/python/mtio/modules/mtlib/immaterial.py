@@ -4,10 +4,10 @@ Intermediate material library representation for easier editing
        
 import os
 import yaml
-from mtrmaterial import *
+from rmaterial import *
 import mvc3materialdb
 import mvc3shaderdb
-from mtncl import *
+from ncl import *
               
 class imConstantBufferCBMaterial:
     def __init__( self ):
@@ -62,7 +62,7 @@ class imMaterialLib:
     def loadBinary( self, stream ):
         reader = rMaterialStreamReader( stream )
         header = reader.getHeader()
-        assert( mtutil.u32( header.hash ) == mtutil.u32( 0xE588940A ) )
+        assert( util.u32( header.hash ) == util.u32( 0xE588940A ) )
         assert( header.field14 == 0 )
         
         for binTexInfo in reader.iterTextureInfo():
@@ -157,8 +157,8 @@ class imMaterialLib:
             f.write( "        blendState: {}\n".format( sanitize( mat.blendState ) ) )
             f.write( "        depthStencilState: {}\n".format( sanitize( mat.depthStencilState ) ) )
             f.write( "        rasterizerState: {}\n".format( sanitize( mat.rasterizerState ) ) )
-            f.write( "        cmdListFlags: {}\n".format( mtutil.hex32( mat.cmdListFlags ) ) )
-            f.write( "        matFlags: {}\n".format( mtutil.hex32( mat.matFlags ) ) )
+            f.write( "        cmdListFlags: {}\n".format( util.hex32( mat.cmdListFlags ) ) )
+            f.write( "        matFlags: {}\n".format( util.hex32( mat.matFlags ) ) )
             f.write( "        cmds:\n")
             for cmd in mat.cmds:
                 if cmd.type == 'cbuffer' and len( cmd.data ) > 4 and len( cmd.data ) % 4 == 0:
@@ -177,7 +177,7 @@ class imMaterialLib:
         self.textures = []
         self.materials = []
         
-        yamlObj = yaml.load( yamlText )
+        yamlObj = yaml.load( yamlText, Loader=yaml.FullLoader )
         if yamlObj['version'] > imMaterialLib.VERSION:
             raise Exception('unsupported material library version: {}'.format(yamlObj['version']))
         
@@ -254,23 +254,23 @@ class imMaterialLib:
         writer.beginMaterialInfoList()
         for matInfo in self.materials:
             binMatInfo = rMaterialInfo()
-            binMatInfo.typeHash = mtutil.computeHash( matInfo.type ) & ~0x80000000
+            binMatInfo.typeHash = util.computeHash( matInfo.type ) & ~0x80000000
             
             if matInfo.name.startswith( "_0x" ):
                 binMatInfo.nameHash = int( matInfo.name[1:], 16 )
             else:
-                binMatInfo.nameHash = mtutil.computeHash( matInfo.name )     
+                binMatInfo.nameHash = util.computeHash( matInfo.name )     
             
-            binMatInfo.blendState = mtutil.getShaderObjectIdFromName( matInfo.blendState )
-            binMatInfo.depthStencilState = mtutil.getShaderObjectIdFromName( matInfo.depthStencilState )
-            binMatInfo.rasterizerState = mtutil.getShaderObjectIdFromName( matInfo.rasterizerState )
+            binMatInfo.blendState = util.getShaderObjectIdFromName( matInfo.blendState )
+            binMatInfo.depthStencilState = util.getShaderObjectIdFromName( matInfo.depthStencilState )
+            binMatInfo.rasterizerState = util.getShaderObjectIdFromName( matInfo.rasterizerState )
             binMatInfo.cmdListInfo.setFlags( matInfo.cmdListFlags )
             binMatInfo.flags = matInfo.matFlags   
               
             writer.beginMaterialInfo( binMatInfo )
             for cmd in matInfo.cmds:
                 binCmd = rMaterialCmd()
-                binCmd.shaderObjectId = mtutil.getShaderObjectIdFromName( cmd.name )
+                binCmd.shaderObjectId = util.getShaderObjectIdFromName( cmd.name )
                 binCmd.info.setType( imMaterialCmd.Types.index( cmd.type ) )
                 binCmd.info.setShaderObjectIndex( binCmd.shaderObjectId.getIndex() )
                 
@@ -281,7 +281,7 @@ class imMaterialLib:
                     else:
                         binCmdData = ( 1 + ( texturePathToIndex[ cmd.data ] ) )
                 elif cmd.type in ['flag', 'samplerstate']:
-                    binCmdData = mtutil.getShaderObjectIdFromName( cmd.data )
+                    binCmdData = util.getShaderObjectIdFromName( cmd.data )
                 elif cmd.type == 'cbuffer':
                     binCmdData = cmd.data
                 else:

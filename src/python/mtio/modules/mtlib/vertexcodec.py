@@ -6,11 +6,11 @@ import struct
 import binascii
 import math
 
-from mtncl import *
+from ncl import *
  
-import mttarget
+import libtarget
 
-if mttarget.noesis:
+if libtarget.noesis:
     # Noesis implementation
     import noesis
     

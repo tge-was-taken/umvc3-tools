@@ -9,7 +9,7 @@ sys.path.append( os.path.realpath( os.path.dirname( __file__ ) + "/../" ) )
 from modules.mtlib import *
 
 def processFile( inPath, outPath, origPath, forcedFormat ):
-    basePath, baseName, exts = mtutil.splitPath( inPath )
+    basePath, baseName, exts = util.splitPath( inPath )
     inExt = exts[len(exts) - 1]
     
     inDDSBasePath = basePath
@@ -30,7 +30,7 @@ def processFile( inPath, outPath, origPath, forcedFormat ):
             outExt = 'dds'
         outPath += '.' + outExt
             
-    outBasePath, outBaseName, outExts = mtutil.splitPath( outPath )
+    outBasePath, outBaseName, outExts = util.splitPath( outPath )
 
     
     outExt = outExts[len(outExts) - 1]

@@ -5,7 +5,7 @@ Module containing a texconv wrapper interface to simplify calling texconv from p
 import subprocess
 import os
 import io
-import mtutil
+import util
 
 def _getScriptDir():
     return os.path.dirname(os.path.realpath(__file__))
@@ -25,7 +25,7 @@ def texconv( inPath, outPath, fileType = 'DDS',
     '''
     texconv "path" -o "path" -ft DDS -fl 9.1 -pow2 -f DXT5 -y -srgb
     '''
-    args = [mtutil.getResourceDir() + '/texconv.exe', 
+    args = [util.getResourceDir() + '/texconv.exe', 
             *arg( None, inPath ), *arg( '-o', outPath ), *arg('-ft', fileType), *arg('-fl', featureLevel), 
             *arg('-pow2', pow2),  *arg('-f', fmt), *arg('-y', overwrite), *arg('-srgb', srgb)]
     

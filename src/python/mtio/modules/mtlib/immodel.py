@@ -2,11 +2,11 @@
 Intermediate model representation to simplify model conversion from foreign data structures
 '''
 
-from mtncl import *
-from mtrmodel import *
-import mtvertexcodec
-import mtmodelutil
-from mtimmaterial import *
+from ncl import *
+from rmodel import *
+import vertexcodec
+import modelutil
+from immaterial import *
 import re
 from copy import copy, deepcopy
 
@@ -286,26 +286,26 @@ class imVertexIASkinTB4wt:
         self.texCoord = NclVec2()
         
     def write( self, stream ):
-        stream.writeUShort( mtvertexcodec.encodeFS16( self.position[0] ) )
-        stream.writeUShort( mtvertexcodec.encodeFS16( self.position[1] ) )
-        stream.writeUShort( mtvertexcodec.encodeFS16( self.position[2] ) )
-        stream.writeUShort( mtvertexcodec.encodeFS16( self.weights[0] ) )
-        stream.writeUByte( mtvertexcodec.encodeFS8( self.normal[0] ) )
-        stream.writeUByte( mtvertexcodec.encodeFS8( self.normal[1] ) )
-        stream.writeUByte( mtvertexcodec.encodeFS8( self.normal[2] ) )
-        stream.writeUByte( mtvertexcodec.encodeFS8( self.occlusion ) )
-        stream.writeUByte( mtvertexcodec.encodeFS8( self.tangent[0] ) )
-        stream.writeUByte( mtvertexcodec.encodeFS8( self.tangent[1] ) )
-        stream.writeUByte( mtvertexcodec.encodeFS8( self.tangent[2] ) )
-        stream.writeUByte( mtvertexcodec.encodeFS8( self.tangent[3]) )
-        stream.writeUByte( mtvertexcodec.encodeU8( self.jointIds[0] ) )
-        stream.writeUByte( mtvertexcodec.encodeU8( self.jointIds[1] ) )
-        stream.writeUByte( mtvertexcodec.encodeU8( self.jointIds[2] ) )
-        stream.writeUByte( mtvertexcodec.encodeU8( self.jointIds[3] ) )
-        stream.writeUShort( mtvertexcodec.encodeF16( self.texCoord[0] ) )
-        stream.writeUShort( mtvertexcodec.encodeF16( self.texCoord[1] ) )
-        stream.writeUShort( mtvertexcodec.encodeF16( self.weights[1] ) )
-        stream.writeUShort( mtvertexcodec.encodeF16( self.weights[2] ) )
+        stream.writeUShort( vertexcodec.encodeFS16( self.position[0] ) )
+        stream.writeUShort( vertexcodec.encodeFS16( self.position[1] ) )
+        stream.writeUShort( vertexcodec.encodeFS16( self.position[2] ) )
+        stream.writeUShort( vertexcodec.encodeFS16( self.weights[0] ) )
+        stream.writeUByte( vertexcodec.encodeFS8( self.normal[0] ) )
+        stream.writeUByte( vertexcodec.encodeFS8( self.normal[1] ) )
+        stream.writeUByte( vertexcodec.encodeFS8( self.normal[2] ) )
+        stream.writeUByte( vertexcodec.encodeFS8( self.occlusion ) )
+        stream.writeUByte( vertexcodec.encodeFS8( self.tangent[0] ) )
+        stream.writeUByte( vertexcodec.encodeFS8( self.tangent[1] ) )
+        stream.writeUByte( vertexcodec.encodeFS8( self.tangent[2] ) )
+        stream.writeUByte( vertexcodec.encodeFS8( self.tangent[3]) )
+        stream.writeUByte( vertexcodec.encodeU8( self.jointIds[0] ) )
+        stream.writeUByte( vertexcodec.encodeU8( self.jointIds[1] ) )
+        stream.writeUByte( vertexcodec.encodeU8( self.jointIds[2] ) )
+        stream.writeUByte( vertexcodec.encodeU8( self.jointIds[3] ) )
+        stream.writeUShort( vertexcodec.encodeF16( self.texCoord[0] ) )
+        stream.writeUShort( vertexcodec.encodeF16( self.texCoord[1] ) )
+        stream.writeUShort( vertexcodec.encodeF16( self.weights[1] ) )
+        stream.writeUShort( vertexcodec.encodeF16( self.weights[2] ) )
         
 '''
 typedef struct {
@@ -337,22 +337,22 @@ class imVertexIASkinTB2wt:
         self.texCoord = NclVec2()
         
     def write( self, stream ):
-        stream.writeUShort( mtvertexcodec.encodeFS16( self.position[0] ) )
-        stream.writeUShort( mtvertexcodec.encodeFS16( self.position[1] ) )
-        stream.writeUShort( mtvertexcodec.encodeFS16( self.position[2] ) )
-        stream.writeUShort( mtvertexcodec.encodeFS16( self.weights[0] ) )
-        stream.writeUByte( mtvertexcodec.encodeFS8( self.normal[0] ) )
-        stream.writeUByte( mtvertexcodec.encodeFS8( self.normal[1] ) )
-        stream.writeUByte( mtvertexcodec.encodeFS8( self.normal[2] ) )
-        stream.writeUByte( mtvertexcodec.encodeFS8( self.occlusion ) )
-        stream.writeUByte( mtvertexcodec.encodeFS8( self.tangent[0] ) )
-        stream.writeUByte( mtvertexcodec.encodeFS8( self.tangent[1] ) )
-        stream.writeUByte( mtvertexcodec.encodeFS8( self.tangent[2] ) )
-        stream.writeUByte( mtvertexcodec.encodeFS8( self.tangent[3]) )
-        stream.writeUShort( mtvertexcodec.encodeF16( self.texCoord[0] ) )
-        stream.writeUShort( mtvertexcodec.encodeF16( self.texCoord[1] ) )
-        stream.writeUShort( mtvertexcodec.encodeF16( self.jointIds[0] ) )
-        stream.writeUShort( mtvertexcodec.encodeF16( self.jointIds[1] ) )
+        stream.writeUShort( vertexcodec.encodeFS16( self.position[0] ) )
+        stream.writeUShort( vertexcodec.encodeFS16( self.position[1] ) )
+        stream.writeUShort( vertexcodec.encodeFS16( self.position[2] ) )
+        stream.writeUShort( vertexcodec.encodeFS16( self.weights[0] ) )
+        stream.writeUByte( vertexcodec.encodeFS8( self.normal[0] ) )
+        stream.writeUByte( vertexcodec.encodeFS8( self.normal[1] ) )
+        stream.writeUByte( vertexcodec.encodeFS8( self.normal[2] ) )
+        stream.writeUByte( vertexcodec.encodeFS8( self.occlusion ) )
+        stream.writeUByte( vertexcodec.encodeFS8( self.tangent[0] ) )
+        stream.writeUByte( vertexcodec.encodeFS8( self.tangent[1] ) )
+        stream.writeUByte( vertexcodec.encodeFS8( self.tangent[2] ) )
+        stream.writeUByte( vertexcodec.encodeFS8( self.tangent[3]) )
+        stream.writeUShort( vertexcodec.encodeF16( self.texCoord[0] ) )
+        stream.writeUShort( vertexcodec.encodeF16( self.texCoord[1] ) )
+        stream.writeUShort( vertexcodec.encodeF16( self.jointIds[0] ) )
+        stream.writeUShort( vertexcodec.encodeF16( self.jointIds[1] ) )
         
 '''
 typedef struct {
@@ -382,20 +382,20 @@ class imVertexIASkinTB1wt:
         self.texCoord = NclVec2()
         
     def write( self, stream ):
-        stream.writeUShort( mtvertexcodec.encodeFS16( self.position[0] ) )
-        stream.writeUShort( mtvertexcodec.encodeFS16( self.position[1] ) )
-        stream.writeUShort( mtvertexcodec.encodeFS16( self.position[2] ) )
-        stream.writeUShort( mtvertexcodec.encodeU16( self.jointId ) )
-        stream.writeUByte( mtvertexcodec.encodeFS8( self.normal[0] ) )
-        stream.writeUByte( mtvertexcodec.encodeFS8( self.normal[1] ) )
-        stream.writeUByte( mtvertexcodec.encodeFS8( self.normal[2] ) )
-        stream.writeUByte( mtvertexcodec.encodeFS8( self.occlusion ) )
-        stream.writeUByte( mtvertexcodec.encodeFS8( self.tangent[0] ) )
-        stream.writeUByte( mtvertexcodec.encodeFS8( self.tangent[1] ) )
-        stream.writeUByte( mtvertexcodec.encodeFS8( self.tangent[2] ) )
-        stream.writeUByte( mtvertexcodec.encodeFS8( self.tangent[3]) )
-        stream.writeUShort( mtvertexcodec.encodeF16( self.texCoord[0] ) )
-        stream.writeUShort( mtvertexcodec.encodeF16( self.texCoord[1] ) )
+        stream.writeUShort( vertexcodec.encodeFS16( self.position[0] ) )
+        stream.writeUShort( vertexcodec.encodeFS16( self.position[1] ) )
+        stream.writeUShort( vertexcodec.encodeFS16( self.position[2] ) )
+        stream.writeUShort( vertexcodec.encodeU16( self.jointId ) )
+        stream.writeUByte( vertexcodec.encodeFS8( self.normal[0] ) )
+        stream.writeUByte( vertexcodec.encodeFS8( self.normal[1] ) )
+        stream.writeUByte( vertexcodec.encodeFS8( self.normal[2] ) )
+        stream.writeUByte( vertexcodec.encodeFS8( self.occlusion ) )
+        stream.writeUByte( vertexcodec.encodeFS8( self.tangent[0] ) )
+        stream.writeUByte( vertexcodec.encodeFS8( self.tangent[1] ) )
+        stream.writeUByte( vertexcodec.encodeFS8( self.tangent[2] ) )
+        stream.writeUByte( vertexcodec.encodeFS8( self.tangent[3]) )
+        stream.writeUShort( vertexcodec.encodeF16( self.texCoord[0] ) )
+        stream.writeUShort( vertexcodec.encodeF16( self.texCoord[1] ) )
         
 class imTag:
     PATTERN = re.compile(r"""@(.+?)(?!=\()\((.+?(?!=\)))\)""")
@@ -609,7 +609,7 @@ class imModel:
             prim.renderFlags = mesh.renderFlags
             prim.vertexStartIndex = 0
             prim.vertexBufferOffset = nextVertexOffset
-            prim.vertexShader = mtutil.getShaderObjectIdFromName( mesh.getVertexShader() )
+            prim.vertexShader = util.getShaderObjectIdFromName( mesh.getVertexShader() )
             prim.indexBufferOffset = nextTriangleIndex
             prim.indexCount = len( mesh.indices )
             prim.indexStartIndex = 0
@@ -625,7 +625,7 @@ class imModel:
             nextVertexOffset += prim.vertexCount * prim.vertexStride
             nextTriangleIndex += prim.indexCount 
         
-        bounds = mtmodelutil.calcBounds( vertices )
+        bounds = modelutil.calcBounds( vertices )
 
         if len(mod.jointInvBindMtx) == 0:
             # calculate distance between 2 furthest points

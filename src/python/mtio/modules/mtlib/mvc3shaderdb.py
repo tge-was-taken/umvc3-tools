@@ -1,5 +1,5 @@
 # Generated file. Any changes made will be lost.
-from mtshaderinfo import *
+from shaderinfo import *
 shaderObjects = []
 shaderObjectsByName = {}
 shaderObjectsByHash = {}

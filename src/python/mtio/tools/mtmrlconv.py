@@ -13,7 +13,7 @@ def noneOrEmpty( s ):
 
 def processFile( path, outPath ):
     # detect paths
-    basePath, baseName, exts = mtutil.splitPath( path )
+    basePath, baseName, exts = util.splitPath( path )
     if len( exts ) == 1:
         modPath = os.path.join( basePath, baseName + '.mod' )
         mrlPath = os.path.join( basePath, baseName + '.mrl' )
@@ -34,7 +34,7 @@ def processFile( path, outPath ):
     if lastExt in ['mrl', 'mod']:
         if os.path.exists( modPath ):
             model = rModelData()
-            model.read( NclBitStream( mtutil.loadIntoByteArray( modPath ) ) )
+            model.read( NclBitStream( util.loadIntoByteArray( modPath ) ) )
             mvc3materialdb.addNames( model.materials )
             
         if not os.path.exists( mrlPath ):
@@ -42,7 +42,7 @@ def processFile( path, outPath ):
             return
             
         matLib = imMaterialLib()
-        matLib.loadBinary( NclBitStream( mtutil.loadIntoByteArray( mrlPath ) ) )
+        matLib.loadBinary( NclBitStream( util.loadIntoByteArray( mrlPath ) ) )
         
         if noneOrEmpty( outPath ):
             outPath = ymlPath

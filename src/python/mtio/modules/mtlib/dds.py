@@ -2,8 +2,8 @@
 DDS utility library for reading and writing DDS files.
 '''
 
-from mtncl import *
-import mtutil
+from ncl import *
+import util
 
 '''
 struct DDS_PIXELFORMAT {
@@ -243,12 +243,12 @@ class DDSFile:
         return pitch
     
     def loadFile( self, path ):
-        self.read( NclBitStream( mtutil.loadIntoByteArray( path ) ) )
+        self.read( NclBitStream( util.loadIntoByteArray( path ) ) )
         
     def saveFile( self, path ):
         stream = NclBitStream()
         self.write( stream )
-        mtutil.saveByteArrayToFile( path, stream.getBuffer() )
+        util.saveByteArrayToFile( path, stream.getBuffer() )
         
     @staticmethod
     def fromFile( path ):

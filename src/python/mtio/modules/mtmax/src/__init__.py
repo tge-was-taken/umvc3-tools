@@ -152,6 +152,7 @@ class MtModelExportRollout(MtRollout):
         self.edtFile.text = mtmaxconfig.exportFilePath
         self.edtMetadata.text = mtmaxconfig.exportMetadataPath
         self.edtRef.text = mtmaxconfig.exportRefPath
+        self.edtMrlYml.text = mtmaxconfig.exportMrlYmlPath
         # self.chkExportWeights.checked = mtmaxconfig.exportWeights
         # self.chkExportNormals.checked = mtmaxconfig.exportNormals
         # self.chkExportGroups.checked = mtmaxconfig.exportGroups
@@ -173,6 +174,11 @@ class MtModelExportRollout(MtRollout):
         mtmaxconfig.exportRefPath = path
         if not os.path.exists(mtmaxconfig.exportMetadataPath): 
             mtmaxconfig.exportMetadataPath = ModelMetadata.getDefaultFilePath( os.path.basename( mtmaxconfig.exportRefPath ).split('.')[0] )
+        MtModelExportRollout.loadConfig()
+        
+    @staticmethod
+    def setMrlYmlFilePath( path ):
+        mtmaxconfig.exportMrlYmlPath = path
         MtModelExportRollout.loadConfig()
     
     @staticmethod
@@ -222,6 +228,18 @@ class MtModelExportRollout(MtRollout):
         MtModelExportRollout.setRefFilePath( path )
         
     @staticmethod
+    def edtMrlYmlChanged( state ):
+        MtModelExportRollout.setMrlYmlFilePath( state )
+        
+    @staticmethod
+    def btnMrlYmlPressed():
+        path = mtmaxutil.selectOpenFile( 'UMVC3 MRL YML', 'yml' )
+        if path == None:
+            path = ''
+        
+        MtModelExportRollout.setMrlYmlFilePath( path )
+        
+    @staticmethod
     def chkExportNormalsChanged( state ):
         mtmaxconfig.exportNormals = state
         
@@ -234,11 +252,11 @@ class MtModelExportRollout(MtRollout):
         mtmaxconfig.exportSkeleton = state
         
     @staticmethod
-    def chkExportTEXChanged( state ):
-        mtmaxconfig.exportTexturesToTEX = state
+    def chkExportTexChanged( state ):
+        mtmaxconfig.exportTexturesToTex = state
         
     @staticmethod
-    def chkExportMRLChanged( state ):
+    def chkExportMrlChanged( state ):
         mtmaxconfig.exportMrlYml = state
         
     @staticmethod

@@ -2,9 +2,9 @@
 Binary texture (.TEX) serialization module. 
 '''
 
-import mtutil
-from mtncl import *
-from mtdds import *
+import util
+from ncl import *
+from dds import *
 
 class rTextureHeaderDesc(object):
     def __init__( self, value=0 ):
@@ -20,28 +20,28 @@ class rTextureHeaderDesc(object):
         return desc
         
     def getType( self ):
-        return mtutil.bitUnpack( self.value, 0xFFFF, 0 )
+        return util.bitUnpack( self.value, 0xFFFF, 0 )
     
     def setType( self, value ):
-        self.value = mtutil.bitPack( self.value, 0xFFFF, 0, value )
+        self.value = util.bitPack( self.value, 0xFFFF, 0, value )
         
     def getField2( self ):
-        return mtutil.bitUnpack( self.value, 0xFF, 16 )
+        return util.bitUnpack( self.value, 0xFF, 16 )
     
     def setField2( self, value ):
-        self.value = mtutil.bitPack( self.value, 0xFF, 16, value )
+        self.value = util.bitPack( self.value, 0xFF, 16, value )
         
     def getShift( self ):
-        return mtutil.bitUnpack( self.value, 0xF, 24 )
+        return util.bitUnpack( self.value, 0xF, 24 )
     
     def setShift( self, value ):
-        self.value = mtutil.bitPack( self.value, 0xF, 24, value )
+        self.value = util.bitPack( self.value, 0xF, 24, value )
         
     def getDimensions( self ):
-        return mtutil.bitUnpack( self.value, 0xF, 28 )
+        return util.bitUnpack( self.value, 0xF, 28 )
     
     def setDimensions( self, value ):
-        self.value = mtutil.bitPack( self.value, 0xF, 28, value )   
+        self.value = util.bitPack( self.value, 0xF, 28, value )   
         
     def getValue( self ):
         return self.value
@@ -67,22 +67,22 @@ class rTextureHeaderDim(object):
         return dim
         
     def getMipCount( self ):
-        return mtutil.bitUnpack( self.value, 0x3F, 0 )
+        return util.bitUnpack( self.value, 0x3F, 0 )
     
     def setMipCount( self, value ):
-        self.value = mtutil.bitPack( self.value, 0x3F, 0, value )
+        self.value = util.bitPack( self.value, 0x3F, 0, value )
         
     def getWidth( self ):
-        return mtutil.bitUnpack( self.value, 0x1FFF, 6 )
+        return util.bitUnpack( self.value, 0x1FFF, 6 )
     
     def setWidth( self, value ):
-        self.value = mtutil.bitPack( self.value, 0x1FFF, 6, value )
+        self.value = util.bitPack( self.value, 0x1FFF, 6, value )
         
     def getHeight( self ):
-        return mtutil.bitUnpack( self.value, 0x1FFF, 19 )
+        return util.bitUnpack( self.value, 0x1FFF, 19 )
     
     def setHeight( self, value ):
-        self.value = mtutil.bitPack( self.value, 0x1FFF, 19, value )
+        self.value = util.bitPack( self.value, 0x1FFF, 19, value )
         
     def getValue( self ):
         return self.value
@@ -177,28 +177,28 @@ class rTextureHeaderFmt:
         return dim
         
     def getSurfaceCount( self ):
-        return mtutil.bitUnpack( self.value, 0xFF, 0 )
+        return util.bitUnpack( self.value, 0xFF, 0 )
     
     def setSurfaceCount( self, value ):
-        self.value = mtutil.bitPack( self.value, 0xFF, 0, value )
+        self.value = util.bitPack( self.value, 0xFF, 0, value )
         
     def getSurfaceFmt( self ):
-        return mtutil.bitUnpack( self.value, 0xFF, 8 )
+        return util.bitUnpack( self.value, 0xFF, 8 )
     
     def setSurfaceFmt( self, value ):
-        self.value = mtutil.bitPack( self.value, 0xFF, 8, value )
+        self.value = util.bitPack( self.value, 0xFF, 8, value )
         
     def getField3( self ):
-        return mtutil.bitUnpack( self.value, 0x1FFF, 16 )
+        return util.bitUnpack( self.value, 0x1FFF, 16 )
     
     def setField3( self, value ):
-        self.value = mtutil.bitPack( self.value, 0x1FFF, 16, value )
+        self.value = util.bitPack( self.value, 0x1FFF, 16, value )
         
     def getField4( self ):
-        return mtutil.bitUnpack( self.value, 0x3, 29 )
+        return util.bitUnpack( self.value, 0x3, 29 )
     
     def setField4( self, value ):
-        self.value = mtutil.bitPack( self.value, 0x3, 29, value )   
+        self.value = util.bitPack( self.value, 0x3, 29, value )   
         
     def getValue( self ):
         return self.value
@@ -315,12 +315,12 @@ class rTextureData:
                 off += len( mip )
                 
     def loadBinaryFile( self, path ):
-        self.read( NclBitStream( mtutil.loadIntoByteArray( path ) ) )
+        self.read( NclBitStream( util.loadIntoByteArray( path ) ) )
         
     def saveBinaryFile( self, path ):
         stream = NclBitStream()
         self.write( stream )
-        mtutil.saveByteArrayToFile( path, stream.getBuffer() )
+        util.saveByteArrayToFile( path, stream.getBuffer() )
         
     def toDDS( self ):
         fourCC = rTextureSurfaceFmt.getDDSFormat( self.header.fmt.getSurfaceFmt() )

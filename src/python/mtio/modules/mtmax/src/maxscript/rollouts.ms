@@ -49,11 +49,11 @@ fn mtCallPythonFunc module func args =
 rollout MtInfoRollout "MT Framework Importer/Exporter"
 (
 	label lblTitle2 "Ultimate Marvel vs Capcom 3"
-	label lblVersion "Version 0.1" align:#center
-	label lblAuthor "© 2021 TGE" align:#center
+	label lblVersion "Version 1.0 Alpha" align:#center
+	label lblAuthor "© 2021-2022 TGE" align:#center
 )
 
-rollout MtAttribsRollout "Attribs"
+rollout MtSettingsRollout "Settings"
 (
 	checkbox chkFlipUpAxis "Flip up axis" checked:true align:#left;
 	spinner spnScale "Scale" range:[0,1000000,1] align:#left;
@@ -70,14 +70,18 @@ rollout MtAttribsRollout "Attribs"
 rollout MtUtilitiesRollout "Utilities"
 (
 	group "Add MT attributes to selected object" (
-		button btnAddJointAttribs "Joint"
+		button btnAddJointAttribs "Joint" across:8
 		button btnAddGroupAttribs "Group"
 		button btnAddPmlAttribs "PML"
 		button btnAddPrimAttribs "Primitive"
+		label pad1;
+		label pad2;
+		label pad3;
+		label pad4;
 	)
 
 	group "Create MT helper" (
-		button btnCreateGroup "Group"
+		button btnCreateGroup "Group" across:8
 	)
 
 	fn emit args = 
@@ -105,17 +109,20 @@ rollout MtModelImportRollout "Model import"
 	edittext edtMetadata across:2 width:(_width() - 60) offset:[0,0]
 	button btnMetadata "..." align:#right across:2 offset:[10,-2]
 	
-	label lblImportFilters "Import filters" offset:[0,10]
-	checkbox chkImportWeights "Weights" checked:true across:3 align:#center --offset:[0, 20]
-	checkbox chkImportNormals "Normals" checked:true  across:3 align:#center --offset:[0, 20]
-	checkbox chkImportGroups "Groups" checked:true across:3 align:#center --offset:[0, 20]
+	group "Import filters" (
+		checkbox chkImportWeights "Weights" checked:true across:3 align:#center --offset:[0, 20]
+		checkbox chkImportNormals "Normals" checked:true  across:3 align:#center --offset:[0, 20]
+		checkbox chkImportGroups "Groups" checked:true across:3 align:#center --offset:[0, 20]
+
+		checkbox chkImportSkeleton "Skeleton" checked:true across:3 align:#center
+		checkbox chkImportPrimitives "Primitives" checked:true across:3 align:#center
+		label lblDummy ""
+	)
 	
-	checkbox chkImportSkeleton "Skeleton" checked:true across:3 align:#center
-	checkbox chkImportPrimitives "Primitives" checked:true across:3 align:#center
-	label lblDummy ""
-	
-	checkbox chkConvertDDS "Convert textures to DDS" checked:true offset: [0, 10]
-	checkbox chkSaveMrlYml "Convert MRL to YML" checked:true --offset: [0, 10]
+	group "Additional options" (
+		checkbox chkConvertDDS "Convert textures to DDS" checked:true 
+		checkbox chkSaveMrlYml "Convert MRL to YML" checked:true
+	)
 	
 	
 	button btnImport "Import" align:#center across:1;
@@ -153,10 +160,19 @@ rollout MtModelExportRollout "Model export"
 	label lblMetadata "Metadata" across:1 align:#left
 	edittext edtMetadata across:2 width:(_width() - 60) offset:[-0,0]
 	button btnMetadata "..." align:#right across:2 offset:[10,-2]
+	
+	label lblMrlYml "MRL yml" across:1 align:#left
+	edittext edtMrlYml across:2 width:(_width() - 60) offset:[-0,0]
+	button btnMrlYml "..." align:#right across:2 offset:[10,-2]
 
 	label lblFile "File" across:1 align:#left
 	edittext edtFile across:2 width:(_width() - 60) offset:[-0,0]
 	button btnFile "..." align:#right across:2 offset:[10,-2]
+	
+	group "Additional options" (
+		checkbox chkExportTex "Convert textures to TEX" checked:true 
+		checkbox chkExportMrl "Convert MRL YML to MRL" checked:true
+	)
 	
 	button btnExport "Export" align:#center across:1;
 
@@ -172,6 +188,10 @@ rollout MtModelExportRollout "Model export"
 	on btnMetadata			pressed 		do emit #("btnMetadataPressed")
 	on edtRef 				changed state	do emit #("edtRefChanged", state)
 	on btnRef				pressed 		do emit #("btnRefPressed")
+	on edtMrlYml 			changed state	do emit #("edtMrlYmlChanged", state)
+	on btnMrlYml			pressed 		do emit #("btnMrlYmlPressed")
+	on chkExportTex			changed state	do emit #("chkExportTexChanged", state)
+	on chkExportMrl			changed state 	do emit #("chkExportMrlChanged", state)
 )
 
 rollout MtLogRollout "Log" height:300
