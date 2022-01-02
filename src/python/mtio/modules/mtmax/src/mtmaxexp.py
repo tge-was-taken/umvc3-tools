@@ -80,6 +80,7 @@ class MtModelExporter(object):
         self.ref = None
         self._textureMapCache = dict()
         self._materialCache = dict()
+        self.transformMtx = None
         
     def _convertMaxPoint3ToNclVec3( self, v: rt.Point3 ) -> NclVec3:
         return NclVec3((v[0], v[1], v[2]))
@@ -87,7 +88,7 @@ class MtModelExporter(object):
     def _convertMaxPoint3ToNclVec3UV( self, v: rt.Point3 ) -> NclVec3:
         return NclVec3((v[0], 1 - v[1], v[2]))
         
-    def _convertMaxPoint3ToNclVec4( self, v: rt.Point3, w ) -> NclVec3:
+    def _convertMaxPoint3ToNclVec4( self, v: rt.Point3, w = 1 ) -> NclVec3:
         return NclVec4((v[0], v[1], v[2], w))
     
     def _convertMaxMatrix3ToNclMat43( self, v: rt.Matrix3 ) -> NclMat43:
@@ -146,10 +147,17 @@ class MtModelExporter(object):
         maxlog.info(f'processing bone: {maxNode.name}')
         jointMeta = self.metadata.getJointByName( maxNode.name )
         attribs = MtJointAttribData( maxNode, jointMeta )
+        worldMtx = self._convertMaxMatrix3ToNclMat44( maxNode.transform )
+        parentWorldMtx = self._convertMaxMatrix3ToNclMat44( maxNode.parent.transform ) if maxNode.parent != None else nclCreateMat44()
+        localMtx = nclMultiply( nclInverse( parentWorldMtx ), worldMtx )
+        if maxNode.parent == None:
+            localMtx *= self.transformMtx
+        
         joint = imJoint(
             name=maxNode.name, 
             id=attribs.id, 
-            worldMtx=self._convertMaxMatrix3ToNclMat44( maxNode.transform ),
+            #worldMtx=self._convertMaxMatrix3ToNclMat44( maxNode.transform ),
+            localMtx=localMtx,
             parent=self.maxNodeToJointMap[ maxNode.parent ] if maxNode.parent != None else None, # must be specified here to not infere with matrix calculations
             field03=attribs.field03,
             field04=attribs.field04,
@@ -407,12 +415,16 @@ class MtModelExporter(object):
                 if material != None:
                     self._processMaterial( material )
                 
-                tempMesh.positions.append( self._convertMaxPoint3ToNclVec3( rt.getVert( maxMesh, vertIdx ) ) )
+                pos = self._convertMaxPoint3ToNclVec4( rt.getVert( maxMesh, vertIdx ) )
+                pos = pos * self.transformMtx # needed with reference model
+                tempMesh.positions.append( pos )
                 
                 if mtmaxconfig.exportNormals:
-                    tempMesh.normals.append( self._convertMaxPoint3ToNclVec3( editNormalsMod.GetNormal( editNormalsMod.GetNormalId( i + 1, j + 1 ) )))
+                    nrm = self._convertMaxPoint3ToNclVec4( editNormalsMod.GetNormal( editNormalsMod.GetNormalId( i + 1, j + 1 ) ) )
                 else:
-                    tempMesh.normals.append( self._convertMaxPoint3ToNclVec3( rt.getNormal( maxMesh, vertIdx ) ) )
+                    nrm = self._convertMaxPoint3ToNclVec4( rt.getNormal( maxMesh, vertIdx ) )
+                nrm = nrm * self.transformMtx # needed with reference model
+                tempMesh.normals.append( nrm )
                 
                 tempMesh.uvs.append( self._convertMaxPoint3ToNclVec3UV( rt.getTVert( maxMesh, tvertIdx ) ) )
 
@@ -487,7 +499,7 @@ class MtModelExporter(object):
                     field0c=refGroup.field0c,
                     boundingSphere=refGroup.boundingSphere,
                 )
-                maxlog.debug(str(group))
+                #maxlog.debug(str(group))
                 self.model.groups.append(group)
         else:
             # process all groups in the scene
@@ -506,7 +518,7 @@ class MtModelExporter(object):
                     #TODO fix this
                     #boundingSphere=attribs.bsphere if attribs.bsphere != None else None,
                 )
-                maxlog.debug(str(group))
+                #maxlog.debug(str(group))
 
     def _processPml( self ):
         if not mtmaxconfig.exportPml:
@@ -529,7 +541,7 @@ class MtModelExporter(object):
                     localMtx=refPml.localMtx,
                     field80=refPml.field80
                 )
-                maxlog.debug(str(pml))
+                #maxlog.debug(str(pml))
                 self.model.primitiveJointLinks.append(pml)
         else:
             # TODO: represent these in the scene
@@ -552,6 +564,20 @@ class MtModelExporter(object):
             maxlog.info(f'exporting mrl yml to {mrlExportPath}')
             self.mrl.saveBinaryFile( mrlExportPath )
     
+    def _calcTransformMtx( self ):
+        mtx = nclCreateMat44()
+        if mtmaxconfig.flipUpAxis:
+            #mtx *= nclCreateMat44((NclVec4((1,  0,  0, 0)),  # x=x
+            #                       NclVec4((0,  1, 0, 0)),  # y=-z
+            #                       NclVec4((0,  0,  1, 0)),  # z=y
+            #                       NclVec4((0,  0,  0, 1))))
+            
+            #mtx *= util.Z_TO_Y_UP_MATRIX
+            mtx *= util.Y_TO_Z_UP_MATRIX # why? should be z to y up. needed with reference model
+        if mtmaxconfig.scale != 1:
+            mtx *= nclScale( mtmaxconfig.scale )
+        return mtx
+    
     def exportModel( self, path ):
         maxlog.info(f'exporting to {path}')
         
@@ -560,6 +586,7 @@ class MtModelExporter(object):
         self.outPath = util.ResourcePath(path)
         self.metadata = ModelMetadata()
         self.mrl = None
+        self.transformMtx = self._calcTransformMtx()
 
         if os.path.exists( mtmaxconfig.exportMetadataPath ):
             maxlog.info(f'loading metadata file from {mtmaxconfig.exportMetadataPath}')

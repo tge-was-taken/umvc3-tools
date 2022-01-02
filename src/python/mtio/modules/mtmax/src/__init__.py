@@ -17,18 +17,22 @@ import maxlog
 class MtRollout:
     @classmethod
     def onEvent( cls, e, *args ):
-        maxlog.debug(f'received event: {e} with args: {args}')
-        if hasattr(cls, e):
-            getattr(cls, e)(*args)
-        else:
-            maxlog.debug(f'no event handler for {e}')
+        try:
+            maxlog.debug(f'received event: {e} with args: {args}')
+            if hasattr(cls, e):
+                getattr(cls, e)(*args)
+            else:
+                maxlog.debug(f'no event handler for {e}')
 
-        if hasattr( cls, 'updateVisibility'): 
-            cls.updateVisibility()
-        else:
-            maxlog.debug(f'no update visibility handler defined in {cls}')
+            if hasattr( cls, 'updateVisibility'): 
+                cls.updateVisibility()
+            else:
+                maxlog.debug(f'no update visibility handler defined in {cls}')
 
-        mtmaxconfig.save()
+            mtmaxconfig.save()
+        except Exception as e:
+            maxlog.exception( e )
+            mtmaxutil.showMessageBox( 'An error occured. See the log or the MaxScript listener for more details.', "Error" )
 
     @classmethod
     def getMxsVar( cls ):
@@ -98,7 +102,7 @@ class MtModelImportRollout(MtRollout):
             mtmaxutil.showMessageBox( 'Import completed successfully' )
         except Exception as e:
             maxlog.exception( e )
-            mtmaxutil.showMessageBox( 'Error occured during import. See the log or the MaxScript listener for more details.' )
+            mtmaxutil.showMessageBox( 'An error occured during import. See the log or the MaxScript listener for more details.', "Error" )
         
     @staticmethod
     def btnFilePressed():
@@ -201,7 +205,7 @@ class MtModelExportRollout(MtRollout):
             mtmaxutil.showMessageBox( 'Export completed successfully' )
         except Exception as e:
             maxlog.exception( e )
-            mtmaxutil.showMessageBox( 'Error occured during export.See the log or the MaxScript listener for more details.' )
+            mtmaxutil.showMessageBox( 'An error occured during export. See the log or the MaxScript listener for more details.', "Error" )
         
     @staticmethod
     def btnFilePressed():

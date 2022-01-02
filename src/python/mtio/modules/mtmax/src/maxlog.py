@@ -17,7 +17,7 @@ if os.path.exists( _logFilePath ):
 
 def _log( level, msg, *args ):
     global _indentLevel
-    formattedMsg = datetime.datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' [' + level + ']: ' + (_indentLevel * ' ') + msg
+    formattedMsg = datetime.datetime.today().strftime('%Y-%m-%d %H:%M:%S:%f') + ' [' + level + ']: ' + (_indentLevel * ' ') + str(msg)
     print( formattedMsg, *args )
     with open( _logFilePath, 'a' ) as f:
         f.write( formattedMsg + '\n' )
