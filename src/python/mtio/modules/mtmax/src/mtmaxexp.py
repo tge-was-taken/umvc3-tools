@@ -9,39 +9,6 @@ import mtmaxutil
 from mtlib import texconv
 import maxlog
 
-class TempVertex:
-    '''Trivially hash-able container for optimizing the vertex cache'''
-    def __init__( self ):
-        self.position = ()
-        self.normal = ()
-        self.tangent = ()
-        self.uv = ()
-        self.weights = ()
-        self.weightIndices = ()
-        
-    def __eq__(self, o: object) -> bool:
-        if isinstance( o, TempVertex ):
-            return self.position == o.position and \
-                   self.normal == o.normal and \
-                   self.tangent == o.tangent and \
-                   self.uv == o.uv and \
-                   self.weights == o.weights and \
-                   self.weightIndices == o.weightIndices
-                   
-    def __hash__( self ):
-        return hash((self.position, self.normal, self.tangent, self.uv, self.weights, self.weightIndices))
-
-class TempMesh:
-    '''Temporary mesh data container'''
-    def __init__( self, material ):
-        self.material = material
-        self.positions = []
-        self.normals = []
-        self.uvs = []
-        self.weights = []
-        self.weightIndices = []
-        self.tangents = []
-
 class MtGroupAttribData(object):
     '''Wrapper for group custom attribute data'''
     def __init__( self, maxNode ):
@@ -111,12 +78,6 @@ class MtModelExporter(object):
         self.jointToMaxNodeMap = None
         self.jointIdxByName = None
         self.ref = None
-        self.exportSkin = True
-        self.exportVertexNormals = True
-        self.useRefJoints = True
-        self.useRefGroups = True
-        self.useRefPml = True
-        self.useRefBounds = True
         self._textureMapCache = dict()
         self._materialCache = dict()
         
@@ -140,198 +101,6 @@ class MtModelExporter(object):
                                self._convertMaxPoint3ToNclVec4(v[1], 0), 
                                self._convertMaxPoint3ToNclVec4(v[2], 0), 
                                self._convertMaxPoint3ToNclVec4(v[3], 1)))
-        
-    # '''
-    # void CalculateTangentsBitangents(
-    # Point3 pos[3], Point3 norm[3], Point3 uv[3],
-    # Point3 tangent[3], Point3 bitangent[3])
-    # {
-    #     float uv1x = uv[1].x - uv[0].x;
-    #     float uv2x = uv[2].x - uv[0].x;
-    #     float uv1y = uv[1].y - uv[0].y;
-    #     float uv2y = uv[2].y - uv[0].y;
-    #     float uvk = uv2x * uv1y - uv1x * uv2y;
-
-    #     Point3 v1 = pos[1] - pos[0];
-    #     Point3 v2 = pos[2] - pos[0];
-
-    #     Point3 faceTangent;
-    #     if (uvk != 0) {
-    #     faceTangent = (uv1y * v2 - uv2y * v1) / uvk;
-    #     } else {
-    #     if (uv1x != 0) faceTangent = v1 / uv1x;
-    #     else if (uv2x != 0) faceTangent = v2 / uv2x;
-    #     else faceTangent = Point3(0.0f, 0.0f, 0.0f);
-    #     }
-    #     Normalize(faceTangent);
-
-    #     Point3 mapNormal = CrossProduct(uv[1] - uv[0], uv[2] - uv[1]);
-    #     bool flip = mapNormal.z < 0;
-
-    #     for (int i = 0; i < 3; ++i)
-    #     {
-    #     // Make tangent perpendicular to normal
-    #     tangent[i] = faceTangent - DotProduct(norm[i], faceTangent) * norm[i];
-    #     Normalize(tangent[i]);
-
-    #     bitangent[i] = CrossProduct(norm[i], tangent[i]);
-    #     if (flip) bitangent[i] = -bitangent[i];
-    #     }
-    # }
-
-    # def CalculateTangentsBitangents( self, pos, norm, uv, tangent, bitangent ):
-    #     uv1x = uv[1][0] - uv[0][0]
-    #     uv2x = uv[2][0] - uv[0][0]
-    #     uv1y = uv[1][1] - uv[0][1]
-    #     uv2y = uv[2][1] - uv[0][1]
-    #     uvk = uv2x * uv1y - uv1x * uv2y
-
-    #     v1 = pos[1] - pos[0]
-    #     v2 = pos[2] - pos[0]
-
-    #     if uvk != 0:
-    #         faceTangent = (uv1y * v2 - uv2y * v1) / uvk
-    #     else:
-    #         if uv1x != 0: faceTangent = v1 / uv1x
-    #         elif uv2x != 0: faceTangent = v2 / uv2x
-    #         else: faceTangent = glm.vec3(0.0, 0.0, 0.0)
-
-    #     faceTangent = glm.normalize(faceTangent)
-
-    #     mapNormal = glm.cross(uv[1] - uv[0], uv[2] - uv[1])
-    #     flip = mapNormal[2] < 0
-
-    #     for i in range(0, 3):
-    #         # Make tangent perpendicular to normal
-    #         tangent[i] = faceTangent - glm.dot(norm[i], faceTangent) * norm[i];
-    #         tangent[i] = glm.normalize(tangent[i]);
-
-    #         bitangent[i] = glm.cross(norm[i], tangent[i])
-    #         if flip: bitangent[i] = -bitangent[i]
-
-    # def _computeTangentBasis( self, indices: List[int], vertex: List[NclVec3], texcoord: List[NclVec3], normal: List[NclVec3] ) -> List[NclVec3]:
-    #     tan1 = []
-    #     tan2 = []
-    #     for i in range(len(vertex)):
-    #         tan1.append(glm.vec3())
-    #         tan2.append(glm.vec3())
-
-        
-    #     for i in range(0, len(indices), 3):
-    #         i1 = indices[i+0]
-    #         i2 = indices[i+1]
-    #         i3 = indices[i+2]
-
-    #         v1 = vertex[i1];
-    #         v2 = vertex[i2];
-    #         v3 = vertex[i3];
-        
-    #         w1 = texcoord[i1];
-    #         w2 = texcoord[i2];
-    #         w3 = texcoord[i3];
-            
-    #         x1 = v2[0] - v1[0];
-    #         x2 = v3[0] - v1[0];
-    #         y1 = v2[1] - v1[1];
-    #         y2 = v3[1] - v1[1];
-    #         z1 = v2[2] - v1[2];
-    #         z2 = v3[2] - v1[2];
-        
-    #         s1 = w2[0] - w1[0];
-    #         s2 = w3[0] - w1[0];
-    #         t1 = w2[1] - w1[1];
-    #         t2 = w3[1] - w1[1];
-        
-    #         temp = (s1 * t2 - s2 * t1)
-    #         if temp == 0:
-    #             r = 0
-    #         else:
-    #             r = 1.0 / (s1 * t2 - s2 * t1);
-    #         sdir = glm.vec3((t2 * x1 - t1 * x2) * r, (t2 * y1 - t1 * y2) * r,
-    #                 (t2 * z1 - t1 * z2) * r);
-    #         tdir = glm.vec3((s1 * x2 - s2 * x1) * r, (s1 * y2 - s2 * y1) * r,
-    #                 (s1 * z2 - s2 * z1) * r);
-            
-    #         tan1[i1] += sdir;
-    #         tan1[i2] += sdir;
-    #         tan1[i3] += sdir;
-            
-    #         tan2[i1] += tdir;
-    #         tan2[i2] += tdir;
-    #         tan2[i3] += tdir;
-
-    #     tangents = []
-    #     for a in range(len(vertex)):
-    #         n = normal[a];
-    #         t = tan1[a];
-            
-    #         # Gram-Schmidt orthogonalize
-    #         tangent = glm.normalize(t - n * glm.dot(n, t))
-            
-    #         # Calculate handedness
-    #         handedness = -1.0 if (glm.dot(glm.cross(n, t), tan2[a]) < 0.0) else -1.0
-    #         tangents.append(tangent * handedness)
-
-    #     return tangents
-        
-    # def CalculateTangentBinormal( self, vertex1, vertex2, vertex3 ):
-    #     vector1 = [0,0,0]
-    #     vector2 = [0,0,0]
-    #     tuVector = [0,0]
-    #     tvVector = [0,0]
-    #     tangent = glm.vec3()
-    #     binormal = glm.vec3()
-        
-    #     # Calculate the two vectors for this face.
-    #     vector1[0] = vertex2.position[0] - vertex1.position[0];
-    #     vector1[1] = vertex2.position[1] - vertex1.position[1];
-    #     vector1[2] = vertex2.position[2] - vertex1.position[2];
-
-    #     vector2[0] = vertex3.position[0] - vertex1.position[0];
-    #     vector2[1] = vertex3.position[1] - vertex1.position[1];
-    #     vector2[2] = vertex3.position[2] - vertex1.position[2];
-
-    #     # Calculate the tu and tv texture space vectors.
-    #     tuVector[0] = vertex2.uv[0] - vertex1.uv[0];
-    #     tvVector[0] = vertex2.uv[1] - vertex1.uv[1];
-
-    #     tuVector[1] = vertex3.uv[0] - vertex1.uv[0];
-    #     tvVector[1] = vertex3.uv[1] - vertex1.uv[1];
-
-    #     # Calculate the denominator of the tangent/binormal equation.
-    #     temp = (tuVector[0] * tvVector[1] - tuVector[1] * tvVector[0])
-    #     den = 0
-    #     if temp != 0:
-    #         den = 1.0 / (tuVector[0] * tvVector[1] - tuVector[1] * tvVector[0]);
-
-    #     # Calculate the cross products and multiply by the coefficient to get the tangent and binormal.
-    #     tangent[0] = (tvVector[1] * vector1[0] - tvVector[0] * vector2[0]) * den;
-    #     tangent[1] = (tvVector[1] * vector1[1] - tvVector[0] * vector2[1]) * den;
-    #     tangent[2] = (tvVector[1] * vector1[2] - tvVector[0] * vector2[2]) * den;
-
-    #     binormal[0] = (tuVector[0] * vector2[0] - tuVector[1] * vector1[0]) * den;
-    #     binormal[1] = (tuVector[0] * vector2[1] - tuVector[1] * vector1[1]) * den;
-    #     binormal[2] = (tuVector[0] * vector2[2] - tuVector[1] * vector1[2]) * den;
-
-    #     # Calculate the length of this normal.
-    #     length = math.sqrt((tangent[0] * tangent[0]) + (tangent[1] * tangent[1]) + (tangent[2] * tangent[2]));
-
-    #     if length != 0:
-    #         # Normalize the normal and then store it
-    #         tangent[0] = tangent[0] / length;
-    #         tangent[1] = tangent[1] / length;
-    #         tangent[2] = tangent[2] / length;
-
-    #     # Calculate the length of this normal.
-    #     length = math.sqrt((binormal[0] * binormal[0]) + (binormal[1] * binormal[1]) + (binormal[2] * binormal[2]));
-
-    #     if length != 0:
-    #         # Normalize the normal and then store it
-    #         binormal[0] = binormal[0] / length;
-    #         binormal[1] = binormal[1] / length;
-    #         binormal[2] = binormal[2] / length;
-
-    #     return tangent, binormal
 
     def _shouldExportNode( self, node ):
         '''Returns if the node should be included in the export'''
@@ -397,6 +166,10 @@ class MtModelExporter(object):
         self.jointIdxByName[ joint.name ] = len( self.model.joints ) - 1
     
     def _processBones( self ):
+        if not mtmaxconfig.exportSkeleton:
+            maxlog.info('processing bones skipped because it has been disabled through the config')
+            return
+        
         maxlog.info('processing bones')
         
         # convert all joints first
@@ -405,7 +178,7 @@ class MtModelExporter(object):
         self.jointToMaxNodeMap = dict()
         self.jointIdxByName = dict()
         
-        if self.ref != None and self.useRefJoints:
+        if self.ref != None and mtmaxconfig.exportUseRefJoints:
             # copy over original joints
             maxlog.info('copying bones from reference model')
             for i, refJoint in enumerate(self.ref.joints):
@@ -582,12 +355,18 @@ class MtModelExporter(object):
                 if hasattr(material, 'emit_color_map' ): self._processTextureMap( material.emit_color_map )
                 if hasattr(material, 'opacity_map' ): self._processTextureMap( material.opacity_map )
                 if hasattr(material, 'displacement_map' ): self._processTextureMap( material.displacement_map )
+                
+    def _getMaterialName( self, material ):
+        if material == None:
+            return 'default_material'
+        else:
+            return material.name
             
     def _processMesh( self, maxNode ):
         maxlog.info(f'processing mesh: {maxNode.name}')
         attribs = MtPrimitiveAttribData(maxNode)
             
-        if self.exportSkin:
+        if mtmaxconfig.exportWeights:
             maxlog.debug('getting skin modifier')
             rt.execute('max modify mode')
             rt.select( maxNode )
@@ -596,7 +375,7 @@ class MtModelExporter(object):
         else:
             hasSkin = False
 
-        if self.exportVertexNormals:
+        if mtmaxconfig.exportNormals:
             maxlog.debug('adding temporary edit normals modifier to get the proper vertex normals')
             editNormalsMod = rt.Edit_Normals()
             rt.addModifier( maxNode, editNormalsMod )
@@ -611,6 +390,7 @@ class MtModelExporter(object):
             face = rt.getFace( maxMesh, i + 1 )
             tvFace = rt.getTVFace( maxMesh, i + 1 )
             matId = rt.getFaceMatID( maxMesh, i + 1 ) 
+            material = maxNode.material[matId-1] if rt.classOf(maxNode.material) == rt.Multimaterial else maxNode.material
             
             for j in range( 0, 3 ):
                 vertIdx = face[j]
@@ -618,17 +398,18 @@ class MtModelExporter(object):
 
                 if matId not in tempMeshes:
                     # create temporary mesh for this material
-                    tempMeshes[matId] = TempMesh(
-                        maxNode.material[matId-1] if rt.classOf(maxNode.material) == rt.Multimaterial else maxNode.material
+                    tempMeshes[matId] = imPrimitive(
+                        maxNode.name,
+                        self._getMaterialName( material ),
                     )
 
                 tempMesh = tempMeshes[matId]
-                if tempMesh.material != None:
-                    self._processMaterial( tempMesh.material )
+                if material != None:
+                    self._processMaterial( material )
                 
                 tempMesh.positions.append( self._convertMaxPoint3ToNclVec3( rt.getVert( maxMesh, vertIdx ) ) )
                 
-                if self.exportVertexNormals:
+                if mtmaxconfig.exportNormals:
                     tempMesh.normals.append( self._convertMaxPoint3ToNclVec3( editNormalsMod.GetNormal( editNormalsMod.GetNormalId( i + 1, j + 1 ) )))
                 else:
                     tempMesh.normals.append( self._convertMaxPoint3ToNclVec3( rt.getNormal( maxMesh, vertIdx ) ) )
@@ -637,46 +418,30 @@ class MtModelExporter(object):
 
                 if hasSkin:
                     weightCount = rt.skinOps.getVertexWeightCount( maxSkin, vertIdx )
-                    vertexWeights = []
-                    vertexWeightIndices = []
+                    weight = imVertexWeight()
                     for k in range( 0, weightCount ):
                         boneId = rt.skinops.getVertexWeightBoneId( maxSkin, vertIdx, k + 1 )
                         boneWeight = rt.skinOps.getVertexWeight( maxSkin, vertIdx, k + 1 )
                         boneName = rt.skinOps.getBoneName( maxSkin, boneId, 0 )
                         jointIdx = self.jointIdxByName[ boneName ]
-                        vertexWeights.append( boneWeight )
-                        vertexWeightIndices.append( jointIdx )
-                    tempMesh.weights.append( vertexWeights )
-                    tempMesh.weightIndices.append( vertexWeightIndices )
+                        weight.weights.append( boneWeight )
+                        weight.indices.append( jointIdx )
+                    tempMesh.weights.append( weight )
                 else:
-                    tempMesh.weights.append( [1] )
-                    tempMesh.weightIndices.append( [2] )
+                    # TODO is this correct?
+                    weight = imVertexWeight()
+                    weight.weights.append( 1 )
+                    weight.indices.append( 2 )
+                    tempMesh.weights.append( weight )
 
         # remove temporary modifiers
-        if self.exportVertexNormals:
+        if mtmaxconfig.exportNormals:
             maxlog.debug('delete temporary edit normals modifier')
             rt.deleteModifier( maxNode, editNormalsMod )
 
-        # # calculate tangents
-        # for i in range( 0, len( positions ), 3 ):
-        #     faceTangents = [glm.vec3(),glm.vec3(),glm.vec3()]
-        #     faceBitangents = [glm.vec3(),glm.vec3(),glm.vec3()]
-        #     self.CalculateTangentsBitangents(
-        #         [positions[i+0], positions[i+1], positions[i+2]],
-        #         [normals[i+0], normals[i+1], normals[i+2]],
-        #         [uvs[i+0], uvs[i+1], uvs[i+2]],
-        #         faceTangents,
-        #         faceBitangents)
-        #     tangents.append(faceTangents[0])
-        #     tangents.append(faceTangents[1])
-        #     tangents.append(faceTangents[2])
-
         # create optimized primitives
         for tempMesh in tempMeshes.values():
-            prim = imPrimitive(
-                maxNode.name, 
-                tempMesh.material.name if tempMesh.material != None else "default_material",
-            )
+            prim: imPrimitive = tempMesh
             maxlog.info(f'processing submesh with material {prim.materialName}')
 
             # copy over attribs
@@ -687,45 +452,15 @@ class MtModelExporter(object):
             if attribs.id != None: prim.id = attribs.id
             if attribs.field2c != None: prim.field2c = attribs.field2c
 
-            # optimize vertex buffer
-            vertexIdxLookup = dict()
-            nextVertexIdx = 0
-            for i in range( 0, len( tempMesh.positions ) ):
-                cv = TempVertex()
-                cv.position = (tempMesh.positions[i][0], tempMesh.positions[i][1], tempMesh.positions[i][2])
-                cv.normal = (tempMesh.normals[i][0], tempMesh.normals[i][1], tempMesh.normals[i][2])
-                cv.uv = (tempMesh.uvs[i][0], tempMesh.uvs[i][1])
-
-                # TODO: figure out how to generate proper tangents
-                cv.tangent = cv.normal
-                #cv.tangent = (tangents[i][0], tangents[i][1], tangents[i][2])
-
-                if hasSkin:
-                    cv.weights = tuple(tempMesh.weights[i])
-                    cv.weightIndices = tuple(tempMesh.weightIndices[i])    
-
-                if cv not in vertexIdxLookup:
-                    idx = nextVertexIdx
-                    nextVertexIdx += 1
-                    vertexIdxLookup[cv] = idx
-
-                    prim.positions.append( NclVec3( cv.position ) )
-                    prim.normals.append( NclVec3( cv.normal ) )
-                    prim.uvs.append( NclVec2( cv.uv ) ) 
-                    prim.tangents.append( NclVec3( cv.tangent ) )
-
-                    vtxWeight = imVertexWeight()
-                    vtxWeight.indices = cv.weightIndices
-                    vtxWeight.weights = cv.weights
-                    prim.weights.append( vtxWeight )
-                else:
-                    idx = vertexIdxLookup.get(cv)
-
-                prim.indices.append(idx)
-
+            prim.makeIndexed()
+            prim.generateTangents()
             self.model.primitives.append( prim )
         
     def _processMeshes( self ):
+        if not mtmaxconfig.exportPrimitives:
+            maxlog.info('exporting meshes skipped because it has been disabled through the config')
+            return
+        
         # convert meshes
         maxlog.info('processing meshes')
         for maxNode in rt.objects:
@@ -736,8 +471,12 @@ class MtModelExporter(object):
             self._processMesh( maxNode )
 
     def _processGroups( self ):
+        if not mtmaxconfig.exportGroups:
+            maxlog.info('exporting groups skipped because it has been disabled through the config')
+            return
+        
         maxlog.info('processing groups')
-        if self.ref != None and self.useRefGroups:
+        if self.ref != None and mtmaxconfig.exportUseRefGroups:
             maxlog.info('copying groups from reference model')
             for i, refGroup in enumerate(self.ref.groups):
                 group = imGroup(
@@ -764,13 +503,18 @@ class MtModelExporter(object):
                     field04=attribs.field04 if attribs.field04 != None else 0,
                     field08=attribs.field08 if attribs.field08 != None else 0,
                     field0c=attribs.field0c if attribs.field0c != None else 0,
+                    #TODO fix this
                     #boundingSphere=attribs.bsphere if attribs.bsphere != None else None,
                 )
                 maxlog.debug(str(group))
 
     def _processPml( self ):
+        if not mtmaxconfig.exportPml:
+            maxlog.info('exporting pml skipped because it has been disabled through the config')
+            return
+        
         maxlog.info('processing pml')
-        if self.ref != None and self.useRefPml:
+        if self.ref != None and mtmaxconfig.exportUseRefPml:
             maxlog.info('copying pml from reference model')
             for i, refPml in enumerate(self.ref.primitiveJointLinks):
                 pml = imPrimitiveJointLink(
@@ -789,7 +533,7 @@ class MtModelExporter(object):
                 self.model.primitiveJointLinks.append(pml)
         else:
             # TODO: represent these in the scene
-            pass
+            maxlog.debug("exporting pml from scene not implemented")
     
     def _writeBinaries( self ):
         maxlog.debug('converting intermediate model to binary model format')
@@ -832,7 +576,7 @@ class MtModelExporter(object):
             self.mrl.loadYamlFile( mtmaxconfig.exportMrlYmlPath )
 
         maxlog.info('processing scene')
-        if self.ref != None and self.useRefBounds:
+        if self.ref != None and mtmaxconfig.exportUseRefBounds:
             # copy over header values
             maxlog.debug('copying over header values from reference model')
             self.model.field90 = self.ref.header.field90

@@ -3,12 +3,17 @@ exportGroups: true
 exportMetadataPath: X:\project\umvc3_model\repo\src\python\mtio\modules\mtlib/res/metadata/Ryu.yml
 exportMrlYml: false
 exportMrlYmlPath: X:\project\umvc3_model\samples\UMVC3ModelSamples\Ryu - Copy\Ryu.mrl.yml
-exportNormals: true
+exportNormals: false
+exportPml: true
 exportPrimitives: true
 exportRefPath: X:\project\umvc3_model\samples\UMVC3ModelSamples\Ryu - Copy\Ryu.mod
 exportSkeleton: true
 exportTexturesToTex: false
-exportWeights: true
+exportUseRefBounds: true
+exportUseRefGroups: true
+exportUseRefJoints: true
+exportUseRefPml: true
+exportWeights: false
 flipUpAxis: false
 importConvertTexturesToDDS: true
 importFilePath: X:\project\umvc3_model\samples\UMVC3ModelSamples\Ryu - Copy\Ryu.mod

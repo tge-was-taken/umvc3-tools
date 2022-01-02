@@ -1,332 +1,643 @@
-2022-01-02 03:31:13 [DEBUG]: received event: btnImportPressed with args: ()
-2022-01-02 03:31:13 [INFO]: import model from X:\project\umvc3_model\samples\UMVC3ModelSamples\Ryu - Copy\Ryu.mod
-2022-01-02 03:31:13 [INFO]: loading metadata file from X:\project\umvc3_model\repo\src\python\mtio\modules\mtlib/res/metadata/Ryu.yml
-2022-01-02 03:31:13 [INFO]: loading model from X:\project\umvc3_model\samples\UMVC3ModelSamples\Ryu - Copy\Ryu.mod
-2022-01-02 03:31:13 [INFO]: importing materials
-2022-01-02 03:31:13 [INFO]: loading mrl file from X:\project\umvc3_model\samples\UMVC3ModelSamples\Ryu - Copy/Ryu.mrl
-2022-01-02 03:31:13 [INFO]: saving mrl yml to X:\project\umvc3_model\samples\UMVC3ModelSamples\Ryu - Copy/Ryu.mrl.yml
-2022-01-02 03:31:13 [INFO]: importing material XfB__E_m04_
-2022-01-02 03:31:13 [INFO]: importing material XfB_N__E_m02_1
-2022-01-02 03:31:13 [INFO]: importing material XfB_N__E_m01_
-2022-01-02 03:31:14 [INFO]: importing material XfB_N__E_m00_
-2022-01-02 03:31:14 [INFO]: importing material XfB_N__E_m02_
-2022-01-02 03:31:14 [INFO]: importing material XfB_N__E_m03_
-2022-01-02 03:31:14 [INFO]: importing material XfB_N__E_m03_1
-2022-01-02 03:31:14 [INFO]: importing material XfB__E_m05_1
-2022-01-02 03:31:14 [INFO]: importing material XfB__E_m05_
-2022-01-02 03:31:14 [INFO]: importing material XfB__E_m00_1
-2022-01-02 03:31:14 [INFO]: importing material XfB_N__E_m08_
-2022-01-02 03:31:15 [INFO]: importing material XfB_N__E_m00_3
-2022-01-02 03:31:15 [INFO]: importing material XfBA_E0__m04_
-2022-01-02 03:31:15 [INFO]: importing material lambert1
-2022-01-02 03:31:15 [INFO]: importing skeleton
-2022-01-02 03:31:15 [INFO]: importing groups
-2022-01-02 03:31:16 [WARNING]: importing pml skipped
-2022-01-02 03:31:16 [INFO]: importing primitives
-2022-01-02 03:31:16 [INFO]: importing primitive 0 prm_hair_outline
-2022-01-02 03:31:17 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C6D08>
-2022-01-02 03:31:17 [DEBUG]: decoding vertices
-2022-01-02 03:31:17 [DEBUG]: decoding faces
-2022-01-02 03:31:17 [DEBUG]: creating mesh
-2022-01-02 03:31:17 [INFO]: importing mesh weights
-2022-01-02 03:31:17 [INFO]: importing primitive 1 prm_hair
-2022-01-02 03:31:17 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5BEBC8>
-2022-01-02 03:31:17 [DEBUG]: decoding vertices
-2022-01-02 03:31:17 [DEBUG]: decoding faces
-2022-01-02 03:31:17 [DEBUG]: creating mesh
-2022-01-02 03:31:17 [INFO]: importing mesh weights
-2022-01-02 03:31:17 [INFO]: importing primitive 2 prm_headband_outline
-2022-01-02 03:31:17 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C6D08>
-2022-01-02 03:31:17 [DEBUG]: decoding vertices
-2022-01-02 03:31:17 [DEBUG]: decoding faces
-2022-01-02 03:31:17 [DEBUG]: creating mesh
-2022-01-02 03:31:17 [INFO]: importing mesh weights
-2022-01-02 03:31:18 [INFO]: importing primitive 3 prm_cloth_upper_outline
-2022-01-02 03:31:18 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C6F88>
-2022-01-02 03:31:18 [DEBUG]: decoding vertices
-2022-01-02 03:31:18 [DEBUG]: decoding faces
-2022-01-02 03:31:18 [DEBUG]: creating mesh
-2022-01-02 03:31:18 [INFO]: importing mesh weights
-2022-01-02 03:31:18 [INFO]: importing primitive 4 prm_20
-2022-01-02 03:31:18 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C6F88>
-2022-01-02 03:31:18 [DEBUG]: decoding vertices
-2022-01-02 03:31:18 [DEBUG]: decoding faces
-2022-01-02 03:31:18 [DEBUG]: creating mesh
-2022-01-02 03:31:18 [INFO]: importing mesh weights
-2022-01-02 03:31:18 [INFO]: importing primitive 5 prm_30
-2022-01-02 03:31:18 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C5B48>
-2022-01-02 03:31:18 [DEBUG]: decoding vertices
-2022-01-02 03:31:18 [DEBUG]: decoding faces
-2022-01-02 03:31:18 [DEBUG]: creating mesh
-2022-01-02 03:31:18 [INFO]: importing mesh weights
-2022-01-02 03:31:18 [INFO]: importing primitive 6 prm_36
-2022-01-02 03:31:18 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C5B48>
-2022-01-02 03:31:18 [DEBUG]: decoding vertices
-2022-01-02 03:31:18 [DEBUG]: decoding faces
-2022-01-02 03:31:18 [DEBUG]: creating mesh
-2022-01-02 03:31:18 [INFO]: importing mesh weights
-2022-01-02 03:31:18 [INFO]: importing primitive 7 prm_49
-2022-01-02 03:31:18 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C5B48>
-2022-01-02 03:31:18 [DEBUG]: decoding vertices
-2022-01-02 03:31:18 [DEBUG]: decoding faces
-2022-01-02 03:31:18 [DEBUG]: creating mesh
-2022-01-02 03:31:18 [INFO]: importing mesh weights
-2022-01-02 03:31:18 [INFO]: importing primitive 8 prm_headband
-2022-01-02 03:31:18 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5BEBC8>
-2022-01-02 03:31:18 [DEBUG]: decoding vertices
-2022-01-02 03:31:18 [DEBUG]: decoding faces
-2022-01-02 03:31:18 [DEBUG]: creating mesh
-2022-01-02 03:31:18 [INFO]: importing mesh weights
-2022-01-02 03:31:19 [INFO]: importing primitive 9 prm_cloth-upper
-2022-01-02 03:31:19 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5BFE88>
-2022-01-02 03:31:19 [DEBUG]: decoding vertices
-2022-01-02 03:31:19 [DEBUG]: decoding faces
-2022-01-02 03:31:19 [DEBUG]: creating mesh
-2022-01-02 03:31:19 [INFO]: importing mesh weights
-2022-01-02 03:31:19 [INFO]: importing primitive 10 prm_19
-2022-01-02 03:31:19 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5BFE88>
-2022-01-02 03:31:19 [DEBUG]: decoding vertices
-2022-01-02 03:31:19 [DEBUG]: decoding faces
-2022-01-02 03:31:19 [DEBUG]: creating mesh
-2022-01-02 03:31:19 [INFO]: importing mesh weights
-2022-01-02 03:31:19 [INFO]: importing primitive 11 prm_26
-2022-01-02 03:31:19 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5BFE88>
-2022-01-02 03:31:19 [DEBUG]: decoding vertices
-2022-01-02 03:31:19 [DEBUG]: decoding faces
-2022-01-02 03:31:19 [DEBUG]: creating mesh
-2022-01-02 03:31:19 [INFO]: importing mesh weights
-2022-01-02 03:31:19 [INFO]: importing primitive 12 prm_body_outline_r
-2022-01-02 03:31:19 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C6F88>
-2022-01-02 03:31:19 [DEBUG]: decoding vertices
-2022-01-02 03:31:19 [DEBUG]: decoding faces
-2022-01-02 03:31:19 [DEBUG]: creating mesh
-2022-01-02 03:31:20 [INFO]: importing mesh weights
-2022-01-02 03:31:20 [INFO]: importing primitive 13 prm_body_r
-2022-01-02 03:31:20 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5BFE88>
-2022-01-02 03:31:20 [DEBUG]: decoding vertices
-2022-01-02 03:31:20 [DEBUG]: decoding faces
-2022-01-02 03:31:20 [DEBUG]: creating mesh
-2022-01-02 03:31:20 [INFO]: importing mesh weights
-2022-01-02 03:31:20 [INFO]: importing primitive 14 prm_body_outline_l
-2022-01-02 03:31:20 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C6F88>
-2022-01-02 03:31:20 [DEBUG]: decoding vertices
-2022-01-02 03:31:21 [DEBUG]: decoding faces
-2022-01-02 03:31:21 [DEBUG]: creating mesh
-2022-01-02 03:31:21 [INFO]: importing mesh weights
-2022-01-02 03:31:21 [INFO]: importing primitive 15 prm_body_l
-2022-01-02 03:31:21 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5BFE88>
-2022-01-02 03:31:21 [DEBUG]: decoding vertices
-2022-01-02 03:31:21 [DEBUG]: decoding faces
-2022-01-02 03:31:21 [DEBUG]: creating mesh
-2022-01-02 03:31:21 [INFO]: importing mesh weights
-2022-01-02 03:31:22 [INFO]: importing primitive 16 prm_cloth_lower_outline
-2022-01-02 03:31:22 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C6F88>
-2022-01-02 03:31:22 [DEBUG]: decoding vertices
-2022-01-02 03:31:22 [DEBUG]: decoding faces
-2022-01-02 03:31:22 [DEBUG]: creating mesh
-2022-01-02 03:31:22 [INFO]: importing mesh weights
-2022-01-02 03:31:22 [INFO]: importing primitive 17 prm_cloth_lower
-2022-01-02 03:31:22 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5BFE88>
-2022-01-02 03:31:22 [DEBUG]: decoding vertices
-2022-01-02 03:31:22 [DEBUG]: decoding faces
-2022-01-02 03:31:22 [DEBUG]: creating mesh
-2022-01-02 03:31:22 [INFO]: importing mesh weights
-2022-01-02 03:31:22 [INFO]: importing primitive 18 prm_cloth_lower_outline_r
-2022-01-02 03:31:22 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C6F88>
-2022-01-02 03:31:22 [DEBUG]: decoding vertices
-2022-01-02 03:31:22 [DEBUG]: decoding faces
-2022-01-02 03:31:22 [DEBUG]: creating mesh
-2022-01-02 03:31:22 [INFO]: importing mesh weights
-2022-01-02 03:31:22 [INFO]: importing primitive 19 prm_18
-2022-01-02 03:31:22 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C6F88>
-2022-01-02 03:31:22 [DEBUG]: decoding vertices
-2022-01-02 03:31:22 [DEBUG]: decoding faces
-2022-01-02 03:31:22 [DEBUG]: creating mesh
-2022-01-02 03:31:22 [INFO]: importing mesh weights
-2022-01-02 03:31:22 [INFO]: importing primitive 20 prm_cloth_lower_r
-2022-01-02 03:31:22 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5BFE88>
-2022-01-02 03:31:22 [DEBUG]: decoding vertices
-2022-01-02 03:31:22 [DEBUG]: decoding faces
-2022-01-02 03:31:22 [DEBUG]: creating mesh
-2022-01-02 03:31:22 [INFO]: importing mesh weights
-2022-01-02 03:31:22 [INFO]: importing primitive 21 prm_17
-2022-01-02 03:31:22 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5BFE88>
-2022-01-02 03:31:22 [DEBUG]: decoding vertices
-2022-01-02 03:31:23 [DEBUG]: decoding faces
-2022-01-02 03:31:23 [DEBUG]: creating mesh
-2022-01-02 03:31:23 [INFO]: importing mesh weights
-2022-01-02 03:31:23 [INFO]: importing primitive 22 prm_cloth_lower_outline_l
-2022-01-02 03:31:23 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C6F88>
-2022-01-02 03:31:23 [DEBUG]: decoding vertices
-2022-01-02 03:31:23 [DEBUG]: decoding faces
-2022-01-02 03:31:23 [DEBUG]: creating mesh
-2022-01-02 03:31:23 [INFO]: importing mesh weights
-2022-01-02 03:31:23 [INFO]: importing primitive 23 prm_cloth_lower_l
-2022-01-02 03:31:23 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5BFE88>
-2022-01-02 03:31:23 [DEBUG]: decoding vertices
-2022-01-02 03:31:23 [DEBUG]: decoding faces
-2022-01-02 03:31:23 [DEBUG]: creating mesh
-2022-01-02 03:31:23 [INFO]: importing mesh weights
-2022-01-02 03:31:23 [INFO]: importing primitive 24 prm_21
-2022-01-02 03:31:23 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C5B48>
-2022-01-02 03:31:23 [DEBUG]: decoding vertices
-2022-01-02 03:31:23 [DEBUG]: decoding faces
-2022-01-02 03:31:23 [DEBUG]: creating mesh
-2022-01-02 03:31:23 [INFO]: importing mesh weights
-2022-01-02 03:31:23 [INFO]: importing primitive 25 prm_22
-2022-01-02 03:31:23 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C5B48>
-2022-01-02 03:31:23 [DEBUG]: decoding vertices
-2022-01-02 03:31:23 [DEBUG]: decoding faces
-2022-01-02 03:31:23 [DEBUG]: creating mesh
-2022-01-02 03:31:23 [INFO]: importing mesh weights
-2022-01-02 03:31:23 [INFO]: importing primitive 26 prm_44
-2022-01-02 03:31:23 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C6AC8>
-2022-01-02 03:31:23 [DEBUG]: decoding vertices
-2022-01-02 03:31:23 [DEBUG]: decoding faces
-2022-01-02 03:31:23 [DEBUG]: creating mesh
-2022-01-02 03:31:23 [INFO]: importing mesh weights
-2022-01-02 03:31:23 [INFO]: importing primitive 27 prm_31
-2022-01-02 03:31:24 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C5B48>
-2022-01-02 03:31:24 [DEBUG]: decoding vertices
-2022-01-02 03:31:24 [DEBUG]: decoding faces
-2022-01-02 03:31:24 [DEBUG]: creating mesh
-2022-01-02 03:31:24 [INFO]: importing mesh weights
-2022-01-02 03:31:24 [INFO]: importing primitive 28 prm_43
-2022-01-02 03:31:24 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C5B48>
-2022-01-02 03:31:24 [DEBUG]: decoding vertices
-2022-01-02 03:31:24 [DEBUG]: decoding faces
-2022-01-02 03:31:24 [DEBUG]: creating mesh
-2022-01-02 03:31:24 [INFO]: importing mesh weights
-2022-01-02 03:31:24 [INFO]: importing primitive 29 prm_35
-2022-01-02 03:31:24 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C5B48>
-2022-01-02 03:31:24 [DEBUG]: decoding vertices
-2022-01-02 03:31:24 [DEBUG]: decoding faces
-2022-01-02 03:31:24 [DEBUG]: creating mesh
-2022-01-02 03:31:24 [INFO]: importing mesh weights
-2022-01-02 03:31:24 [INFO]: importing primitive 30 prm_23
-2022-01-02 03:31:24 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5BFE88>
-2022-01-02 03:31:24 [DEBUG]: decoding vertices
-2022-01-02 03:31:24 [DEBUG]: decoding faces
-2022-01-02 03:31:24 [DEBUG]: creating mesh
-2022-01-02 03:31:24 [INFO]: importing mesh weights
-2022-01-02 03:31:24 [INFO]: importing primitive 31 prm_48
-2022-01-02 03:31:24 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C6AC8>
-2022-01-02 03:31:24 [DEBUG]: decoding vertices
-2022-01-02 03:31:24 [DEBUG]: decoding faces
-2022-01-02 03:31:24 [DEBUG]: creating mesh
-2022-01-02 03:31:25 [INFO]: importing mesh weights
-2022-01-02 03:31:25 [INFO]: importing primitive 32 prm_41
-2022-01-02 03:31:25 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C6D08>
-2022-01-02 03:31:25 [DEBUG]: decoding vertices
-2022-01-02 03:31:25 [DEBUG]: decoding faces
-2022-01-02 03:31:25 [DEBUG]: creating mesh
-2022-01-02 03:31:25 [INFO]: importing mesh weights
-2022-01-02 03:31:25 [INFO]: importing primitive 33 prm_25
-2022-01-02 03:31:25 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C6F88>
-2022-01-02 03:31:25 [DEBUG]: decoding vertices
-2022-01-02 03:31:25 [DEBUG]: decoding faces
-2022-01-02 03:31:25 [DEBUG]: creating mesh
-2022-01-02 03:31:25 [INFO]: importing mesh weights
-2022-01-02 03:31:25 [INFO]: importing primitive 34 prm_47
-2022-01-02 03:31:25 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C5B48>
-2022-01-02 03:31:25 [DEBUG]: decoding vertices
-2022-01-02 03:31:25 [DEBUG]: decoding faces
-2022-01-02 03:31:25 [DEBUG]: creating mesh
-2022-01-02 03:31:25 [INFO]: importing mesh weights
-2022-01-02 03:31:25 [INFO]: importing primitive 35 prm_40
-2022-01-02 03:31:25 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5BEBC8>
-2022-01-02 03:31:25 [DEBUG]: decoding vertices
-2022-01-02 03:31:25 [DEBUG]: decoding faces
-2022-01-02 03:31:25 [DEBUG]: creating mesh
-2022-01-02 03:31:25 [INFO]: importing mesh weights
-2022-01-02 03:31:25 [INFO]: importing primitive 36 prm_24
-2022-01-02 03:31:25 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5BFE88>
-2022-01-02 03:31:25 [DEBUG]: decoding vertices
-2022-01-02 03:31:26 [DEBUG]: decoding faces
-2022-01-02 03:31:26 [DEBUG]: creating mesh
-2022-01-02 03:31:26 [INFO]: importing mesh weights
-2022-01-02 03:31:26 [INFO]: importing primitive 37 prm_38
-2022-01-02 03:31:26 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C6D08>
-2022-01-02 03:31:26 [DEBUG]: decoding vertices
-2022-01-02 03:31:26 [DEBUG]: decoding faces
-2022-01-02 03:31:26 [DEBUG]: creating mesh
-2022-01-02 03:31:26 [INFO]: importing mesh weights
-2022-01-02 03:31:26 [INFO]: importing primitive 38 prm_46
-2022-01-02 03:31:26 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C6D08>
-2022-01-02 03:31:26 [DEBUG]: decoding vertices
-2022-01-02 03:31:26 [DEBUG]: decoding faces
-2022-01-02 03:31:26 [DEBUG]: creating mesh
-2022-01-02 03:31:26 [INFO]: importing mesh weights
-2022-01-02 03:31:26 [INFO]: importing primitive 39 prm_33
-2022-01-02 03:31:26 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C6D08>
-2022-01-02 03:31:26 [DEBUG]: decoding vertices
-2022-01-02 03:31:26 [DEBUG]: decoding faces
-2022-01-02 03:31:26 [DEBUG]: creating mesh
-2022-01-02 03:31:26 [INFO]: importing mesh weights
-2022-01-02 03:31:26 [INFO]: importing primitive 40 prm_28
-2022-01-02 03:31:26 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C6F88>
-2022-01-02 03:31:26 [DEBUG]: decoding vertices
-2022-01-02 03:31:26 [DEBUG]: decoding faces
-2022-01-02 03:31:26 [DEBUG]: creating mesh
-2022-01-02 03:31:26 [INFO]: importing mesh weights
-2022-01-02 03:31:26 [INFO]: importing primitive 41 prm_37
-2022-01-02 03:31:26 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5BEBC8>
-2022-01-02 03:31:26 [DEBUG]: decoding vertices
-2022-01-02 03:31:27 [DEBUG]: decoding faces
-2022-01-02 03:31:27 [DEBUG]: creating mesh
-2022-01-02 03:31:27 [INFO]: importing mesh weights
-2022-01-02 03:31:27 [INFO]: importing primitive 42 prm_45
-2022-01-02 03:31:27 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5BEBC8>
-2022-01-02 03:31:27 [DEBUG]: decoding vertices
-2022-01-02 03:31:27 [DEBUG]: decoding faces
-2022-01-02 03:31:27 [DEBUG]: creating mesh
-2022-01-02 03:31:27 [INFO]: importing mesh weights
-2022-01-02 03:31:27 [INFO]: importing primitive 43 prm_32
-2022-01-02 03:31:27 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5BEBC8>
-2022-01-02 03:31:27 [DEBUG]: decoding vertices
-2022-01-02 03:31:28 [DEBUG]: decoding faces
-2022-01-02 03:31:28 [DEBUG]: creating mesh
-2022-01-02 03:31:28 [INFO]: importing mesh weights
-2022-01-02 03:31:28 [INFO]: importing primitive 44 prm_27
-2022-01-02 03:31:28 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5BFE88>
-2022-01-02 03:31:28 [DEBUG]: decoding vertices
-2022-01-02 03:31:28 [DEBUG]: decoding faces
-2022-01-02 03:31:28 [DEBUG]: creating mesh
-2022-01-02 03:31:28 [INFO]: importing mesh weights
-2022-01-02 03:31:28 [INFO]: importing primitive 45 prm_39
-2022-01-02 03:31:28 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C5B48>
-2022-01-02 03:31:28 [DEBUG]: decoding vertices
-2022-01-02 03:31:28 [DEBUG]: decoding faces
-2022-01-02 03:31:28 [DEBUG]: creating mesh
-2022-01-02 03:31:28 [INFO]: importing mesh weights
-2022-01-02 03:31:28 [INFO]: importing primitive 46 prm_42
-2022-01-02 03:31:29 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C5B48>
-2022-01-02 03:31:29 [DEBUG]: decoding vertices
-2022-01-02 03:31:29 [DEBUG]: decoding faces
-2022-01-02 03:31:29 [DEBUG]: creating mesh
-2022-01-02 03:31:29 [INFO]: importing mesh weights
-2022-01-02 03:31:29 [INFO]: importing primitive 47 prm_34
-2022-01-02 03:31:29 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C5B48>
-2022-01-02 03:31:29 [DEBUG]: decoding vertices
-2022-01-02 03:31:29 [DEBUG]: decoding faces
-2022-01-02 03:31:29 [DEBUG]: creating mesh
-2022-01-02 03:31:29 [INFO]: importing mesh weights
-2022-01-02 03:31:29 [INFO]: importing primitive 48 prm_29
-2022-01-02 03:31:29 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5BEBC8>
-2022-01-02 03:31:29 [DEBUG]: decoding vertices
-2022-01-02 03:31:29 [DEBUG]: decoding faces
-2022-01-02 03:31:29 [DEBUG]: creating mesh
-2022-01-02 03:31:29 [INFO]: importing mesh weights
-2022-01-02 03:31:29 [INFO]: importing primitive 49 prm_51
-2022-01-02 03:31:29 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C6F88>
-2022-01-02 03:31:29 [DEBUG]: decoding vertices
-2022-01-02 03:31:29 [DEBUG]: decoding faces
-2022-01-02 03:31:29 [DEBUG]: creating mesh
-2022-01-02 03:31:29 [INFO]: importing mesh weights
-2022-01-02 03:31:29 [INFO]: importing primitive 50 prm_50
-2022-01-02 03:31:29 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5BFE88>
-2022-01-02 03:31:29 [DEBUG]: decoding vertices
-2022-01-02 03:31:29 [DEBUG]: decoding faces
-2022-01-02 03:31:29 [DEBUG]: creating mesh
-2022-01-02 03:31:29 [INFO]: importing mesh weights
-2022-01-02 03:31:29 [INFO]: Import done in 16323 ms
+2022-01-02 20:30:42 [DEBUG]: received event: chkExportPrimitivesChanged with args: (False,)
+2022-01-02 20:30:43 [DEBUG]: received event: chkExportSkeletonChanged with args: (False,)
+2022-01-02 20:30:44 [DEBUG]: received event: chkExportWeightsChanged with args: (False,)
+2022-01-02 20:30:44 [DEBUG]: received event: chkExportNormalsChanged with args: (False,)
+2022-01-02 20:30:45 [DEBUG]: received event: chkExportGroupsChanged with args: (False,)
+2022-01-02 20:30:46 [DEBUG]: received event: btnExportPressed with args: ()
+2022-01-02 20:30:46 [INFO]: exporting to X:\game\platform\pc\Ultimate Marvel vs. Capcom 3\nativePCx64\chr\archive\0001_00\chr\Ryu\model\1p\Ryu.58a15856.mod
+2022-01-02 20:30:46 [INFO]: loading metadata file from X:\project\umvc3_model\repo\src\python\mtio\modules\mtlib/res/metadata/Ryu.yml
+2022-01-02 20:30:46 [INFO]: loading reference model from X:\project\umvc3_model\samples\UMVC3ModelSamples\Ryu - Copy\Ryu.mod
+2022-01-02 20:30:46 [INFO]: loading mrl yml from X:\project\umvc3_model\samples\UMVC3ModelSamples\Ryu - Copy\Ryu.mrl.yml
+2022-01-02 20:30:46 [INFO]: processing scene
+2022-01-02 20:30:46 [DEBUG]: copying over header values from reference model
+2022-01-02 20:30:46 [INFO]: processing bones skipped because it has been disabled through the config
+2022-01-02 20:30:46 [INFO]: exporting groups skipped because it has been disabled through the config
+2022-01-02 20:30:47 [INFO]: exporting meshes skipped because it has been disabled through the config
+2022-01-02 20:30:47 [INFO]: processing pml
+2022-01-02 20:30:47 [INFO]: copying pml from reference model
+2022-01-02 20:30:47 [ERROR]: Traceback (most recent call last):
+  File "X:\project\umvc3_model\repo\src\python\mtio\modules\mtmax\src\__init__.py", line 200, in btnExportPressed
+    exporter.exportModel( mtmaxconfig.exportFilePath )
+  File "X:\project\umvc3_model\repo\src\python\mtio\modules\mtmax\src\mtmaxexp.py", line 594, in exportModel
+    self._processPml()
+  File "X:\project\umvc3_model\repo\src\python\mtio\modules\mtmax\src\mtmaxexp.py", line 522, in _processPml
+    joint=self.model.joints[refPml.jointIndex],
+IndexError: list index out of range
+
+2022-01-02 20:31:14 [DEBUG]: received event: chkExportWeightsChanged with args: (True,)
+2022-01-02 20:31:16 [DEBUG]: received event: chkExportNormalsChanged with args: (True,)
+2022-01-02 20:31:16 [DEBUG]: received event: chkExportGroupsChanged with args: (True,)
+2022-01-02 20:31:17 [DEBUG]: received event: chkExportPrimitivesChanged with args: (True,)
+2022-01-02 20:31:17 [DEBUG]: received event: chkExportSkeletonChanged with args: (True,)
+2022-01-02 20:31:18 [DEBUG]: received event: chkExportWeightsChanged with args: (False,)
+2022-01-02 20:31:20 [DEBUG]: received event: chkExportNormalsChanged with args: (False,)
+2022-01-02 20:31:21 [DEBUG]: received event: btnExportPressed with args: ()
+2022-01-02 20:31:21 [INFO]: exporting to X:\game\platform\pc\Ultimate Marvel vs. Capcom 3\nativePCx64\chr\archive\0001_00\chr\Ryu\model\1p\Ryu.58a15856.mod
+2022-01-02 20:31:21 [INFO]: loading metadata file from X:\project\umvc3_model\repo\src\python\mtio\modules\mtlib/res/metadata/Ryu.yml
+2022-01-02 20:31:21 [INFO]: loading reference model from X:\project\umvc3_model\samples\UMVC3ModelSamples\Ryu - Copy\Ryu.mod
+2022-01-02 20:31:21 [INFO]: loading mrl yml from X:\project\umvc3_model\samples\UMVC3ModelSamples\Ryu - Copy\Ryu.mrl.yml
+2022-01-02 20:31:21 [INFO]: processing scene
+2022-01-02 20:31:21 [DEBUG]: copying over header values from reference model
+2022-01-02 20:31:21 [INFO]: processing bones
+2022-01-02 20:31:21 [INFO]: copying bones from reference model
+2022-01-02 20:31:21 [INFO]: processing groups
+2022-01-02 20:31:21 [INFO]: copying groups from reference model
+2022-01-02 20:31:21 [DEBUG]: <immodel.imGroup object at 0x000001A8C5E8D348>
+2022-01-02 20:31:21 [DEBUG]: <immodel.imGroup object at 0x000001A8C5E8D108>
+2022-01-02 20:31:21 [DEBUG]: <immodel.imGroup object at 0x000001A8C5E8DD08>
+2022-01-02 20:31:21 [DEBUG]: <immodel.imGroup object at 0x000001A8C5E8D648>
+2022-01-02 20:31:21 [DEBUG]: <immodel.imGroup object at 0x000001A8C5E8D1C8>
+2022-01-02 20:31:21 [DEBUG]: <immodel.imGroup object at 0x000001A8C5E8DE88>
+2022-01-02 20:31:21 [DEBUG]: <immodel.imGroup object at 0x000001A8C5E8D6C8>
+2022-01-02 20:31:21 [DEBUG]: <immodel.imGroup object at 0x000001A8C5E8DE08>
+2022-01-02 20:31:21 [DEBUG]: <immodel.imGroup object at 0x000001A8C5E8DE48>
+2022-01-02 20:31:21 [DEBUG]: <immodel.imGroup object at 0x000001A8C5E8DBC8>
+2022-01-02 20:31:22 [DEBUG]: <immodel.imGroup object at 0x000001A8C5E8D288>
+2022-01-02 20:31:22 [INFO]: processing meshes
+2022-01-02 20:31:22 [INFO]: processing mesh: prm_hair_outline
+2022-01-02 20:31:22 [DEBUG]: collecting vertex data
+2022-01-02 20:31:22 [INFO]: processing material: XfB__E_m04_
+2022-01-02 20:31:22 [INFO]: processing submesh with material XfB__E_m04_
+2022-01-02 20:31:22 [INFO]: processing mesh: prm_hair
+2022-01-02 20:31:22 [DEBUG]: collecting vertex data
+2022-01-02 20:31:22 [INFO]: processing submesh with material XfB__E_m04_
+2022-01-02 20:31:22 [INFO]: processing mesh: prm_headband_outline
+2022-01-02 20:31:22 [DEBUG]: collecting vertex data
+2022-01-02 20:31:22 [INFO]: processing material: XfB_N__E_m02_1
+2022-01-02 20:31:22 [INFO]: processing submesh with material XfB_N__E_m02_1
+2022-01-02 20:31:22 [INFO]: processing mesh: prm_headband
+2022-01-02 20:31:22 [DEBUG]: collecting vertex data
+2022-01-02 20:31:22 [INFO]: processing submesh with material XfB_N__E_m02_1
+2022-01-02 20:31:22 [INFO]: processing mesh: prm_body_outline_r
+2022-01-02 20:31:22 [DEBUG]: collecting vertex data
+2022-01-02 20:31:22 [INFO]: processing material: XfB_N__E_m01_
+2022-01-02 20:31:22 [INFO]: processing submesh with material XfB_N__E_m01_
+2022-01-02 20:31:22 [INFO]: processing mesh: prm_body_r
+2022-01-02 20:31:22 [DEBUG]: collecting vertex data
+2022-01-02 20:31:23 [INFO]: processing submesh with material XfB_N__E_m01_
+2022-01-02 20:31:23 [INFO]: processing mesh: prm_body_outline_l
+2022-01-02 20:31:23 [DEBUG]: collecting vertex data
+2022-01-02 20:31:23 [INFO]: processing material: XfB_N__E_m00_
+2022-01-02 20:31:23 [INFO]: processing submesh with material XfB_N__E_m00_
+2022-01-02 20:31:23 [INFO]: processing mesh: prm_body_l
+2022-01-02 20:31:23 [DEBUG]: collecting vertex data
+2022-01-02 20:31:23 [INFO]: processing submesh with material XfB_N__E_m00_
+2022-01-02 20:31:23 [INFO]: processing mesh: prm_cloth_upper_outline
+2022-01-02 20:31:23 [DEBUG]: collecting vertex data
+2022-01-02 20:31:23 [INFO]: processing submesh with material XfB_N__E_m02_1
+2022-01-02 20:31:23 [INFO]: processing mesh: prm_cloth-upper
+2022-01-02 20:31:24 [DEBUG]: collecting vertex data
+2022-01-02 20:31:24 [INFO]: processing submesh with material XfB_N__E_m02_1
+2022-01-02 20:31:24 [INFO]: processing mesh: prm_cloth_lower_outline
+2022-01-02 20:31:24 [DEBUG]: collecting vertex data
+2022-01-02 20:31:24 [INFO]: processing material: XfB_N__E_m02_
+2022-01-02 20:31:24 [INFO]: processing submesh with material XfB_N__E_m02_
+2022-01-02 20:31:24 [INFO]: processing mesh: prm_cloth_lower
+2022-01-02 20:31:24 [DEBUG]: collecting vertex data
+2022-01-02 20:31:24 [INFO]: processing submesh with material XfB_N__E_m02_
+2022-01-02 20:31:24 [INFO]: processing mesh: prm_cloth_lower_outline_r
+2022-01-02 20:31:24 [DEBUG]: collecting vertex data
+2022-01-02 20:31:24 [INFO]: processing material: XfB_N__E_m03_
+2022-01-02 20:31:24 [INFO]: processing submesh with material XfB_N__E_m03_
+2022-01-02 20:31:24 [INFO]: processing mesh: prm_cloth_lower_r
+2022-01-02 20:31:24 [DEBUG]: collecting vertex data
+2022-01-02 20:31:24 [INFO]: processing submesh with material XfB_N__E_m03_
+2022-01-02 20:31:24 [INFO]: processing mesh: prm_cloth_lower_outline_l
+2022-01-02 20:31:24 [DEBUG]: collecting vertex data
+2022-01-02 20:31:24 [INFO]: processing material: XfB_N__E_m03_1
+2022-01-02 20:31:24 [INFO]: processing submesh with material XfB_N__E_m03_1
+2022-01-02 20:31:24 [INFO]: processing mesh: prm_cloth_lower_l
+2022-01-02 20:31:24 [DEBUG]: collecting vertex data
+2022-01-02 20:31:25 [INFO]: processing submesh with material XfB_N__E_m03_1
+2022-01-02 20:31:25 [INFO]: processing mesh: prm_20
+2022-01-02 20:31:25 [DEBUG]: collecting vertex data
+2022-01-02 20:31:25 [INFO]: processing submesh with material XfB_N__E_m02_1
+2022-01-02 20:31:25 [INFO]: processing mesh: prm_19
+2022-01-02 20:31:25 [DEBUG]: collecting vertex data
+2022-01-02 20:31:25 [INFO]: processing submesh with material XfB_N__E_m02_1
+2022-01-02 20:31:25 [INFO]: processing mesh: prm_18
+2022-01-02 20:31:25 [DEBUG]: collecting vertex data
+2022-01-02 20:31:25 [INFO]: processing submesh with material XfB_N__E_m03_
+2022-01-02 20:31:25 [INFO]: processing mesh: prm_17
+2022-01-02 20:31:25 [DEBUG]: collecting vertex data
+2022-01-02 20:31:25 [INFO]: processing submesh with material XfB_N__E_m03_
+2022-01-02 20:31:25 [INFO]: processing mesh: prm_21
+2022-01-02 20:31:25 [DEBUG]: collecting vertex data
+2022-01-02 20:31:25 [INFO]: processing material: XfB__E_m05_1
+2022-01-02 20:31:25 [INFO]: processing submesh with material XfB__E_m05_1
+2022-01-02 20:31:25 [INFO]: processing mesh: prm_22
+2022-01-02 20:31:25 [DEBUG]: collecting vertex data
+2022-01-02 20:31:25 [INFO]: processing material: XfB__E_m05_
+2022-01-02 20:31:25 [INFO]: processing submesh with material XfB__E_m05_
+2022-01-02 20:31:25 [INFO]: processing mesh: prm_26
+2022-01-02 20:31:25 [DEBUG]: collecting vertex data
+2022-01-02 20:31:25 [INFO]: processing submesh with material XfB_N__E_m02_1
+2022-01-02 20:31:25 [INFO]: processing mesh: prm_23
+2022-01-02 20:31:25 [DEBUG]: collecting vertex data
+2022-01-02 20:31:25 [INFO]: processing material: XfB__E_m00_1
+2022-01-02 20:31:25 [INFO]: processing submesh with material XfB__E_m00_1
+2022-01-02 20:31:25 [INFO]: processing mesh: prm_25
+2022-01-02 20:31:25 [DEBUG]: collecting vertex data
+2022-01-02 20:31:25 [INFO]: processing material: XfB_N__E_m08_
+2022-01-02 20:31:25 [INFO]: processing submesh with material XfB_N__E_m08_
+2022-01-02 20:31:26 [INFO]: processing mesh: prm_24
+2022-01-02 20:31:26 [DEBUG]: collecting vertex data
+2022-01-02 20:31:26 [INFO]: processing submesh with material XfB_N__E_m08_
+2022-01-02 20:31:26 [INFO]: processing mesh: prm_28
+2022-01-02 20:31:26 [DEBUG]: collecting vertex data
+2022-01-02 20:31:26 [INFO]: processing material: XfB_N__E_m00_3
+2022-01-02 20:31:26 [INFO]: processing submesh with material XfB_N__E_m00_3
+2022-01-02 20:31:26 [INFO]: processing mesh: prm_27
+2022-01-02 20:31:26 [DEBUG]: collecting vertex data
+2022-01-02 20:31:26 [INFO]: processing submesh with material XfB_N__E_m00_3
+2022-01-02 20:31:26 [INFO]: processing mesh: prm_29
+2022-01-02 20:31:26 [DEBUG]: collecting vertex data
+2022-01-02 20:31:26 [INFO]: processing material: XfBA_E0__m04_
+2022-01-02 20:31:26 [INFO]: processing submesh with material XfBA_E0__m04_
+2022-01-02 20:31:26 [INFO]: processing mesh: prm_30
+2022-01-02 20:31:26 [DEBUG]: collecting vertex data
+2022-01-02 20:31:26 [INFO]: processing submesh with material XfB_N__E_m02_1
+2022-01-02 20:31:26 [INFO]: processing mesh: prm_31
+2022-01-02 20:31:26 [DEBUG]: collecting vertex data
+2022-01-02 20:31:26 [INFO]: processing submesh with material XfB__E_m00_1
+2022-01-02 20:31:26 [INFO]: processing mesh: prm_33
+2022-01-02 20:31:26 [DEBUG]: collecting vertex data
+2022-01-02 20:31:26 [INFO]: processing submesh with material XfB_N__E_m00_3
+2022-01-02 20:31:26 [INFO]: processing mesh: prm_32
+2022-01-02 20:31:26 [DEBUG]: collecting vertex data
+2022-01-02 20:31:27 [INFO]: processing submesh with material XfB_N__E_m00_3
+2022-01-02 20:31:27 [INFO]: processing mesh: prm_34
+2022-01-02 20:31:27 [DEBUG]: collecting vertex data
+2022-01-02 20:31:27 [INFO]: processing submesh with material XfBA_E0__m04_
+2022-01-02 20:31:27 [INFO]: processing mesh: prm_36
+2022-01-02 20:31:27 [DEBUG]: collecting vertex data
+2022-01-02 20:31:27 [INFO]: processing submesh with material XfB_N__E_m02_1
+2022-01-02 20:31:27 [INFO]: processing mesh: prm_35
+2022-01-02 20:31:27 [DEBUG]: collecting vertex data
+2022-01-02 20:31:27 [INFO]: processing submesh with material XfB__E_m00_1
+2022-01-02 20:31:27 [INFO]: processing mesh: prm_41
+2022-01-02 20:31:27 [DEBUG]: collecting vertex data
+2022-01-02 20:31:27 [INFO]: processing submesh with material XfB_N__E_m08_
+2022-01-02 20:31:27 [INFO]: processing mesh: prm_40
+2022-01-02 20:31:27 [DEBUG]: collecting vertex data
+2022-01-02 20:31:28 [INFO]: processing submesh with material XfB_N__E_m08_
+2022-01-02 20:31:28 [INFO]: processing mesh: prm_38
+2022-01-02 20:31:28 [DEBUG]: collecting vertex data
+2022-01-02 20:31:28 [INFO]: processing submesh with material XfB_N__E_m00_3
+2022-01-02 20:31:28 [INFO]: processing mesh: prm_37
+2022-01-02 20:31:28 [DEBUG]: collecting vertex data
+2022-01-02 20:31:28 [INFO]: processing submesh with material XfB_N__E_m00_3
+2022-01-02 20:31:28 [INFO]: processing mesh: prm_39
+2022-01-02 20:31:28 [DEBUG]: collecting vertex data
+2022-01-02 20:31:28 [INFO]: processing submesh with material XfBA_E0__m04_
+2022-01-02 20:31:28 [INFO]: processing mesh: prm_49
+2022-01-02 20:31:28 [DEBUG]: collecting vertex data
+2022-01-02 20:31:28 [INFO]: processing submesh with material XfB_N__E_m02_1
+2022-01-02 20:31:28 [INFO]: processing mesh: prm_44
+2022-01-02 20:31:28 [DEBUG]: collecting vertex data
+2022-01-02 20:31:28 [INFO]: processing submesh with material XfB__E_m00_1
+2022-01-02 20:31:28 [INFO]: processing mesh: prm_43
+2022-01-02 20:31:28 [DEBUG]: collecting vertex data
+2022-01-02 20:31:28 [INFO]: processing submesh with material XfB__E_m00_1
+2022-01-02 20:31:28 [INFO]: processing mesh: prm_48
+2022-01-02 20:31:28 [DEBUG]: collecting vertex data
+2022-01-02 20:31:28 [INFO]: processing submesh with material XfB_N__E_m08_
+2022-01-02 20:31:28 [INFO]: processing mesh: prm_47
+2022-01-02 20:31:28 [DEBUG]: collecting vertex data
+2022-01-02 20:31:29 [INFO]: processing submesh with material XfB_N__E_m08_
+2022-01-02 20:31:29 [INFO]: processing mesh: prm_46
+2022-01-02 20:31:29 [DEBUG]: collecting vertex data
+2022-01-02 20:31:29 [INFO]: processing submesh with material XfB_N__E_m00_3
+2022-01-02 20:31:29 [INFO]: processing mesh: prm_45
+2022-01-02 20:31:29 [DEBUG]: collecting vertex data
+2022-01-02 20:31:29 [INFO]: processing submesh with material XfB_N__E_m00_3
+2022-01-02 20:31:29 [INFO]: processing mesh: prm_42
+2022-01-02 20:31:29 [DEBUG]: collecting vertex data
+2022-01-02 20:31:29 [INFO]: processing submesh with material XfBA_E0__m04_
+2022-01-02 20:31:29 [INFO]: processing mesh: prm_51
+2022-01-02 20:31:29 [DEBUG]: collecting vertex data
+2022-01-02 20:31:29 [INFO]: processing material: lambert1
+2022-01-02 20:31:29 [INFO]: processing submesh with material lambert1
+2022-01-02 20:31:29 [INFO]: processing mesh: prm_50
+2022-01-02 20:31:29 [DEBUG]: collecting vertex data
+2022-01-02 20:31:29 [INFO]: processing submesh with material lambert1
+2022-01-02 20:31:29 [INFO]: processing pml
+2022-01-02 20:31:29 [INFO]: copying pml from reference model
+2022-01-02 20:31:29 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D87D9E88>
+2022-01-02 20:31:29 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD928548>
+2022-01-02 20:31:29 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8E1903148>
+2022-01-02 20:31:29 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D73018C8>
+2022-01-02 20:31:29 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8AC96C9C8>
+2022-01-02 20:31:29 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D1E52BC8>
+2022-01-02 20:31:29 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D59EB308>
+2022-01-02 20:31:29 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D59B2A88>
+2022-01-02 20:31:29 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D59C8CC8>
+2022-01-02 20:31:29 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D1E52308>
+2022-01-02 20:31:29 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D87D0408>
+2022-01-02 20:31:30 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D87BB7C8>
+2022-01-02 20:31:30 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D87B67C8>
+2022-01-02 20:31:30 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D87B61C8>
+2022-01-02 20:31:30 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D87B2788>
+2022-01-02 20:31:30 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D87B2B88>
+2022-01-02 20:31:30 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D87ADD08>
+2022-01-02 20:31:30 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D87AD248>
+2022-01-02 20:31:30 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D87A9C08>
+2022-01-02 20:31:30 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D87A92C8>
+2022-01-02 20:31:30 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D87A5C88>
+2022-01-02 20:31:30 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D87A57C8>
+2022-01-02 20:31:30 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D87A54C8>
+2022-01-02 20:31:30 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D87A0848>
+2022-01-02 20:31:30 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D87A0B88>
+2022-01-02 20:31:30 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A9DC48>
+2022-01-02 20:31:30 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A9D248>
+2022-01-02 20:31:30 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A97C08>
+2022-01-02 20:31:30 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A97208>
+2022-01-02 20:31:30 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A92BC8>
+2022-01-02 20:31:30 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A927C8>
+2022-01-02 20:31:30 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A921C8>
+2022-01-02 20:31:30 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A8F848>
+2022-01-02 20:31:30 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A8FB88>
+2022-01-02 20:31:30 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A8AD08>
+2022-01-02 20:31:30 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A8A248>
+2022-01-02 20:31:30 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A87C08>
+2022-01-02 20:31:30 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A87208>
+2022-01-02 20:31:30 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A81BC8>
+2022-01-02 20:31:30 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A817C8>
+2022-01-02 20:31:30 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A811C8>
+2022-01-02 20:31:30 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A7D848>
+2022-01-02 20:31:30 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A7DC48>
+2022-01-02 20:31:30 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A79C48>
+2022-01-02 20:31:30 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A79248>
+2022-01-02 20:31:30 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A74CC8>
+2022-01-02 20:31:30 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A74208>
+2022-01-02 20:31:30 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A70C88>
+2022-01-02 20:31:30 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A70888>
+2022-01-02 20:31:30 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A70288>
+2022-01-02 20:31:30 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A6C788>
+2022-01-02 20:31:31 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A6CB88>
+2022-01-02 20:31:31 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A67C48>
+2022-01-02 20:31:31 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A67308>
+2022-01-02 20:31:31 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A63CC8>
+2022-01-02 20:31:31 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A632C8>
+2022-01-02 20:31:31 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A1FC88>
+2022-01-02 20:31:31 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A1F7C8>
+2022-01-02 20:31:31 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A1F4C8>
+2022-01-02 20:31:31 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A1A848>
+2022-01-02 20:31:31 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A1AC48>
+2022-01-02 20:31:31 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A17C48>
+2022-01-02 20:31:31 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A17248>
+2022-01-02 20:31:31 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A12C08>
+2022-01-02 20:31:31 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A12208>
+2022-01-02 20:31:31 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A0EBC8>
+2022-01-02 20:31:31 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A0E7C8>
+2022-01-02 20:31:31 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A0E1C8>
+2022-01-02 20:31:31 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A0B788>
+2022-01-02 20:31:31 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A0BB88>
+2022-01-02 20:31:31 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A07C48>
+2022-01-02 20:31:31 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A07248>
+2022-01-02 20:31:31 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A04C08>
+2022-01-02 20:31:31 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A042C8>
+2022-01-02 20:31:31 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A047C8>
+2022-01-02 20:31:31 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79FF888>
+2022-01-02 20:31:31 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79FF588>
+2022-01-02 20:31:31 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79FB848>
+2022-01-02 20:31:31 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79FBC48>
+2022-01-02 20:31:31 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79F8C48>
+2022-01-02 20:31:31 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79F8248>
+2022-01-02 20:31:31 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79F4C08>
+2022-01-02 20:31:31 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79F42C8>
+2022-01-02 20:31:31 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79F47C8>
+2022-01-02 20:31:31 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79F17C8>
+2022-01-02 20:31:31 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79F11C8>
+2022-01-02 20:31:31 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79EE848>
+2022-01-02 20:31:31 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79EEB88>
+2022-01-02 20:31:31 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79E9C48>
+2022-01-02 20:31:31 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79E9248>
+2022-01-02 20:31:31 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79E6CC8>
+2022-01-02 20:31:31 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79E6208>
+2022-01-02 20:31:32 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79E2C88>
+2022-01-02 20:31:32 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79E2888>
+2022-01-02 20:31:32 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79E21C8>
+2022-01-02 20:31:32 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D765E788>
+2022-01-02 20:31:32 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D765EB88>
+2022-01-02 20:31:32 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D765CD08>
+2022-01-02 20:31:32 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D765C308>
+2022-01-02 20:31:32 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7658CC8>
+2022-01-02 20:31:32 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7658208>
+2022-01-02 20:31:32 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7655BC8>
+2022-01-02 20:31:32 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7655888>
+2022-01-02 20:31:32 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7655588>
+2022-01-02 20:31:32 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7653788>
+2022-01-02 20:31:32 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7653B88>
+2022-01-02 20:31:32 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7650D08>
+2022-01-02 20:31:32 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7650248>
+2022-01-02 20:31:32 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D764EC08>
+2022-01-02 20:31:32 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D764E2C8>
+2022-01-02 20:31:32 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D764E708>
+2022-01-02 20:31:32 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D764A888>
+2022-01-02 20:31:32 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D764A1C8>
+2022-01-02 20:31:32 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7647848>
+2022-01-02 20:31:32 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7647B88>
+2022-01-02 20:31:32 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7645C48>
+2022-01-02 20:31:32 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7645308>
+2022-01-02 20:31:32 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7642CC8>
+2022-01-02 20:31:32 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D76422C8>
+2022-01-02 20:31:32 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D76427C8>
+2022-01-02 20:31:32 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D763F7C8>
+2022-01-02 20:31:32 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D763F288>
+2022-01-02 20:31:32 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D763D848>
+2022-01-02 20:31:32 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D763DC48>
+2022-01-02 20:31:32 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7639C48>
+2022-01-02 20:31:32 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7639308>
+2022-01-02 20:31:32 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7637CC8>
+2022-01-02 20:31:32 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7637208>
+2022-01-02 20:31:32 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7634BC8>
+2022-01-02 20:31:32 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7634888>
+2022-01-02 20:31:32 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7634288>
+2022-01-02 20:31:32 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7631788>
+2022-01-02 20:31:33 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7631C48>
+2022-01-02 20:31:33 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D762FD08>
+2022-01-02 20:31:33 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D762F308>
+2022-01-02 20:31:33 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D762BCC8>
+2022-01-02 20:31:33 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D762B208>
+2022-01-02 20:31:33 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7628C88>
+2022-01-02 20:31:33 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7628888>
+2022-01-02 20:31:33 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7628288>
+2022-01-02 20:31:33 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7626788>
+2022-01-02 20:31:33 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7626C48>
+2022-01-02 20:31:33 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7623C48>
+2022-01-02 20:31:33 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7623248>
+2022-01-02 20:31:33 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7621C08>
+2022-01-02 20:31:33 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7621208>
+2022-01-02 20:31:33 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD90AC08>
+2022-01-02 20:31:33 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD90A888>
+2022-01-02 20:31:33 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD90A1C8>
+2022-01-02 20:31:33 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD905808>
+2022-01-02 20:31:33 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD905B88>
+2022-01-02 20:31:33 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD903D08>
+2022-01-02 20:31:33 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD903208>
+2022-01-02 20:31:33 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD901C88>
+2022-01-02 20:31:33 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD901308>
+2022-01-02 20:31:33 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD901708>
+2022-01-02 20:31:33 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD9007C8>
+2022-01-02 20:31:33 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD9001C8>
+2022-01-02 20:31:33 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD8FE808>
+2022-01-02 20:31:33 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD8FEB88>
+2022-01-02 20:31:33 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD8FAC48>
+2022-01-02 20:31:33 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD8FA248>
+2022-01-02 20:31:33 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD8F7F08>
+2022-01-02 20:31:33 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD8F75C8>
+2022-01-02 20:31:33 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD8F69C8>
+2022-01-02 20:31:33 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD8F67C8>
+2022-01-02 20:31:33 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD8F4748>
+2022-01-02 20:31:33 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD8F4F48>
+2022-01-02 20:31:33 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD8F2E48>
+2022-01-02 20:31:33 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD8F2248>
+2022-01-02 20:31:33 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD8F2948>
+2022-01-02 20:31:33 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD90C208>
+2022-01-02 20:31:34 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD90C708>
+2022-01-02 20:31:34 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD90FA88>
+2022-01-02 20:31:34 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD90FDC8>
+2022-01-02 20:31:34 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD908348>
+2022-01-02 20:31:34 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD908148>
+2022-01-02 20:31:34 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD910D88>
+2022-01-02 20:31:34 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD910188>
+2022-01-02 20:31:34 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD910288>
+2022-01-02 20:31:34 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D6DE2288>
+2022-01-02 20:31:34 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8B4CE5748>
+2022-01-02 20:31:34 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8B4CE5308>
+2022-01-02 20:31:34 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D6DCD688>
+2022-01-02 20:31:34 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D6DD5448>
+2022-01-02 20:31:34 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D6DD52C8>
+2022-01-02 20:31:34 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D6BD2D08>
+2022-01-02 20:31:34 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D6BD2588>
+2022-01-02 20:31:34 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D3887E08>
+2022-01-02 20:31:34 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8C9E6FB48>
+2022-01-02 20:31:34 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8C9E6F548>
+2022-01-02 20:31:34 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8C5F133C8>
+2022-01-02 20:31:34 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D59B5508>
+2022-01-02 20:31:34 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D1F22C08>
+2022-01-02 20:31:34 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8CF548BC8>
+2022-01-02 20:31:34 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D9E3C948>
+2022-01-02 20:31:34 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D9E3CA08>
+2022-01-02 20:31:34 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8C5D7CB88>
+2022-01-02 20:31:34 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8C5D7CE88>
+2022-01-02 20:31:34 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8AC946988>
+2022-01-02 20:31:34 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8AC9466C8>
+2022-01-02 20:31:34 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D59B30C8>
+2022-01-02 20:31:34 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D59BD748>
+2022-01-02 20:31:34 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D59B9908>
+2022-01-02 20:31:34 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D59B9848>
+2022-01-02 20:31:34 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D59C1C88>
+2022-01-02 20:31:34 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8C5D80088>
+2022-01-02 20:31:34 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8C5D80508>
+2022-01-02 20:31:34 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D9E4D4C8>
+2022-01-02 20:31:34 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D9E4DE08>
+2022-01-02 20:31:34 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8C5E96A88>
+2022-01-02 20:31:34 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D59BA948>
+2022-01-02 20:31:35 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D388E9C8>
+2022-01-02 20:31:35 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8C5D90748>
+2022-01-02 20:31:35 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8CF710108>
+2022-01-02 20:31:35 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8CF710D88>
+2022-01-02 20:31:35 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D59B67C8>
+2022-01-02 20:31:35 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D59B4288>
+2022-01-02 20:31:35 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D1ED8188>
+2022-01-02 20:31:35 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8CD016A88>
+2022-01-02 20:31:35 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8CD016488>
+2022-01-02 20:31:35 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D59772C8>
+2022-01-02 20:31:35 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D9E42088>
+2022-01-02 20:31:35 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D9E42688>
+2022-01-02 20:31:35 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D37F1388>
+2022-01-02 20:31:35 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD943688>
+2022-01-02 20:31:35 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD943108>
+2022-01-02 20:31:35 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD939708>
+2022-01-02 20:31:35 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD939648>
+2022-01-02 20:31:35 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D9E810C8>
+2022-01-02 20:31:35 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D9E81F08>
+2022-01-02 20:31:35 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7B172C8>
+2022-01-02 20:31:35 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7B17F48>
+2022-01-02 20:31:35 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7AE0F08>
+2022-01-02 20:31:35 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7AE0088>
+2022-01-02 20:31:35 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7AE0B08>
+2022-01-02 20:31:35 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D702A6C8>
+2022-01-02 20:31:35 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D702ABC8>
+2022-01-02 20:31:35 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D71E73C8>
+2022-01-02 20:31:35 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79AE7C8>
+2022-01-02 20:31:35 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79AED08>
+2022-01-02 20:31:35 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D720BE48>
+2022-01-02 20:31:35 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D720B208>
+2022-01-02 20:31:35 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79A4D88>
+2022-01-02 20:31:35 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79A46C8>
+2022-01-02 20:31:35 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D71DF748>
+2022-01-02 20:31:35 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D71DFB08>
+2022-01-02 20:31:35 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79CD608>
+2022-01-02 20:31:35 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79ACC88>
+2022-01-02 20:31:35 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79ACD08>
+2022-01-02 20:31:35 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79D3448>
+2022-01-02 20:31:35 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79D36C8>
+2022-01-02 20:31:36 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79BAA08>
+2022-01-02 20:31:36 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79BACC8>
+2022-01-02 20:31:36 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79C8808>
+2022-01-02 20:31:36 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79C8188>
+2022-01-02 20:31:36 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79D5088>
+2022-01-02 20:31:36 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79D5308>
+2022-01-02 20:31:36 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79B5E08>
+2022-01-02 20:31:36 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79A3D48>
+2022-01-02 20:31:36 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79A3088>
+2022-01-02 20:31:36 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79AF108>
+2022-01-02 20:31:36 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79AF6C8>
+2022-01-02 20:31:36 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79B67C8>
+2022-01-02 20:31:36 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79B6148>
+2022-01-02 20:31:36 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79C01C8>
+2022-01-02 20:31:36 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79C0A88>
+2022-01-02 20:31:36 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79C4C08>
+2022-01-02 20:31:36 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79C6448>
+2022-01-02 20:31:36 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79C60C8>
+2022-01-02 20:31:36 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79CB4C8>
+2022-01-02 20:31:36 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79CBD08>
+2022-01-02 20:31:36 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79D9608>
+2022-01-02 20:31:36 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D79D9A88>
+2022-01-02 20:31:36 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A21408>
+2022-01-02 20:31:36 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A23748>
+2022-01-02 20:31:36 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A23CC8>
+2022-01-02 20:31:36 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A28488>
+2022-01-02 20:31:36 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A28088>
+2022-01-02 20:31:36 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8C5F2AEC8>
+2022-01-02 20:31:36 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8C5F2A0C8>
+2022-01-02 20:31:36 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D9E9E648>
+2022-01-02 20:31:36 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D9E9E748>
+2022-01-02 20:31:36 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D9EA0548>
+2022-01-02 20:31:36 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D9EA0508>
+2022-01-02 20:31:36 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D9EA2FC8>
+2022-01-02 20:31:36 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D9EA6E48>
+2022-01-02 20:31:36 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D9EA6148>
+2022-01-02 20:31:36 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D9EA8A08>
+2022-01-02 20:31:36 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D9EA8E48>
+2022-01-02 20:31:36 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D9EAA288>
+2022-01-02 20:31:36 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D9EAA648>
+2022-01-02 20:31:36 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D9EAC3C8>
+2022-01-02 20:31:37 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D9EAC488>
+2022-01-02 20:31:37 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D6D63508>
+2022-01-02 20:31:37 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D731B548>
+2022-01-02 20:31:37 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D731BE48>
+2022-01-02 20:31:37 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8CD032248>
+2022-01-02 20:31:37 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8CF6AFC08>
+2022-01-02 20:31:37 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8CF6AFF48>
+2022-01-02 20:31:37 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8CF3D1FC8>
+2022-01-02 20:31:37 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D58E0E48>
+2022-01-02 20:31:37 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D386B948>
+2022-01-02 20:31:37 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8CF719288>
+2022-01-02 20:31:37 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D5AC5448>
+2022-01-02 20:31:37 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D6BF7D48>
+2022-01-02 20:31:37 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8B7DB4F08>
+2022-01-02 20:31:37 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D9E16E08>
+2022-01-02 20:31:37 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D9E5F408>
+2022-01-02 20:31:37 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8CF5D8B48>
+2022-01-02 20:31:37 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D720F288>
+2022-01-02 20:31:37 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD63AD48>
+2022-01-02 20:31:37 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D6D701C8>
+2022-01-02 20:31:37 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8CF473408>
+2022-01-02 20:31:37 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D71A4908>
+2022-01-02 20:31:37 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D715C088>
+2022-01-02 20:31:37 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8CF3AF808>
+2022-01-02 20:31:37 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8CF3E8888>
+2022-01-02 20:31:37 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8CF4042C8>
+2022-01-02 20:31:37 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D86F3688>
+2022-01-02 20:31:37 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8CF70DCC8>
+2022-01-02 20:31:37 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8B7AB69C8>
+2022-01-02 20:31:37 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8B7D6D548>
+2022-01-02 20:31:37 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8B7E57D08>
+2022-01-02 20:31:37 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7133E88>
+2022-01-02 20:31:37 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8CF55E708>
+2022-01-02 20:31:37 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8CF6B8188>
+2022-01-02 20:31:37 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DBE95B88>
+2022-01-02 20:31:37 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8C5E42F08>
+2022-01-02 20:31:37 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8BC4FC208>
+2022-01-02 20:31:37 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DDA745C8>
+2022-01-02 20:31:37 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DDA73048>
+2022-01-02 20:31:37 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DDA76048>
+2022-01-02 20:31:38 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DDA77588>
+2022-01-02 20:31:38 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DDA7C708>
+2022-01-02 20:31:38 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DDA7E488>
+2022-01-02 20:31:38 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D9DAAE88>
+2022-01-02 20:31:38 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D9D80588>
+2022-01-02 20:31:38 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D9D7F508>
+2022-01-02 20:31:38 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D713BAC8>
+2022-01-02 20:31:38 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7112F88>
+2022-01-02 20:31:38 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7117B48>
+2022-01-02 20:31:38 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7132708>
+2022-01-02 20:31:38 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DDA23F48>
+2022-01-02 20:31:38 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D714DE48>
+2022-01-02 20:31:38 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D711B4C8>
+2022-01-02 20:31:38 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DDB45C08>
+2022-01-02 20:31:38 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7113088>
+2022-01-02 20:31:38 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7144C48>
+2022-01-02 20:31:38 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8CF55C188>
+2022-01-02 20:31:38 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D72E54C8>
+2022-01-02 20:31:38 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7338688>
+2022-01-02 20:31:38 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DDA1BC08>
+2022-01-02 20:31:38 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D76D50C8>
+2022-01-02 20:31:38 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D76F6F48>
+2022-01-02 20:31:38 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A49348>
+2022-01-02 20:31:38 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D76F1E08>
+2022-01-02 20:31:38 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D76F0D48>
+2022-01-02 20:31:38 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D76E3188>
+2022-01-02 20:31:38 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D76DE608>
+2022-01-02 20:31:38 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D770CD48>
+2022-01-02 20:31:38 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D76EFF48>
+2022-01-02 20:31:38 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7A578C8>
+2022-01-02 20:31:38 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD9C53C8>
+2022-01-02 20:31:38 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD93DB48>
+2022-01-02 20:31:38 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD9CB2C8>
+2022-01-02 20:31:38 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8C5DE7E48>
+2022-01-02 20:31:38 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D1FD5548>
+2022-01-02 20:31:38 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D1FF9308>
+2022-01-02 20:31:38 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7229448>
+2022-01-02 20:31:38 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8C5DCD408>
+2022-01-02 20:31:38 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D6B5FDC8>
+2022-01-02 20:31:38 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D7683F88>
+2022-01-02 20:31:38 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D9DD5288>
+2022-01-02 20:31:39 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D9D91D48>
+2022-01-02 20:31:39 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D9D89D08>
+2022-01-02 20:31:39 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D9D9D188>
+2022-01-02 20:31:39 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D9DA20C8>
+2022-01-02 20:31:39 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D9D964C8>
+2022-01-02 20:31:39 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D9DADCC8>
+2022-01-02 20:31:39 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D8728A88>
+2022-01-02 20:31:39 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D8728888>
+2022-01-02 20:31:39 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD936608>
+2022-01-02 20:31:39 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD936B48>
+2022-01-02 20:31:39 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8D9D85248>
+2022-01-02 20:31:39 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD94D248>
+2022-01-02 20:31:39 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD94D588>
+2022-01-02 20:31:39 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD94D888>
+2022-01-02 20:31:39 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD96D308>
+2022-01-02 20:31:39 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD96D908>
+2022-01-02 20:31:39 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD969848>
+2022-01-02 20:31:39 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD9690C8>
+2022-01-02 20:31:39 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD95B248>
+2022-01-02 20:31:39 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD95BD88>
+2022-01-02 20:31:39 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD949248>
+2022-01-02 20:31:39 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD949C88>
+2022-01-02 20:31:39 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD949488>
+2022-01-02 20:31:39 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD9356C8>
+2022-01-02 20:31:39 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD9350C8>
+2022-01-02 20:31:39 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD968248>
+2022-01-02 20:31:39 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD968A88>
+2022-01-02 20:31:39 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD960E08>
+2022-01-02 20:31:39 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD960848>
+2022-01-02 20:31:39 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD958208>
+2022-01-02 20:31:39 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD958708>
+2022-01-02 20:31:39 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD958608>
+2022-01-02 20:31:39 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD9502C8>
+2022-01-02 20:31:39 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD9508C8>
+2022-01-02 20:31:39 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD946388>
+2022-01-02 20:31:39 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD946148>
+2022-01-02 20:31:39 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD93FD08>
+2022-01-02 20:31:39 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD93F908>
+2022-01-02 20:31:39 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD938208>
+2022-01-02 20:31:39 [DEBUG]: <immodel.imPrimitiveJointLink object at 0x000001A8DD938C08>
+2022-01-02 20:31:40 [INFO]: writing files
+2022-01-02 20:31:40 [DEBUG]: converting intermediate model to binary model format
+2022-01-02 20:31:40 [DEBUG]: writing binary model
+2022-01-02 20:31:40 [INFO]: export completed successfully

@@ -27,9 +27,14 @@ exportNormals = True
 exportGroups = True
 exportSkeleton = True
 exportPrimitives = True
+exportPml = True
 exportMrlYml = True
 exportRefPath = ''
 exportMrlYmlPath = ''
+exportUseRefJoints = True
+exportUseRefPml = True
+exportUseRefBounds = True
+exportUseRefGroups = True
 
 def _getModule():
     if not __name__ in sys.modules:

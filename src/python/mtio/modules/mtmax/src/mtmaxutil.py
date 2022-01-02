@@ -28,5 +28,8 @@ def selectSaveFile( category, ext ):
         types=( category + " (*." + ext + ")|*." + ext ),
         historyCategory=( category + " Object Presets" ) )
     
+def showMessageBox( msg, title="Notice" ):
+    rt.messageBox( msg, title=title, beep=True )
+    
 def runMaxScript( name ):
     rt.fileIn( getScriptDir() + '/maxscript/' + name  )

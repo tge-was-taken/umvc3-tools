@@ -22,6 +22,7 @@ def _log( level, msg, *args ):
     with open( _logFilePath, 'a' ) as f:
         f.write( formattedMsg + '\n' )
     
+    # too slow
     # if level != 'DBG ':
     #     try:
     #         rt.mtLogRollout.edtLog.text += msg + '\n'

@@ -25,31 +25,36 @@ fn mtMxsToPyVal val =
 -- execute a python function from maxscript
 fn mtCallPythonFunc module func args =
 (
-	local code = ""
-	
-	if module != undefined then
-		code += module + "."
-	
-	code += func + "("
-	if args.count > 0 do
+	try
 	(
-		code += mtMxsToPyVal( args[1] )
+		local code = ""
 		
-		for i = 2 to args.count do
-			code += ", " + mtMxsToPyVal( args[i] )
+		if module != undefined then
+			code += module + "."
+		
+		code += func + "("
+		if args.count > 0 do
+		(
+			code += mtMxsToPyVal( args[1] )
+			
+			for i = 2 to args.count do
+				code += ", " + mtMxsToPyVal( args[i] )
 
+		)
+		
+		code += ")"
+		
+		print code
+		python.execute code
+	) catch (
+		print( "Exception while calling python function " + module + "." + func + "(" + args + ")" + "\nException: " + getCurrentException() )
 	)
-	
-	code += ")"
-	
-	print code
-	python.execute code
 )
 
 rollout MtInfoRollout "MT Framework Importer/Exporter"
 (
 	label lblTitle2 "Ultimate Marvel vs Capcom 3"
-	label lblVersion "Version 1.0.1 Alpha" align:#center
+	label lblVersion "Version 1.0.2 Beta" align:#center
 	label lblAuthor "© 2021-2022 TGE" align:#center
 )
 
@@ -115,7 +120,7 @@ rollout MtModelImportRollout "Model import"
 		checkbox chkImportGroups "Groups" checked:true across:3 align:#center --offset:[0, 20]
 
 		checkbox chkImportSkeleton "Skeleton" checked:true across:3 align:#center
-		checkbox chkImportPrimitives "Primitives" checked:true across:3 align:#center
+		checkbox chkImportPrimitives "Meshes" checked:true across:3 align:#center
 		label lblDummy ""
 	)
 	
@@ -169,6 +174,16 @@ rollout MtModelExportRollout "Model export"
 	edittext edtMrlYml across:2 width:(_width() - 60) offset:[-0,0]
 	button btnMrlYml "..." align:#right across:2 offset:[10,-2]
 	
+	group "Export filters" (
+		checkbox chkExportWeights "Weights" checked:true across:3 align:#center --offset:[0, 20]
+		checkbox chkExportNormals "Normals" checked:true  across:3 align:#center --offset:[0, 20]
+		checkbox chkExportGroups "Groups" checked:true across:3 align:#center --offset:[0, 20]
+
+		checkbox chkExportSkeleton "Skeleton" checked:true across:3 align:#center
+		checkbox chkExportPrimitives "Meshes" checked:true across:3 align:#center
+		label lblDummy ""
+	)
+	
 	group "Additional options" (
 		checkbox chkExportTex "Convert textures to TEX" checked:true 
 		checkbox chkExportMrl "Convert MRL YML to MRL" checked:true
@@ -192,4 +207,10 @@ rollout MtModelExportRollout "Model export"
 	on btnMrlYml			pressed 		do emit #("btnMrlYmlPressed")
 	on chkExportTex			changed state	do emit #("chkExportTexChanged", state)
 	on chkExportMrl			changed state 	do emit #("chkExportMrlChanged", state)
+	on chkExportNormals		changed state 	do emit #("chkExportNormalsChanged", state)
+	on chkExportWeights 	changed state 	do emit #("chkExportWeightsChanged", state)
+	on chkExportGroups		changed state	do emit #("chkExportGroupsChanged", state)
+	on chkExportSkeleton	changed state	do emit #("chkExportSkeletonChanged", state)
+	on chkExportPrimitives	changed state	do emit #("chkExportPrimitivesChanged", state)
+	
 )

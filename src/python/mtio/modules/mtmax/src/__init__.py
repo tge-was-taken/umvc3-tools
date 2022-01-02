@@ -95,8 +95,10 @@ class MtModelImportRollout(MtRollout):
             maxlog.clear()
             importer = MtModelImporter()
             importer.importModel( mtmaxconfig.importFilePath )
+            mtmaxutil.showMessageBox( 'Import completed successfully' )
         except Exception as e:
             maxlog.exception( e )
+            mtmaxutil.showMessageBox( 'Error occured during import. See the log or the MaxScript listener for more details.' )
         
     @staticmethod
     def btnFilePressed():
@@ -158,13 +160,13 @@ class MtModelExportRollout(MtRollout):
         self.edtMetadata.text = mtmaxconfig.exportMetadataPath
         self.edtRef.text = mtmaxconfig.exportRefPath
         self.edtMrlYml.text = mtmaxconfig.exportMrlYmlPath
-        # self.chkExportWeights.checked = mtmaxconfig.exportWeights
-        # self.chkExportNormals.checked = mtmaxconfig.exportNormals
-        # self.chkExportGroups.checked = mtmaxconfig.exportGroups
-        # self.chkExportSkeleton.checked = mtmaxconfig.exportSkeleton
-        # self.chkExportPrimitives.checked = mtmaxconfig.exportPrimitives
-        # self.chkConvertTEX.checked = mtmaxconfig.exportTexturesToTEX
-        # self.chkConvertMrlYml.checked = mtmaxconfig.exportMrlYml
+        self.chkExportWeights.checked = mtmaxconfig.exportWeights
+        self.chkExportNormals.checked = mtmaxconfig.exportNormals
+        self.chkExportGroups.checked = mtmaxconfig.exportGroups
+        self.chkExportSkeleton.checked = mtmaxconfig.exportSkeleton
+        self.chkExportPrimitives.checked = mtmaxconfig.exportPrimitives
+        self.chkExportTex.checked = mtmaxconfig.exportTexturesToTex
+        self.chkExportMrl.checked = mtmaxconfig.exportMrlYml
         MtModelExportRollout.updateVisibility()
         
     @staticmethod
@@ -196,8 +198,10 @@ class MtModelExportRollout(MtRollout):
             maxlog.clear()
             exporter = MtModelExporter()
             exporter.exportModel( mtmaxconfig.exportFilePath )
+            mtmaxutil.showMessageBox( 'Export completed successfully' )
         except Exception as e:
             maxlog.exception( e )
+            mtmaxutil.showMessageBox( 'Error occured during export.See the log or the MaxScript listener for more details.' )
         
     @staticmethod
     def btnFilePressed():
@@ -270,6 +274,10 @@ class MtModelExportRollout(MtRollout):
     @staticmethod
     def chkExportPrimitivesChanged( state ):
         mtmaxconfig.exportPrimitives = state
+        
+    @staticmethod
+    def chkExportWeightsChanged( state ):
+        mtmaxconfig.exportWeights = state
 
         
 class MtLogRollout(MtRollout):
@@ -327,8 +335,8 @@ def createMainWindow():
     if rt.g_mtWindow2 != None:
         x = rt.g_mtWindow2.pos.x
         y = rt.g_mtWindow2.pos.y
-        #w = rt.g_mtWindow2.size.x
-        #h = rt.g_mtWindow2.size.y
+        w = rt.g_mtWindow2.size.x
+        h = rt.g_mtWindow2.size.y
         rt.closeRolloutFloater( rt.g_mtWindow2 )
         
     # create plugin window

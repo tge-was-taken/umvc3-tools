@@ -1,5 +1,5 @@
 '''
-Intermediate model representation to simplify model conversion from foreign data structures
+Intermediate (im) model representation to simplify model conversion from foreign data structures
 '''
 
 from ncl import *
@@ -33,12 +33,39 @@ class imPrimitiveJointLink:
         self.max = deepcopy(max)
         self.localMtx = deepcopy(localMtx)
         self.field80 = deepcopy(field80)
+        
+class imCacheVertex:
+    '''Trivially hash-able container for optimizing the vertex cache'''
+    def __init__( self ):
+        self.position = ()
+        self.normal = ()
+        self.tangent = ()
+        self.uv = ()
+        self.weights = ()
+        self.weightIndices = ()
+        
+    def __eq__(self, o: object) -> bool:
+        if isinstance( o, imCacheVertex ):
+            return self.position == o.position and \
+                   self.normal == o.normal and \
+                   self.tangent == o.tangent and \
+                   self.uv == o.uv and \
+                   self.weights == o.weights and \
+                   self.weightIndices == o.weightIndices
+                   
+    def __hash__( self ):
+        return hash((self.position, self.normal, self.tangent, self.uv, self.weights, self.weightIndices))
 
+# TODO refactor vertex format into its own class
 class imPrimitive:
+    '''
+    Intermediate primitive data container intended to be used for generating optimized data for export
+    '''
+    
     def __init__( self, name, materialName, flags=0xFFFF, group=None, 
-        lodIndex=0xFF, vertexFlags=None, vertexStride=None, renderFlags=67, 
-        vertexShader=None, id=None, field2c=0, 
-        positions=None, tangents=None, normals=None, uvs=None, weights=None, indices=None ):
+            lodIndex=0xFF, vertexFlags=None, vertexStride=None, renderFlags=67, 
+            vertexShader=None, id=None, field2c=0, 
+            positions=None, tangents=None, normals=None, uvs=None, weights=None, indices=None ):
         self.name = name
         self.materialName = materialName
         self.flags = flags
@@ -52,7 +79,8 @@ class imPrimitive:
         self.normals = normals if normals != None else []
         self.uvs = uvs if uvs != None else []
         self.weights = weights if weights != None else []
-        self.indices = indices if indices != None else []
+        self.indices = indices
+        self.bitangents = []
 
         #self._vertexFlags = vertexFlags
         #self._vertexStride = vertexStride
@@ -67,6 +95,9 @@ class imPrimitive:
         self._maxWeightCount = None
 
     def clearCache( self ):
+        '''
+        Clears cached result values
+        '''
         self._vertexFlags = None
         self._vertexStride = None
         self._vertexShader = None
@@ -77,6 +108,9 @@ class imPrimitive:
         self._maxWeightCount = None
 
     def getMaxUsedBoneCount( self ):
+        '''
+        Get the max. number of used bones in the primitive
+        '''
         self._maxUsedBoneCount = 0
         for w in self.weights:
             usedBoneCount = 0
@@ -88,6 +122,11 @@ class imPrimitive:
         return self._maxUsedBoneCount
 
     def reduceWeights( self, maxWeightsPerVertex ):
+        '''
+        Reduce the weights in the primitive to be less or equal to the given max weights per vertex.
+        The most influential weights are kept, and the remainder is equally distributed.
+        '''
+        
         # pick 4 most influential weights and remove the others
         for k, w in enumerate( self.weights ):
             weightIndex = []
@@ -111,15 +150,17 @@ class imPrimitive:
                 w.weights[k] += weightAvgStep
 
     def getVertexFlags( self ):
-        self._vertexFlags = 0x19
-        maxUsedBoneCount = self.getMaxUsedBoneCount()
-        if maxUsedBoneCount == 2:
-            self._vertexFlags = 0x11
-        elif maxUsedBoneCount == 1:
-            self._vertexFlags = 0x09
+        '''
+        Get the vertex flag according to the vertex format
+        '''
+        if self._vertexFlags == None: self.determineBestVertexFormat()
         return self._vertexFlags
 
     def determineBestVertexFormat( self ):
+        '''
+        Determine the best vertex format according to the data contained in the primitive.
+        '''
+        
         self._hasOcclusion = True
         self._hasTangent = True
         self._hasTexCoord = True    
@@ -129,20 +170,24 @@ class imPrimitive:
         if maxUsedBoneCount > 2 and maxUsedBoneCount <= 4:
             self._vertexShader = 'IASkinTB4wt'
             self._maxWeightCount = 4
-            self._vertexStride = imVertexIASkinTB4wt.SIZE 
+            self._vertexStride = imVertexIASkinTB4wt.SIZE
+            self._vertexFlags = 0x19
         elif maxUsedBoneCount == 2:
             self._vertexShader  = 'IASkinTB2wt'
             self._maxWeightCount = 2
             self._vertexStride = imVertexIASkinTB2wt.SIZE
+            self._vertexFlags = 0x11
         elif maxUsedBoneCount == 1:
             self._vertexShader  = 'IASkinTB1wt'
             self._maxWeightCount = 1
             self._vertexStride = imVertexIASkinTB1wt.SIZE
+            self._vertexFlags = 0x09
         else:
             # TODO fixme
             self._vertexShader  = 'IASkinTB1wt'
             self._maxWeightCount = 0
             self._vertexStride = imVertexIASkinTB1wt.SIZE
+            self._vertexFlags = 0x09
         
     def hasOcclusion( self ):
         if self._hasOcclusion == None: self.determineBestVertexFormat()
@@ -167,6 +212,152 @@ class imPrimitive:
     def getMaxWeightCount( self ):
         if self._maxWeightCount == None: self.determineBestVertexFormat()
         return self._maxWeightCount
+
+    def isIndexed( self ):
+        return len( self.indices ) > 0
+    
+    def isSkinned( self ):
+        return len( self.weights ) > 0
+    
+    def makeDirect( self ):
+        '''
+        Removes the need for the index buffer by duplicating all the vertex data according to it.
+        '''
+        if self.indices == None:
+            return
+        else:
+            raise NotImplementedError()
+    
+    def makeIndexed( self ):
+        '''
+        Makes the model indexed by removing all duplicate vertex data and generating an index buffer that refers to each vertex component by index.
+        '''
+        self.makeDirect()
+        
+        # copy vertex data
+        positions = self.positions
+        normals = self.normals
+        uvs = self.uvs
+        weights = self.weights
+        tangents = self.tangents
+        isSkinned = self.isSkinned()
+        
+        # clear vertex data
+        self.positions = []
+        self.normals = []
+        self.uvs = []
+        self.weights = []
+        self.tangents = []
+        self.indices = []
+        
+        # optimize vertex buffer
+        vertexIdxLookup = dict()
+        nextVertexIdx = 0
+        for i in range( 0, len( positions ) ):
+            cv = imCacheVertex()
+            cv.position = (positions[i][0], positions[i][1], positions[i][2])
+            cv.normal = (normals[i][0], normals[i][1], normals[i][2])
+            cv.uv = (uvs[i][0], uvs[i][1])
+
+            # TODO: figure out how to generate proper tangents
+            cv.tangent = cv.normal
+            #cv.tangent = (tangents[i][0], tangents[i][1], tangents[i][2])
+
+            if isSkinned:
+                cv.weights = tuple(weights[i].weights)
+                cv.weightIndices = tuple(weights[i].indices)    
+
+            if cv not in vertexIdxLookup:
+                idx = nextVertexIdx
+                nextVertexIdx += 1
+                vertexIdxLookup[cv] = idx
+
+                self.positions.append( NclVec3( cv.position ) )
+                self.normals.append( NclVec3( cv.normal ) )
+                self.uvs.append( NclVec2( cv.uv ) ) 
+                self.tangents.append( NclVec3( cv.tangent ) )
+
+                vtxWeight = imVertexWeight()
+                vtxWeight.indices = cv.weightIndices
+                vtxWeight.weights = cv.weights
+                self.weights.append( vtxWeight )
+            else:
+                idx = vertexIdxLookup.get(cv)
+
+            self.indices.append(idx)
+            
+    def generateTangents( self ):
+        tangents = [NclVec3()] * len(self.positions)
+        bitangents = [NclVec3()] * len(self.positions)
+        self.tangents = []
+        
+        for i in range( 0, len( self.indices ), 3 ):
+            triangleA = self.indices[i]
+            triangleB = self.indices[i+1]
+            triangleC = self.indices[i+2]
+            positionA = self.positions[ triangleC ] - self.positions[ triangleA ]
+            positionB = self.positions[ triangleB ] - self.positions[ triangleA ]
+
+            texCoordA = self.uvs[ triangleC ] - self.uvs[ triangleA ]
+            texCoordB = self.uvs[ triangleB ] - self.uvs[ triangleA ]
+
+            direction = texCoordA[0] * texCoordB[1] - texCoordA[1] * (1.0 if texCoordB[0] > 0.0 else -1.0)
+            #EDIT
+            direction *= -1
+
+            tangent = ( positionA * texCoordB[1] - positionB * texCoordA[1] ) * direction
+            bitangent = ( positionB * texCoordA[0] - positionA * texCoordB[0] ) * direction
+
+            tangents[ triangleA ] += tangent
+            tangents[ triangleB ] += tangent
+            tangents[ triangleC ] += tangent
+
+            bitangents[ triangleA ] += bitangent
+            bitangents[ triangleB ] += bitangent
+            bitangents[ triangleC ] += bitangent
+            
+        for i in range( 0, len( tangents ) ):
+            normal = self.normals[ i ];
+
+            tangent = nclNormalize( tangents[ i ] )
+            bitangent = nclNormalize( bitangents[ i ] )
+
+            tangent = nclNormalize( tangent - normal * nclDot( tangent, normal ) )
+            bitangent = nclNormalize( bitangent - normal * nclDot( bitangent, normal ) )
+
+            directionCheck = nclDot( nclNormalize( nclCross( normal, tangent ) ), bitangent )
+            self.tangents.append( NclVec4( ( tangent[0], tangent[1], tangent[2], (1.0 if directionCheck > 0.0 else -1.0 ) ) ) )
+
+        # Look for NaNs
+        for i in range( 0, len( self.positions ) ):
+            position = self.positions[ i ];
+            tangent = self.tangents[ i ];
+
+            if not math.isnan( tangent[0] ) and not math.isnan( tangent[1] ) and not math.isnan( tangent[2] ):
+                continue;
+
+            nearestVertexIndex = -1;
+            currentDistance = float("+inf");
+
+            for j in range( 0, len( position ) ):
+                positionToCompare = self.positions[ j ];
+                tangentToCompare = self.tangents[ j ];
+
+                if i == j or math.isnan( tangentToCompare[0] ) or math.isnan( tangentToCompare[1] ) or math.isnan( tangentToCompare[2] ):
+                    continue;
+
+                #distance = nclDistanceSq( position, positionToCompare );
+                temp = position - positionToCompare
+                distance = nclDot(temp, temp)
+
+                if distance > currentDistance: 
+                    continue;
+
+                nearestVertexIndex = j;
+                currentDistance = distance;
+
+            if nearestVertexIndex != -1:
+                self.tangents[ i ] = self.tangents[ nearestVertexIndex ];
 
 class imVertexFormat:
     def __init__( self ):
@@ -281,7 +472,7 @@ class imVertexIASkinTB4wt:
         self.weights = [0,0,0,0]
         self.normal = NclVec3()
         self.occlusion = 0
-        self.tangent = NclVec3()
+        self.tangent = NclVec4()
         self.jointIds = [0,0,0,0]
         self.texCoord = NclVec2()
         
@@ -332,7 +523,7 @@ class imVertexIASkinTB2wt:
         self.weights = [0,0]
         self.normal = NclVec3()
         self.occlusion = 0
-        self.tangent = NclVec3()
+        self.tangent = NclVec4()
         self.jointIds = [0,0]
         self.texCoord = NclVec2()
         
@@ -377,7 +568,7 @@ class imVertexIASkinTB1wt:
         self.position = NclVec3()
         self.normal = NclVec3()
         self.occlusion = 0
-        self.tangent = NclVec3()
+        self.tangent = NclVec4()
         self.jointId = 0
         self.texCoord = NclVec2()
         
@@ -539,7 +730,7 @@ class imModel:
                     vtx.occlusion = 1
                 
                 if mesh.hasTangent():
-                    vtx.tangent = NclVec4( ( t[0], t[1], t[2], 1 ) )
+                    vtx.tangent = NclVec4( ( t[0], t[1], t[2], t[3] ) )
                 
                 if mesh.hasTexCoord():    
                     vtx.texCoord = mesh.uvs[i]
