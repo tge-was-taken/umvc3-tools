@@ -697,7 +697,7 @@ class MtModelExporter(object):
                 cv.uv = (tempMesh.uvs[i][0], tempMesh.uvs[i][1])
 
                 # TODO: figure out how to generate proper tangents
-                #cv.tangent = cv.normal
+                cv.tangent = cv.normal
                 #cv.tangent = (tangents[i][0], tangents[i][1], tangents[i][2])
 
                 if hasSkin:
