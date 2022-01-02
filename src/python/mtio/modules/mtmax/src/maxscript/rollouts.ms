@@ -49,7 +49,7 @@ fn mtCallPythonFunc module func args =
 rollout MtInfoRollout "MT Framework Importer/Exporter"
 (
 	label lblTitle2 "Ultimate Marvel vs Capcom 3"
-	label lblVersion "Version 1.0 Alpha" align:#center
+	label lblVersion "Version 1.0.1 Alpha" align:#center
 	label lblAuthor "© 2021-2022 TGE" align:#center
 )
 
@@ -60,7 +60,7 @@ rollout MtSettingsRollout "Settings"
 
 	fn emit args = 
 	(
-		mtCallPythonFunc "MtAttribsRollout" "onEvent" args
+		mtCallPythonFunc "MtSettingsRollout" "onEvent" args
 	)
 	
 	on chkFlipUpAxis 	changed state do emit #("chkFlipUpAxisChanged", state)
@@ -101,11 +101,11 @@ rollout MtModelImportRollout "Model import"
 	fn _width = ( MtModelImportRollout.width )
 	fn _height = ( MtModelImportRollout.height )
 
-	label lblFile "File" across:1 align:#left
+	label lblFile "Input file" across:1 align:#left
 	edittext edtFile across:2 width:(_width() - 60) offset:[0,0]
 	button btnFile "..." align:#right across:2 offset:[10,-2]
 	
-	label lblMetadata "Metadata" across:1 align:#left
+	label lblMetadata "Metadata (optional)" across:1 align:#left
 	edittext edtMetadata across:2 width:(_width() - 60) offset:[0,0]
 	button btnMetadata "..." align:#right across:2 offset:[10,-2]
 	
@@ -153,21 +153,21 @@ rollout MtModelExportRollout "Model export"
 	fn _width = ( MtModelImportRollout.width )
 	fn _height = ( MtModelImportRollout.height )
 	
-	label lblRef "Reference model" across:1 align:#left
+	label lblFile "Output file" across:1 align:#left
+	edittext edtFile across:2 width:(_width() - 60) offset:[-0,0]
+	button btnFile "..." align:#right across:2 offset:[10,-2]
+	
+	label lblRef "Reference/original model (optional)" across:1 align:#left
 	edittext edtRef across:2 width:(_width() - 60) offset:[-0,0]
 	button btnRef "..." align:#right across:2 offset:[10,-2]
 	
-	label lblMetadata "Metadata" across:1 align:#left
+	label lblMetadata "Metadata (optional)" across:1 align:#left
 	edittext edtMetadata across:2 width:(_width() - 60) offset:[-0,0]
 	button btnMetadata "..." align:#right across:2 offset:[10,-2]
 	
-	label lblMrlYml "MRL yml" across:1 align:#left
+	label lblMrlYml "MRL yml (optional)" across:1 align:#left
 	edittext edtMrlYml across:2 width:(_width() - 60) offset:[-0,0]
 	button btnMrlYml "..." align:#right across:2 offset:[10,-2]
-
-	label lblFile "File" across:1 align:#left
-	edittext edtFile across:2 width:(_width() - 60) offset:[-0,0]
-	button btnFile "..." align:#right across:2 offset:[10,-2]
 	
 	group "Additional options" (
 		checkbox chkExportTex "Convert textures to TEX" checked:true 
@@ -192,9 +192,4 @@ rollout MtModelExportRollout "Model export"
 	on btnMrlYml			pressed 		do emit #("btnMrlYmlPressed")
 	on chkExportTex			changed state	do emit #("chkExportTexChanged", state)
 	on chkExportMrl			changed state 	do emit #("chkExportMrlChanged", state)
-)
-
-rollout MtLogRollout "Log" height:300
-(
-	edittext edtLog "" align:#center height:300
 )

@@ -1,0 +1,332 @@
+2022-01-02 03:31:13 [DEBUG]: received event: btnImportPressed with args: ()
+2022-01-02 03:31:13 [INFO]: import model from X:\project\umvc3_model\samples\UMVC3ModelSamples\Ryu - Copy\Ryu.mod
+2022-01-02 03:31:13 [INFO]: loading metadata file from X:\project\umvc3_model\repo\src\python\mtio\modules\mtlib/res/metadata/Ryu.yml
+2022-01-02 03:31:13 [INFO]: loading model from X:\project\umvc3_model\samples\UMVC3ModelSamples\Ryu - Copy\Ryu.mod
+2022-01-02 03:31:13 [INFO]: importing materials
+2022-01-02 03:31:13 [INFO]: loading mrl file from X:\project\umvc3_model\samples\UMVC3ModelSamples\Ryu - Copy/Ryu.mrl
+2022-01-02 03:31:13 [INFO]: saving mrl yml to X:\project\umvc3_model\samples\UMVC3ModelSamples\Ryu - Copy/Ryu.mrl.yml
+2022-01-02 03:31:13 [INFO]: importing material XfB__E_m04_
+2022-01-02 03:31:13 [INFO]: importing material XfB_N__E_m02_1
+2022-01-02 03:31:13 [INFO]: importing material XfB_N__E_m01_
+2022-01-02 03:31:14 [INFO]: importing material XfB_N__E_m00_
+2022-01-02 03:31:14 [INFO]: importing material XfB_N__E_m02_
+2022-01-02 03:31:14 [INFO]: importing material XfB_N__E_m03_
+2022-01-02 03:31:14 [INFO]: importing material XfB_N__E_m03_1
+2022-01-02 03:31:14 [INFO]: importing material XfB__E_m05_1
+2022-01-02 03:31:14 [INFO]: importing material XfB__E_m05_
+2022-01-02 03:31:14 [INFO]: importing material XfB__E_m00_1
+2022-01-02 03:31:14 [INFO]: importing material XfB_N__E_m08_
+2022-01-02 03:31:15 [INFO]: importing material XfB_N__E_m00_3
+2022-01-02 03:31:15 [INFO]: importing material XfBA_E0__m04_
+2022-01-02 03:31:15 [INFO]: importing material lambert1
+2022-01-02 03:31:15 [INFO]: importing skeleton
+2022-01-02 03:31:15 [INFO]: importing groups
+2022-01-02 03:31:16 [WARNING]: importing pml skipped
+2022-01-02 03:31:16 [INFO]: importing primitives
+2022-01-02 03:31:16 [INFO]: importing primitive 0 prm_hair_outline
+2022-01-02 03:31:17 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C6D08>
+2022-01-02 03:31:17 [DEBUG]: decoding vertices
+2022-01-02 03:31:17 [DEBUG]: decoding faces
+2022-01-02 03:31:17 [DEBUG]: creating mesh
+2022-01-02 03:31:17 [INFO]: importing mesh weights
+2022-01-02 03:31:17 [INFO]: importing primitive 1 prm_hair
+2022-01-02 03:31:17 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5BEBC8>
+2022-01-02 03:31:17 [DEBUG]: decoding vertices
+2022-01-02 03:31:17 [DEBUG]: decoding faces
+2022-01-02 03:31:17 [DEBUG]: creating mesh
+2022-01-02 03:31:17 [INFO]: importing mesh weights
+2022-01-02 03:31:17 [INFO]: importing primitive 2 prm_headband_outline
+2022-01-02 03:31:17 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C6D08>
+2022-01-02 03:31:17 [DEBUG]: decoding vertices
+2022-01-02 03:31:17 [DEBUG]: decoding faces
+2022-01-02 03:31:17 [DEBUG]: creating mesh
+2022-01-02 03:31:17 [INFO]: importing mesh weights
+2022-01-02 03:31:18 [INFO]: importing primitive 3 prm_cloth_upper_outline
+2022-01-02 03:31:18 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C6F88>
+2022-01-02 03:31:18 [DEBUG]: decoding vertices
+2022-01-02 03:31:18 [DEBUG]: decoding faces
+2022-01-02 03:31:18 [DEBUG]: creating mesh
+2022-01-02 03:31:18 [INFO]: importing mesh weights
+2022-01-02 03:31:18 [INFO]: importing primitive 4 prm_20
+2022-01-02 03:31:18 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C6F88>
+2022-01-02 03:31:18 [DEBUG]: decoding vertices
+2022-01-02 03:31:18 [DEBUG]: decoding faces
+2022-01-02 03:31:18 [DEBUG]: creating mesh
+2022-01-02 03:31:18 [INFO]: importing mesh weights
+2022-01-02 03:31:18 [INFO]: importing primitive 5 prm_30
+2022-01-02 03:31:18 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C5B48>
+2022-01-02 03:31:18 [DEBUG]: decoding vertices
+2022-01-02 03:31:18 [DEBUG]: decoding faces
+2022-01-02 03:31:18 [DEBUG]: creating mesh
+2022-01-02 03:31:18 [INFO]: importing mesh weights
+2022-01-02 03:31:18 [INFO]: importing primitive 6 prm_36
+2022-01-02 03:31:18 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C5B48>
+2022-01-02 03:31:18 [DEBUG]: decoding vertices
+2022-01-02 03:31:18 [DEBUG]: decoding faces
+2022-01-02 03:31:18 [DEBUG]: creating mesh
+2022-01-02 03:31:18 [INFO]: importing mesh weights
+2022-01-02 03:31:18 [INFO]: importing primitive 7 prm_49
+2022-01-02 03:31:18 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C5B48>
+2022-01-02 03:31:18 [DEBUG]: decoding vertices
+2022-01-02 03:31:18 [DEBUG]: decoding faces
+2022-01-02 03:31:18 [DEBUG]: creating mesh
+2022-01-02 03:31:18 [INFO]: importing mesh weights
+2022-01-02 03:31:18 [INFO]: importing primitive 8 prm_headband
+2022-01-02 03:31:18 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5BEBC8>
+2022-01-02 03:31:18 [DEBUG]: decoding vertices
+2022-01-02 03:31:18 [DEBUG]: decoding faces
+2022-01-02 03:31:18 [DEBUG]: creating mesh
+2022-01-02 03:31:18 [INFO]: importing mesh weights
+2022-01-02 03:31:19 [INFO]: importing primitive 9 prm_cloth-upper
+2022-01-02 03:31:19 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5BFE88>
+2022-01-02 03:31:19 [DEBUG]: decoding vertices
+2022-01-02 03:31:19 [DEBUG]: decoding faces
+2022-01-02 03:31:19 [DEBUG]: creating mesh
+2022-01-02 03:31:19 [INFO]: importing mesh weights
+2022-01-02 03:31:19 [INFO]: importing primitive 10 prm_19
+2022-01-02 03:31:19 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5BFE88>
+2022-01-02 03:31:19 [DEBUG]: decoding vertices
+2022-01-02 03:31:19 [DEBUG]: decoding faces
+2022-01-02 03:31:19 [DEBUG]: creating mesh
+2022-01-02 03:31:19 [INFO]: importing mesh weights
+2022-01-02 03:31:19 [INFO]: importing primitive 11 prm_26
+2022-01-02 03:31:19 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5BFE88>
+2022-01-02 03:31:19 [DEBUG]: decoding vertices
+2022-01-02 03:31:19 [DEBUG]: decoding faces
+2022-01-02 03:31:19 [DEBUG]: creating mesh
+2022-01-02 03:31:19 [INFO]: importing mesh weights
+2022-01-02 03:31:19 [INFO]: importing primitive 12 prm_body_outline_r
+2022-01-02 03:31:19 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C6F88>
+2022-01-02 03:31:19 [DEBUG]: decoding vertices
+2022-01-02 03:31:19 [DEBUG]: decoding faces
+2022-01-02 03:31:19 [DEBUG]: creating mesh
+2022-01-02 03:31:20 [INFO]: importing mesh weights
+2022-01-02 03:31:20 [INFO]: importing primitive 13 prm_body_r
+2022-01-02 03:31:20 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5BFE88>
+2022-01-02 03:31:20 [DEBUG]: decoding vertices
+2022-01-02 03:31:20 [DEBUG]: decoding faces
+2022-01-02 03:31:20 [DEBUG]: creating mesh
+2022-01-02 03:31:20 [INFO]: importing mesh weights
+2022-01-02 03:31:20 [INFO]: importing primitive 14 prm_body_outline_l
+2022-01-02 03:31:20 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C6F88>
+2022-01-02 03:31:20 [DEBUG]: decoding vertices
+2022-01-02 03:31:21 [DEBUG]: decoding faces
+2022-01-02 03:31:21 [DEBUG]: creating mesh
+2022-01-02 03:31:21 [INFO]: importing mesh weights
+2022-01-02 03:31:21 [INFO]: importing primitive 15 prm_body_l
+2022-01-02 03:31:21 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5BFE88>
+2022-01-02 03:31:21 [DEBUG]: decoding vertices
+2022-01-02 03:31:21 [DEBUG]: decoding faces
+2022-01-02 03:31:21 [DEBUG]: creating mesh
+2022-01-02 03:31:21 [INFO]: importing mesh weights
+2022-01-02 03:31:22 [INFO]: importing primitive 16 prm_cloth_lower_outline
+2022-01-02 03:31:22 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C6F88>
+2022-01-02 03:31:22 [DEBUG]: decoding vertices
+2022-01-02 03:31:22 [DEBUG]: decoding faces
+2022-01-02 03:31:22 [DEBUG]: creating mesh
+2022-01-02 03:31:22 [INFO]: importing mesh weights
+2022-01-02 03:31:22 [INFO]: importing primitive 17 prm_cloth_lower
+2022-01-02 03:31:22 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5BFE88>
+2022-01-02 03:31:22 [DEBUG]: decoding vertices
+2022-01-02 03:31:22 [DEBUG]: decoding faces
+2022-01-02 03:31:22 [DEBUG]: creating mesh
+2022-01-02 03:31:22 [INFO]: importing mesh weights
+2022-01-02 03:31:22 [INFO]: importing primitive 18 prm_cloth_lower_outline_r
+2022-01-02 03:31:22 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C6F88>
+2022-01-02 03:31:22 [DEBUG]: decoding vertices
+2022-01-02 03:31:22 [DEBUG]: decoding faces
+2022-01-02 03:31:22 [DEBUG]: creating mesh
+2022-01-02 03:31:22 [INFO]: importing mesh weights
+2022-01-02 03:31:22 [INFO]: importing primitive 19 prm_18
+2022-01-02 03:31:22 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C6F88>
+2022-01-02 03:31:22 [DEBUG]: decoding vertices
+2022-01-02 03:31:22 [DEBUG]: decoding faces
+2022-01-02 03:31:22 [DEBUG]: creating mesh
+2022-01-02 03:31:22 [INFO]: importing mesh weights
+2022-01-02 03:31:22 [INFO]: importing primitive 20 prm_cloth_lower_r
+2022-01-02 03:31:22 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5BFE88>
+2022-01-02 03:31:22 [DEBUG]: decoding vertices
+2022-01-02 03:31:22 [DEBUG]: decoding faces
+2022-01-02 03:31:22 [DEBUG]: creating mesh
+2022-01-02 03:31:22 [INFO]: importing mesh weights
+2022-01-02 03:31:22 [INFO]: importing primitive 21 prm_17
+2022-01-02 03:31:22 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5BFE88>
+2022-01-02 03:31:22 [DEBUG]: decoding vertices
+2022-01-02 03:31:23 [DEBUG]: decoding faces
+2022-01-02 03:31:23 [DEBUG]: creating mesh
+2022-01-02 03:31:23 [INFO]: importing mesh weights
+2022-01-02 03:31:23 [INFO]: importing primitive 22 prm_cloth_lower_outline_l
+2022-01-02 03:31:23 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C6F88>
+2022-01-02 03:31:23 [DEBUG]: decoding vertices
+2022-01-02 03:31:23 [DEBUG]: decoding faces
+2022-01-02 03:31:23 [DEBUG]: creating mesh
+2022-01-02 03:31:23 [INFO]: importing mesh weights
+2022-01-02 03:31:23 [INFO]: importing primitive 23 prm_cloth_lower_l
+2022-01-02 03:31:23 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5BFE88>
+2022-01-02 03:31:23 [DEBUG]: decoding vertices
+2022-01-02 03:31:23 [DEBUG]: decoding faces
+2022-01-02 03:31:23 [DEBUG]: creating mesh
+2022-01-02 03:31:23 [INFO]: importing mesh weights
+2022-01-02 03:31:23 [INFO]: importing primitive 24 prm_21
+2022-01-02 03:31:23 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C5B48>
+2022-01-02 03:31:23 [DEBUG]: decoding vertices
+2022-01-02 03:31:23 [DEBUG]: decoding faces
+2022-01-02 03:31:23 [DEBUG]: creating mesh
+2022-01-02 03:31:23 [INFO]: importing mesh weights
+2022-01-02 03:31:23 [INFO]: importing primitive 25 prm_22
+2022-01-02 03:31:23 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C5B48>
+2022-01-02 03:31:23 [DEBUG]: decoding vertices
+2022-01-02 03:31:23 [DEBUG]: decoding faces
+2022-01-02 03:31:23 [DEBUG]: creating mesh
+2022-01-02 03:31:23 [INFO]: importing mesh weights
+2022-01-02 03:31:23 [INFO]: importing primitive 26 prm_44
+2022-01-02 03:31:23 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C6AC8>
+2022-01-02 03:31:23 [DEBUG]: decoding vertices
+2022-01-02 03:31:23 [DEBUG]: decoding faces
+2022-01-02 03:31:23 [DEBUG]: creating mesh
+2022-01-02 03:31:23 [INFO]: importing mesh weights
+2022-01-02 03:31:23 [INFO]: importing primitive 27 prm_31
+2022-01-02 03:31:24 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C5B48>
+2022-01-02 03:31:24 [DEBUG]: decoding vertices
+2022-01-02 03:31:24 [DEBUG]: decoding faces
+2022-01-02 03:31:24 [DEBUG]: creating mesh
+2022-01-02 03:31:24 [INFO]: importing mesh weights
+2022-01-02 03:31:24 [INFO]: importing primitive 28 prm_43
+2022-01-02 03:31:24 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C5B48>
+2022-01-02 03:31:24 [DEBUG]: decoding vertices
+2022-01-02 03:31:24 [DEBUG]: decoding faces
+2022-01-02 03:31:24 [DEBUG]: creating mesh
+2022-01-02 03:31:24 [INFO]: importing mesh weights
+2022-01-02 03:31:24 [INFO]: importing primitive 29 prm_35
+2022-01-02 03:31:24 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C5B48>
+2022-01-02 03:31:24 [DEBUG]: decoding vertices
+2022-01-02 03:31:24 [DEBUG]: decoding faces
+2022-01-02 03:31:24 [DEBUG]: creating mesh
+2022-01-02 03:31:24 [INFO]: importing mesh weights
+2022-01-02 03:31:24 [INFO]: importing primitive 30 prm_23
+2022-01-02 03:31:24 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5BFE88>
+2022-01-02 03:31:24 [DEBUG]: decoding vertices
+2022-01-02 03:31:24 [DEBUG]: decoding faces
+2022-01-02 03:31:24 [DEBUG]: creating mesh
+2022-01-02 03:31:24 [INFO]: importing mesh weights
+2022-01-02 03:31:24 [INFO]: importing primitive 31 prm_48
+2022-01-02 03:31:24 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C6AC8>
+2022-01-02 03:31:24 [DEBUG]: decoding vertices
+2022-01-02 03:31:24 [DEBUG]: decoding faces
+2022-01-02 03:31:24 [DEBUG]: creating mesh
+2022-01-02 03:31:25 [INFO]: importing mesh weights
+2022-01-02 03:31:25 [INFO]: importing primitive 32 prm_41
+2022-01-02 03:31:25 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C6D08>
+2022-01-02 03:31:25 [DEBUG]: decoding vertices
+2022-01-02 03:31:25 [DEBUG]: decoding faces
+2022-01-02 03:31:25 [DEBUG]: creating mesh
+2022-01-02 03:31:25 [INFO]: importing mesh weights
+2022-01-02 03:31:25 [INFO]: importing primitive 33 prm_25
+2022-01-02 03:31:25 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C6F88>
+2022-01-02 03:31:25 [DEBUG]: decoding vertices
+2022-01-02 03:31:25 [DEBUG]: decoding faces
+2022-01-02 03:31:25 [DEBUG]: creating mesh
+2022-01-02 03:31:25 [INFO]: importing mesh weights
+2022-01-02 03:31:25 [INFO]: importing primitive 34 prm_47
+2022-01-02 03:31:25 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C5B48>
+2022-01-02 03:31:25 [DEBUG]: decoding vertices
+2022-01-02 03:31:25 [DEBUG]: decoding faces
+2022-01-02 03:31:25 [DEBUG]: creating mesh
+2022-01-02 03:31:25 [INFO]: importing mesh weights
+2022-01-02 03:31:25 [INFO]: importing primitive 35 prm_40
+2022-01-02 03:31:25 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5BEBC8>
+2022-01-02 03:31:25 [DEBUG]: decoding vertices
+2022-01-02 03:31:25 [DEBUG]: decoding faces
+2022-01-02 03:31:25 [DEBUG]: creating mesh
+2022-01-02 03:31:25 [INFO]: importing mesh weights
+2022-01-02 03:31:25 [INFO]: importing primitive 36 prm_24
+2022-01-02 03:31:25 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5BFE88>
+2022-01-02 03:31:25 [DEBUG]: decoding vertices
+2022-01-02 03:31:26 [DEBUG]: decoding faces
+2022-01-02 03:31:26 [DEBUG]: creating mesh
+2022-01-02 03:31:26 [INFO]: importing mesh weights
+2022-01-02 03:31:26 [INFO]: importing primitive 37 prm_38
+2022-01-02 03:31:26 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C6D08>
+2022-01-02 03:31:26 [DEBUG]: decoding vertices
+2022-01-02 03:31:26 [DEBUG]: decoding faces
+2022-01-02 03:31:26 [DEBUG]: creating mesh
+2022-01-02 03:31:26 [INFO]: importing mesh weights
+2022-01-02 03:31:26 [INFO]: importing primitive 38 prm_46
+2022-01-02 03:31:26 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C6D08>
+2022-01-02 03:31:26 [DEBUG]: decoding vertices
+2022-01-02 03:31:26 [DEBUG]: decoding faces
+2022-01-02 03:31:26 [DEBUG]: creating mesh
+2022-01-02 03:31:26 [INFO]: importing mesh weights
+2022-01-02 03:31:26 [INFO]: importing primitive 39 prm_33
+2022-01-02 03:31:26 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C6D08>
+2022-01-02 03:31:26 [DEBUG]: decoding vertices
+2022-01-02 03:31:26 [DEBUG]: decoding faces
+2022-01-02 03:31:26 [DEBUG]: creating mesh
+2022-01-02 03:31:26 [INFO]: importing mesh weights
+2022-01-02 03:31:26 [INFO]: importing primitive 40 prm_28
+2022-01-02 03:31:26 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C6F88>
+2022-01-02 03:31:26 [DEBUG]: decoding vertices
+2022-01-02 03:31:26 [DEBUG]: decoding faces
+2022-01-02 03:31:26 [DEBUG]: creating mesh
+2022-01-02 03:31:26 [INFO]: importing mesh weights
+2022-01-02 03:31:26 [INFO]: importing primitive 41 prm_37
+2022-01-02 03:31:26 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5BEBC8>
+2022-01-02 03:31:26 [DEBUG]: decoding vertices
+2022-01-02 03:31:27 [DEBUG]: decoding faces
+2022-01-02 03:31:27 [DEBUG]: creating mesh
+2022-01-02 03:31:27 [INFO]: importing mesh weights
+2022-01-02 03:31:27 [INFO]: importing primitive 42 prm_45
+2022-01-02 03:31:27 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5BEBC8>
+2022-01-02 03:31:27 [DEBUG]: decoding vertices
+2022-01-02 03:31:27 [DEBUG]: decoding faces
+2022-01-02 03:31:27 [DEBUG]: creating mesh
+2022-01-02 03:31:27 [INFO]: importing mesh weights
+2022-01-02 03:31:27 [INFO]: importing primitive 43 prm_32
+2022-01-02 03:31:27 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5BEBC8>
+2022-01-02 03:31:27 [DEBUG]: decoding vertices
+2022-01-02 03:31:28 [DEBUG]: decoding faces
+2022-01-02 03:31:28 [DEBUG]: creating mesh
+2022-01-02 03:31:28 [INFO]: importing mesh weights
+2022-01-02 03:31:28 [INFO]: importing primitive 44 prm_27
+2022-01-02 03:31:28 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5BFE88>
+2022-01-02 03:31:28 [DEBUG]: decoding vertices
+2022-01-02 03:31:28 [DEBUG]: decoding faces
+2022-01-02 03:31:28 [DEBUG]: creating mesh
+2022-01-02 03:31:28 [INFO]: importing mesh weights
+2022-01-02 03:31:28 [INFO]: importing primitive 45 prm_39
+2022-01-02 03:31:28 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C5B48>
+2022-01-02 03:31:28 [DEBUG]: decoding vertices
+2022-01-02 03:31:28 [DEBUG]: decoding faces
+2022-01-02 03:31:28 [DEBUG]: creating mesh
+2022-01-02 03:31:28 [INFO]: importing mesh weights
+2022-01-02 03:31:28 [INFO]: importing primitive 46 prm_42
+2022-01-02 03:31:29 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C5B48>
+2022-01-02 03:31:29 [DEBUG]: decoding vertices
+2022-01-02 03:31:29 [DEBUG]: decoding faces
+2022-01-02 03:31:29 [DEBUG]: creating mesh
+2022-01-02 03:31:29 [INFO]: importing mesh weights
+2022-01-02 03:31:29 [INFO]: importing primitive 47 prm_34
+2022-01-02 03:31:29 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C5B48>
+2022-01-02 03:31:29 [DEBUG]: decoding vertices
+2022-01-02 03:31:29 [DEBUG]: decoding faces
+2022-01-02 03:31:29 [DEBUG]: creating mesh
+2022-01-02 03:31:29 [INFO]: importing mesh weights
+2022-01-02 03:31:29 [INFO]: importing primitive 48 prm_29
+2022-01-02 03:31:29 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5BEBC8>
+2022-01-02 03:31:29 [DEBUG]: decoding vertices
+2022-01-02 03:31:29 [DEBUG]: decoding faces
+2022-01-02 03:31:29 [DEBUG]: creating mesh
+2022-01-02 03:31:29 [INFO]: importing mesh weights
+2022-01-02 03:31:29 [INFO]: importing primitive 49 prm_51
+2022-01-02 03:31:29 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5C6F88>
+2022-01-02 03:31:29 [DEBUG]: decoding vertices
+2022-01-02 03:31:29 [DEBUG]: decoding faces
+2022-01-02 03:31:29 [DEBUG]: creating mesh
+2022-01-02 03:31:29 [INFO]: importing mesh weights
+2022-01-02 03:31:29 [INFO]: importing primitive 50 prm_50
+2022-01-02 03:31:29 [DEBUG]: <shaderinfo.ShaderObjectInfo object at 0x000001A81F5BFE88>
+2022-01-02 03:31:29 [DEBUG]: decoding vertices
+2022-01-02 03:31:29 [DEBUG]: decoding faces
+2022-01-02 03:31:29 [DEBUG]: creating mesh
+2022-01-02 03:31:29 [INFO]: importing mesh weights
+2022-01-02 03:31:29 [INFO]: Import done in 16323 ms

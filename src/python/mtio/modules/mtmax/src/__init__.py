@@ -4,6 +4,7 @@
 # fix imports
 import os
 import sys
+import traceback
 
 from pymxs import runtime as rt
 from mtlib import *
@@ -11,20 +12,21 @@ import mtmaxconfig
 from mtmaxexp import *
 from mtmaximp import *
 import mtmaxutil
+import maxlog
 
 class MtRollout:
     @classmethod
     def onEvent( cls, e, *args ):
-        print(f'received event: {e} with args: {args}')
+        maxlog.debug(f'received event: {e} with args: {args}')
         if hasattr(cls, e):
             getattr(cls, e)(*args)
         else:
-            print(f'no event handler for {e}')
+            maxlog.debug(f'no event handler for {e}')
 
         if hasattr( cls, 'updateVisibility'): 
             cls.updateVisibility()
         else:
-            print(f'no update visibility handler defined in {cls}')
+            maxlog.debug(f'no update visibility handler defined in {cls}')
 
         mtmaxconfig.save()
 
@@ -89,9 +91,12 @@ class MtModelImportRollout(MtRollout):
     
     @staticmethod
     def btnImportPressed():
-        mtmaxutil.clearLog()
-        importer = MtModelImporter()
-        importer.importModel( mtmaxconfig.importFilePath )
+        try:
+            maxlog.clear()
+            importer = MtModelImporter()
+            importer.importModel( mtmaxconfig.importFilePath )
+        except Exception as e:
+            maxlog.exception( e )
         
     @staticmethod
     def btnFilePressed():
@@ -187,9 +192,12 @@ class MtModelExportRollout(MtRollout):
     
     @staticmethod
     def btnExportPressed():
-        mtmaxutil.clearLog()
-        exporter = MtModelExporter()
-        exporter.exportModel( mtmaxconfig.exportFilePath )
+        try:
+            maxlog.clear()
+            exporter = MtModelExporter()
+            exporter.exportModel( mtmaxconfig.exportFilePath )
+        except Exception as e:
+            maxlog.exception( e )
         
     @staticmethod
     def btnFilePressed():
@@ -325,7 +333,7 @@ def createMainWindow():
         
     # create plugin window
     rt.g_mtWindow = rt.newRolloutFloater( "MT Framework Max IO Plugin", w, h, x, y )
-    rollouts = [MtInfoRollout, MtSettingsRollout, MtModelImportRollout, MtModelExportRollout, MtUtilitiesRollout, MtLogRollout]
+    rollouts = [MtInfoRollout, MtSettingsRollout, MtModelImportRollout, MtModelExportRollout, MtUtilitiesRollout]
     
     for rollout in rollouts:
         rollout.getMxsVar().width = w
@@ -337,7 +345,7 @@ def main():
     rt.gc()
     rt.gc()
     
-    mtmaxutil.clearLog()
+    maxlog.clear()
     mtmaxconfig.load()
     
     # import maxscript files
@@ -347,9 +355,6 @@ def main():
     
     rt.gc()
     rt.gc()
-    
-def test():
-    print('test4')
     
 if __name__ == '__main__':
     main()

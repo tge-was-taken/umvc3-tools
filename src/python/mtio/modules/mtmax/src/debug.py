@@ -1,2 +1,4 @@
 import ptvsd
-print( ptvsd.enable_attach() )
+import maxlog
+
+maxlog.debug( 'ptvsd: ' + str(ptvsd.enable_attach()) )

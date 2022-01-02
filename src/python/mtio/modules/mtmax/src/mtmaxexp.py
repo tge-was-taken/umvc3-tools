@@ -7,6 +7,7 @@ from mtlib import *
 import mtmaxconfig
 import mtmaxutil
 from mtlib import texconv
+import maxlog
 
 class TempVertex:
     '''Trivially hash-able container for optimizing the vertex cache'''
@@ -116,6 +117,8 @@ class MtModelExporter(object):
         self.useRefGroups = True
         self.useRefPml = True
         self.useRefBounds = True
+        self._textureMapCache = dict()
+        self._materialCache = dict()
         
     def _convertMaxPoint3ToNclVec3( self, v: rt.Point3 ) -> NclVec3:
         return NclVec3((v[0], v[1], v[2]))
@@ -371,7 +374,7 @@ class MtModelExporter(object):
             # prevent recursion
             return self.maxNodeToJointMap[maxNode]
 
-        print(f'processing bone: {maxNode.name}')
+        maxlog.info(f'processing bone: {maxNode.name}')
         jointMeta = self.metadata.getJointByName( maxNode.name )
         attribs = MtJointAttribData( maxNode, jointMeta )
         joint = imJoint(
@@ -381,18 +384,21 @@ class MtModelExporter(object):
             parent=self.maxNodeToJointMap[ maxNode.parent ] if maxNode.parent != None else None, # must be specified here to not infere with matrix calculations
             field03=attribs.field03,
             field04=attribs.field04,
-            length=None, 
-            invBindMtx=None,
-            offset=None,
-            symmetry=None, # need to create current joint first to resolve self and forward references
+            length=None,        # TODO copy from attribs (?)
+            invBindMtx=None,    # TODO copy from attribs (?)
+            offset=None,        # TODO copy from attribs (?)
+            symmetry=None,      # need to create current joint first to resolve self and forward references
         )
+        maxlog.debug(joint)
 
         self.maxNodeToJointMap[maxNode] = joint
         self.jointToMaxNodeMap[joint] = maxNode
         self.model.joints.append( joint )
         self.jointIdxByName[ joint.name ] = len( self.model.joints ) - 1
     
-    def processBones( self ):
+    def _processBones( self ):
+        maxlog.info('processing bones')
+        
         # convert all joints first
         # so we can reference them when building the primitives
         self.maxNodeToJointMap = dict()
@@ -401,6 +407,7 @@ class MtModelExporter(object):
         
         if self.ref != None and self.useRefJoints:
             # copy over original joints
+            maxlog.info('copying bones from reference model')
             for i, refJoint in enumerate(self.ref.joints):
                 joint = imJoint(
                     name=self.metadata.getJointName(refJoint.id),
@@ -437,6 +444,7 @@ class MtModelExporter(object):
                 joint.symmetry = self._processBone( attribs.symmetryNode ) if attribs.symmetryNode != None else None
                 
     def _convertTextureToTEX( self, inPath, outPath, origPath, forcedFormat ):
+        # TODO this code is almost the same as the code in mttexconv
         basePath, baseName, exts = util.splitPath( inPath )
         inExt = exts[len(exts) - 1]
         
@@ -470,16 +478,16 @@ class MtModelExporter(object):
         
         if inExt == 'tex':
             # convert tex to dds
-            print('converting TEX {} to DDS {}'.format(inPath, outPath))
+            maxlog.info('converting TEX {} to DDS {}'.format(inPath, outPath))
             tex = rTextureData()
             tex.loadBinaryFile( inPath )
             tex.toDDS().saveFile( outPath )
             
             if outExt != 'dds':
                 # try to convert with texconv
-                print('\texconv start')
+                maxlog.debug('\texconv start')
                 texconv( outPath, outPath=outBasePath, fileType=outExt, pow2=False, fmt='RGBA', srgb=True)
-                print('texconv end\n')
+                maxlog.debug('texconv end\n')
         else:
             if outExt != 'tex':
                 raise Exception( "Unsupported output format: " + outExt )
@@ -521,14 +529,14 @@ class MtModelExporter(object):
                 else:
                     raise Exception("Unhandled dds format: " + str(fmtDDS))
                 
-                print( 'converting input {} to DDS {}'.format(inPath, inDDSPath))
-                print( 'DDS format: {}'.format( fmtDDSName ) )
-                print( '\ntexconv start')
-                texconv( inPath, outPath=inDDSBasePath, fileType='DDS', featureLevel=9.1, pow2=True, fmt=fmtDDSName, overwrite=True, srgb=True )
-                print( 'texconv end\n')
+                maxlog.info( 'converting input {} to DDS {}'.format(inPath, inDDSPath))
+                maxlog.debug( 'DDS format: {}'.format( fmtDDSName ) )
+                maxlog.debug( '\ntexconv start')
+                texconv.texconv( inPath, outPath=inDDSBasePath, fileType='DDS', featureLevel=9.1, pow2=True, fmt=fmtDDSName, overwrite=True, srgb=True )
+                maxlog.debug( 'texconv end\n')
             
-            print('converting DDS {} to TEX {}'.format( inDDSPath, outPath ))
-            print('TEX format: {}'.format(fmt))
+            maxlog.info('converting DDS {} to TEX {}'.format( inDDSPath, outPath ))
+            maxlog.debug('TEX format: {}'.format(fmt))
             dds = DDSFile.fromFile( inDDSPath )
             tex = rTextureData.fromDDS( dds )
             tex.header.fmt.surfaceFmt = fmt
@@ -540,173 +548,197 @@ class MtModelExporter(object):
             
             tex.saveBinaryFile( outPath )
             
-    def _convertTextureMap( self, textureMap ):
-        if textureMap != None and os.path.exists(textureMap.filename):
-            if self.outPath.hash != None:
-                outTexPath = os.path.splitext(textureMap.filename)[0] + '.241f5deb.tex'
+    def _processTextureMap( self, textureMap ):
+        if textureMap != None and not textureMap in self._textureMapCache:
+            # add to cache
+            self._textureMapCache[textureMap] = True
+            
+            maxlog.info(f'processing texture: {textureMap.filename}')
+            if os.path.exists(textureMap.filename):
+                if self.outPath.hash != None:
+                    outTexPath = os.path.splitext(textureMap.filename)[0] + '.241f5deb.tex'
+                else:
+                    outTexPath = os.path.splitext(textureMap.filename)[0] + '.tex'
+                if not os.path.exists(outTexPath):
+                    maxlog.info('converting texture to TEX')
+                    self._convertTextureToTEX( textureMap.filename, outTexPath, None, None )
+                else:
+                    maxlog.info(f'skipping texture conversion because {outTexPath} already exists')
             else:
-                outTexPath = os.path.splitext(textureMap.filename)[0] + '.tex'
-            if not os.path.exists(outTexPath):
-                self._convertTextureToTEX( textureMap.filename, outTexPath, None, None )
+                maxlog.info('skipping texture conversion because {textureMap.filename} does not exist')
      
     def _processMaterial( self, material ):
-        if mtmaxconfig.exportTexturesToTex:
-            if hasattr(material, 'base_color_map'): self._convertTextureMap( material.base_color_map )
-            if hasattr(material, 'specular_map'): self._convertTextureMap( material.specular_map )
-            if hasattr(material, 'glossiness_map' ): self._convertTextureMap( material.glossiness_map )
-            if hasattr(material, 'ao_map' ): self._convertTextureMap( material.ao_map )
-            if hasattr(material, 'norm_map' ): self._convertTextureMap( material.norm_map )
-            if hasattr(material, 'emit_color_map' ): self._convertTextureMap( material.emit_color_map )
-            if hasattr(material, 'opacity_map' ): self._convertTextureMap( material.opacity_map )
-            if hasattr(material, 'displacement_map' ): self._convertTextureMap( material.displacement_map )
+        if material not in self._materialCache:
+            # add to cache
+            self._materialCache[material] = True
+            
+            maxlog.info(f'processing material: {material.name}')
+            if mtmaxconfig.exportTexturesToTex:
+                if hasattr(material, 'base_color_map'): self._processTextureMap( material.base_color_map )
+                if hasattr(material, 'specular_map'): self._processTextureMap( material.specular_map )
+                if hasattr(material, 'glossiness_map' ): self._processTextureMap( material.glossiness_map )
+                if hasattr(material, 'ao_map' ): self._processTextureMap( material.ao_map )
+                if hasattr(material, 'norm_map' ): self._processTextureMap( material.norm_map )
+                if hasattr(material, 'emit_color_map' ): self._processTextureMap( material.emit_color_map )
+                if hasattr(material, 'opacity_map' ): self._processTextureMap( material.opacity_map )
+                if hasattr(material, 'displacement_map' ): self._processTextureMap( material.displacement_map )
+            
+    def _processMesh( self, maxNode ):
+        maxlog.info(f'processing mesh: {maxNode.name}')
+        attribs = MtPrimitiveAttribData(maxNode)
+            
+        if self.exportSkin:
+            maxlog.debug('getting skin modifier')
+            rt.execute('max modify mode')
+            rt.select( maxNode )
+            maxSkin = rt.modPanel.getCurrentObject()
+            hasSkin = rt.isKindOf( maxSkin, rt.Skin )
+        else:
+            hasSkin = False
+
+        if self.exportVertexNormals:
+            maxlog.debug('adding temporary edit normals modifier to get the proper vertex normals')
+            editNormalsMod = rt.Edit_Normals()
+            rt.addModifier( maxNode, editNormalsMod )
         
-    def processMeshes( self ):
+        # collect all vertex data per material
+        maxlog.debug('collecting vertex data')
+        maxMesh = rt.snapshotAsMesh( maxNode )
+        faceCount = rt.getNumFaces( maxMesh )
+        tempMeshes = dict()
+
+        for i in range( 0, faceCount ):
+            face = rt.getFace( maxMesh, i + 1 )
+            tvFace = rt.getTVFace( maxMesh, i + 1 )
+            matId = rt.getFaceMatID( maxMesh, i + 1 ) 
+            
+            for j in range( 0, 3 ):
+                vertIdx = face[j]
+                tvertIdx = tvFace[j]
+
+                if matId not in tempMeshes:
+                    # create temporary mesh for this material
+                    tempMeshes[matId] = TempMesh(
+                        maxNode.material[matId-1] if rt.classOf(maxNode.material) == rt.Multimaterial else maxNode.material
+                    )
+
+                tempMesh = tempMeshes[matId]
+                if tempMesh.material != None:
+                    self._processMaterial( tempMesh.material )
+                
+                tempMesh.positions.append( self._convertMaxPoint3ToNclVec3( rt.getVert( maxMesh, vertIdx ) ) )
+                
+                if self.exportVertexNormals:
+                    tempMesh.normals.append( self._convertMaxPoint3ToNclVec3( editNormalsMod.GetNormal( editNormalsMod.GetNormalId( i + 1, j + 1 ) )))
+                else:
+                    tempMesh.normals.append( self._convertMaxPoint3ToNclVec3( rt.getNormal( maxMesh, vertIdx ) ) )
+                
+                tempMesh.uvs.append( self._convertMaxPoint3ToNclVec3UV( rt.getTVert( maxMesh, tvertIdx ) ) )
+
+                if hasSkin:
+                    weightCount = rt.skinOps.getVertexWeightCount( maxSkin, vertIdx )
+                    vertexWeights = []
+                    vertexWeightIndices = []
+                    for k in range( 0, weightCount ):
+                        boneId = rt.skinops.getVertexWeightBoneId( maxSkin, vertIdx, k + 1 )
+                        boneWeight = rt.skinOps.getVertexWeight( maxSkin, vertIdx, k + 1 )
+                        boneName = rt.skinOps.getBoneName( maxSkin, boneId, 0 )
+                        jointIdx = self.jointIdxByName[ boneName ]
+                        vertexWeights.append( boneWeight )
+                        vertexWeightIndices.append( jointIdx )
+                    tempMesh.weights.append( vertexWeights )
+                    tempMesh.weightIndices.append( vertexWeightIndices )
+                else:
+                    tempMesh.weights.append( [1] )
+                    tempMesh.weightIndices.append( [2] )
+
+        # remove temporary modifiers
+        if self.exportVertexNormals:
+            maxlog.debug('delete temporary edit normals modifier')
+            rt.deleteModifier( maxNode, editNormalsMod )
+
+        # # calculate tangents
+        # for i in range( 0, len( positions ), 3 ):
+        #     faceTangents = [glm.vec3(),glm.vec3(),glm.vec3()]
+        #     faceBitangents = [glm.vec3(),glm.vec3(),glm.vec3()]
+        #     self.CalculateTangentsBitangents(
+        #         [positions[i+0], positions[i+1], positions[i+2]],
+        #         [normals[i+0], normals[i+1], normals[i+2]],
+        #         [uvs[i+0], uvs[i+1], uvs[i+2]],
+        #         faceTangents,
+        #         faceBitangents)
+        #     tangents.append(faceTangents[0])
+        #     tangents.append(faceTangents[1])
+        #     tangents.append(faceTangents[2])
+
+        # create optimized primitives
+        for tempMesh in tempMeshes.values():
+            prim = imPrimitive(
+                maxNode.name, 
+                tempMesh.material.name if tempMesh.material != None else "default_material",
+            )
+            maxlog.info(f'processing submesh with material {prim.materialName}')
+
+            # copy over attribs
+            if attribs.flags != None: prim.flags = attribs.flags
+            if attribs.groupId != None: prim.group = self.model.getGroupById(attribs.groupId)
+            if attribs.lodIndex != None: prim.lodIndex = attribs.lodIndex
+            if attribs.renderFlags != None: prim.renderFlags = attribs.renderFlags
+            if attribs.id != None: prim.id = attribs.id
+            if attribs.field2c != None: prim.field2c = attribs.field2c
+
+            # optimize vertex buffer
+            vertexIdxLookup = dict()
+            nextVertexIdx = 0
+            for i in range( 0, len( tempMesh.positions ) ):
+                cv = TempVertex()
+                cv.position = (tempMesh.positions[i][0], tempMesh.positions[i][1], tempMesh.positions[i][2])
+                cv.normal = (tempMesh.normals[i][0], tempMesh.normals[i][1], tempMesh.normals[i][2])
+                cv.uv = (tempMesh.uvs[i][0], tempMesh.uvs[i][1])
+
+                # TODO: figure out how to generate proper tangents
+                #cv.tangent = cv.normal
+                #cv.tangent = (tangents[i][0], tangents[i][1], tangents[i][2])
+
+                if hasSkin:
+                    cv.weights = tuple(tempMesh.weights[i])
+                    cv.weightIndices = tuple(tempMesh.weightIndices[i])    
+
+                if cv not in vertexIdxLookup:
+                    idx = nextVertexIdx
+                    nextVertexIdx += 1
+                    vertexIdxLookup[cv] = idx
+
+                    prim.positions.append( NclVec3( cv.position ) )
+                    prim.normals.append( NclVec3( cv.normal ) )
+                    prim.uvs.append( NclVec2( cv.uv ) ) 
+                    prim.tangents.append( NclVec3( cv.tangent ) )
+
+                    vtxWeight = imVertexWeight()
+                    vtxWeight.indices = cv.weightIndices
+                    vtxWeight.weights = cv.weights
+                    prim.weights.append( vtxWeight )
+                else:
+                    idx = vertexIdxLookup.get(cv)
+
+                prim.indices.append(idx)
+
+            self.model.primitives.append( prim )
+        
+    def _processMeshes( self ):
         # convert meshes
+        maxlog.info('processing meshes')
         for maxNode in rt.objects:
             if not self._shouldExportNode( maxNode ) or not self._isMeshNode( maxNode ):
                 continue
             
-            print(f'processing mesh: {maxNode.name}')
-            attribs = MtPrimitiveAttribData(maxNode)
-                
-            if self.exportSkin:
-                # get skin modifier
-                rt.execute('max modify mode')
-                rt.select( maxNode )
-                maxSkin = rt.modPanel.getCurrentObject()
-                hasSkin = rt.isKindOf( maxSkin, rt.Skin )
-            else:
-                hasSkin = False
+            mtmaxutil.updateUI()
+            self._processMesh( maxNode )
 
-            if self.exportVertexNormals:
-                # add temporary edit normals modifier to get the proper vertex normals
-                editNormalsMod = rt.Edit_Normals()
-                rt.addModifier( maxNode, editNormalsMod )
-            
-            # collect all vertex data per material
-            maxMesh = rt.snapshotAsMesh( maxNode )
-            faceCount = rt.getNumFaces( maxMesh )
-            tempMeshes = dict()
-
-            for i in range( 0, faceCount ):
-                face = rt.getFace( maxMesh, i + 1 )
-                tvFace = rt.getTVFace( maxMesh, i + 1 )
-                matId = rt.getFaceMatID( maxMesh, i + 1 ) 
-                
-                for j in range( 0, 3 ):
-                    vertIdx = face[j]
-                    tvertIdx = tvFace[j]
-
-                    if matId not in tempMeshes:
-                        # create temporary mesh for this material
-                        tempMeshes[matId] = TempMesh(
-                            maxNode.material[matId-1] if rt.classOf(maxNode.material) == rt.Multimaterial else maxNode.material
-                        )
-
-                    tempMesh = tempMeshes[matId]
-                    if tempMesh.material != None:
-                        self._processMaterial( tempMesh.material )
-                    
-                    tempMesh.positions.append( self._convertMaxPoint3ToNclVec3( rt.getVert( maxMesh, vertIdx ) ) )
-                    
-                    if self.exportVertexNormals:
-                        tempMesh.normals.append( self._convertMaxPoint3ToNclVec3( editNormalsMod.GetNormal( editNormalsMod.GetNormalId( i + 1, j + 1 ) )))
-                    else:
-                        tempMesh.normals.append( self._convertMaxPoint3ToNclVec3( rt.getNormal( maxMesh, vertIdx ) ) )
-                    
-                    tempMesh.uvs.append( self._convertMaxPoint3ToNclVec3UV( rt.getTVert( maxMesh, tvertIdx ) ) )
-
-                    if hasSkin:
-                        weightCount = rt.skinOps.getVertexWeightCount( maxSkin, vertIdx )
-                        vertexWeights = []
-                        vertexWeightIndices = []
-                        for k in range( 0, weightCount ):
-                            boneId = rt.skinops.getVertexWeightBoneId( maxSkin, vertIdx, k + 1 )
-                            boneWeight = rt.skinOps.getVertexWeight( maxSkin, vertIdx, k + 1 )
-                            boneName = rt.skinOps.getBoneName( maxSkin, boneId, 0 )
-                            jointIdx = self.jointIdxByName[ boneName ]
-                            vertexWeights.append( boneWeight )
-                            vertexWeightIndices.append( jointIdx )
-                        tempMesh.weights.append( vertexWeights )
-                        tempMesh.weightIndices.append( vertexWeightIndices )
-                    else:
-                        tempMesh.weights.append( [1] )
-                        tempMesh.weightIndices.append( [2] )
-
-            # remove temporary modifiers
-            if self.exportVertexNormals:
-                rt.deleteModifier( maxNode, editNormalsMod )
-
-            # # calculate tangents
-            # for i in range( 0, len( positions ), 3 ):
-            #     faceTangents = [glm.vec3(),glm.vec3(),glm.vec3()]
-            #     faceBitangents = [glm.vec3(),glm.vec3(),glm.vec3()]
-            #     self.CalculateTangentsBitangents(
-            #         [positions[i+0], positions[i+1], positions[i+2]],
-            #         [normals[i+0], normals[i+1], normals[i+2]],
-            #         [uvs[i+0], uvs[i+1], uvs[i+2]],
-            #         faceTangents,
-            #         faceBitangents)
-            #     tangents.append(faceTangents[0])
-            #     tangents.append(faceTangents[1])
-            #     tangents.append(faceTangents[2])
-
-            # create optimized primitives
-            for tempMesh in tempMeshes.values():
-                prim = imPrimitive(
-                    maxNode.name, 
-                    tempMesh.material.name if tempMesh.material != None else "default_material",
-                )
-
-                # copy over attribs
-                if attribs.flags != None: prim.flags = attribs.flags
-                if attribs.groupId != None: prim.group = self.model.getGroupById(attribs.groupId)
-                if attribs.lodIndex != None: prim.lodIndex = attribs.lodIndex
-                if attribs.renderFlags != None: prim.renderFlags = attribs.renderFlags
-                if attribs.id != None: prim.id = attribs.id
-                if attribs.field2c != None: prim.field2c = attribs.field2c
-
-                # optimize vertex buffer
-                vertexIdxLookup = dict()
-                nextVertexIdx = 0
-                for i in range( 0, len( tempMesh.positions ) ):
-                    cv = TempVertex()
-                    cv.position = (tempMesh.positions[i][0], tempMesh.positions[i][1], tempMesh.positions[i][2])
-                    cv.normal = (tempMesh.normals[i][0], tempMesh.normals[i][1], tempMesh.normals[i][2])
-                    cv.uv = (tempMesh.uvs[i][0], tempMesh.uvs[i][1])
-
-                    # TODO: figure out how to generate proper tangents
-                    cv.tangent = cv.normal
-                    #cv.tangent = (tangents[i][0], tangents[i][1], tangents[i][2])
-
-                    if hasSkin:
-                        cv.weights = tuple(tempMesh.weights[i])
-                        cv.weightIndices = tuple(tempMesh.weightIndices[i])    
-
-                    if cv not in vertexIdxLookup:
-                        idx = nextVertexIdx
-                        nextVertexIdx += 1
-                        vertexIdxLookup[cv] = idx
-
-                        prim.positions.append( NclVec3( cv.position ) )
-                        prim.normals.append( NclVec3( cv.normal ) )
-                        prim.uvs.append( NclVec2( cv.uv ) ) 
-                        prim.tangents.append( NclVec3( cv.tangent ) )
-
-                        vtxWeight = imVertexWeight()
-                        vtxWeight.indices = cv.weightIndices
-                        vtxWeight.weights = cv.weights
-                        prim.weights.append( vtxWeight )
-                    else:
-                        idx = vertexIdxLookup.get(cv)
-
-                    prim.indices.append(idx)
-
-                self.model.primitives.append( prim )
-
-    def processGroups( self ):
+    def _processGroups( self ):
+        maxlog.info('processing groups')
         if self.ref != None and self.useRefGroups:
-            # copy over groups from reference model
+            maxlog.info('copying groups from reference model')
             for i, refGroup in enumerate(self.ref.groups):
                 group = imGroup(
                     name=self.metadata.getGroupName(refGroup.id),
@@ -716,13 +748,15 @@ class MtModelExporter(object):
                     field0c=refGroup.field0c,
                     boundingSphere=refGroup.boundingSphere,
                 )
+                maxlog.debug(str(group))
                 self.model.groups.append(group)
         else:
             # process all groups in the scene
             for maxNode in rt.objects:
                 if not self._shouldExportNode( maxNode ) or not self._isGroupNode( maxNode ):
                     continue
-
+                
+                maxlog.info(f'processing group node {maxNode}')
                 attribs = MtGroupAttribData(maxNode)
                 group = imGroup(
                     name=maxNode.name,
@@ -732,10 +766,12 @@ class MtModelExporter(object):
                     field0c=attribs.field0c if attribs.field0c != None else 0,
                     #boundingSphere=attribs.bsphere if attribs.bsphere != None else None,
                 )
+                maxlog.debug(str(group))
 
-    def processPml( self ):
+    def _processPml( self ):
+        maxlog.info('processing pml')
         if self.ref != None and self.useRefPml:
-            # copy over pml from reference model
+            maxlog.info('copying pml from reference model')
             for i, refPml in enumerate(self.ref.primitiveJointLinks):
                 pml = imPrimitiveJointLink(
                     name='pml_'+str(i),
@@ -749,25 +785,31 @@ class MtModelExporter(object):
                     localMtx=refPml.localMtx,
                     field80=refPml.field80
                 )
+                maxlog.debug(str(pml))
                 self.model.primitiveJointLinks.append(pml)
         else:
             # TODO: represent these in the scene
             pass
     
-    def writeBinaries( self ):
+    def _writeBinaries( self ):
+        maxlog.debug('converting intermediate model to binary model format')
         binMod = self.model.toBinaryModel()
+        
+        maxlog.debug('writing binary model')
         stream = NclBitStream()
         binMod.write( stream )
         util.saveByteArrayToFile( self.outPath.fullPath, stream.getBuffer() )
         
         if mtmaxconfig.exportMrlYml and self.mrl != None:
             if self.outPath.hash != None:
-                self.mrl.saveBinaryFile( self.outPath.basePath + '/' + self.outPath.baseName + '.2749c8a8.mrl' )
+                mrlExportPath = self.outPath.basePath + '/' + self.outPath.baseName + '.2749c8a8.mrl' 
             else:
-                self.mrl.saveBinaryFile( self.outPath.basePath + '/' + self.outPath.baseName + '.mrl' )
+                mrlExportPath = self.outPath.basePath + '/' + self.outPath.baseName + '.mrl'
+            maxlog.info(f'exporting mrl yml to {mrlExportPath}')
+            self.mrl.saveBinaryFile( mrlExportPath )
     
     def exportModel( self, path ):
-        print(f'exporting to {path}')
+        maxlog.info(f'exporting to {path}')
         
         # start building intermediate model data for conversion
         self.model = imModel()
@@ -776,20 +818,23 @@ class MtModelExporter(object):
         self.mrl = None
 
         if os.path.exists( mtmaxconfig.exportMetadataPath ):
+            maxlog.info(f'loading metadata file from {mtmaxconfig.exportMetadataPath}')
             self.metadata.loadFile( mtmaxconfig.exportMetadataPath )
 
         if os.path.exists( mtmaxconfig.exportRefPath ):
+            maxlog.info(f'loading reference model from {mtmaxconfig.exportRefPath}')
             self.ref = rModelData()
             self.ref.read( NclBitStream( util.loadIntoByteArray( mtmaxconfig.exportRefPath ) ) )
-            print( mtmaxconfig.exportRefPath )
             
         if os.path.exists( mtmaxconfig.exportMrlYmlPath ):
+            maxlog.info(f'loading mrl yml from {mtmaxconfig.exportMrlYmlPath}')
             self.mrl = imMaterialLib()
             self.mrl.loadYamlFile( mtmaxconfig.exportMrlYmlPath )
 
-        print('processing scene')
+        maxlog.info('processing scene')
         if self.ref != None and self.useRefBounds:
             # copy over header values
+            maxlog.debug('copying over header values from reference model')
             self.model.field90 = self.ref.header.field90
             self.model.field94 = self.ref.header.field94
             self.model.field98 = self.ref.header.field98
@@ -799,12 +844,12 @@ class MtModelExporter(object):
             self.model.min = self.ref.header.min
             self.model.radius = self.ref.header.radius
         
-        self.processBones()
-        self.processGroups()
-        self.processMeshes()
-        self.processPml()
+        self._processBones()
+        self._processGroups()
+        self._processMeshes()
+        self._processPml()
         
-        print('writing files')
-        self.writeBinaries()
+        maxlog.info('writing files')
+        self._writeBinaries()
         
-        print('export completed successfully')
+        maxlog.info('export completed successfully')
