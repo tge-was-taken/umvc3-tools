@@ -358,10 +358,6 @@ class MtUtilitiesRollout(MtRollout):
     def btnAddGroupAttribsPressed():
         MtUtilitiesRollout._addAttributeToSelection( rt.mtModelGroupAttributesInstance )
 
-    #@staticmethod
-    #def btnAddPmlAttribsPressed():
-    #    rt.custAttributes.add( rt.selected, rt.mtModelGroupAttributesInstance )
-
     @staticmethod
     def btnAddPrimAttribsPressed():
         MtUtilitiesRollout._addAttributeToSelection( rt.mtPrimitiveAttributesInstance )

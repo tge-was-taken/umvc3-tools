@@ -12,7 +12,7 @@ import maxlog
 
 def _tryParseInt(input, base=10, default=None):
     try:
-        return int(input, base=base)
+        return int(str(input), base=base)
     except Exception:
         return default
 
