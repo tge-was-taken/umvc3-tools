@@ -72,6 +72,11 @@ def load():
                 for key in temp:
                     if hasattr(_getModule(), key):
                         setattr(_getModule(), key, temp[key])
+                        
+    # fixup mutually exclusive options
+    global exportGenerateMrl
+    if exportExistingMrlYml and exportGenerateMrl:
+        exportGenerateMrl = False
 
 if __name__ == '__main__':
     save()
