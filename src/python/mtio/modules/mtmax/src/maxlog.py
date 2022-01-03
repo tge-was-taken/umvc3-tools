@@ -11,7 +11,9 @@ def _getScriptDir():
 
 _categoryStack = []
 _indentLevel = 0
-_logFilePath = os.path.join( _getScriptDir(), 'log.txt' )
+_logFilePath = os.path.join( mtmaxutil.getAppDataDir(), 'log.txt' )
+_hasError = False
+
 if os.path.exists( _logFilePath ):
     os.remove( _logFilePath )
 
@@ -31,13 +33,14 @@ def _log( level, msg, *args ):
 
 def clear():
     rt.clearListener()
-    try:
-        rt.mtLogRollout.edtLog.text = ''
-    except:
-        pass
+    # try:
+    #     rt.mtLogRollout.edtLog.text = ''
+    # except:
+    #     pass
     
     _categoryStack = []
     _indentLevel = 0
+    _hasError = False
     
 def debug( msg, *args ):
     if mtmaxutil.isDebugEnv():
@@ -50,6 +53,7 @@ def warn( msg, *args ):
     _log( 'WARNING', msg, *args )
     
 def error( msg, *args ):
+    _hasError = True
     _log( 'ERROR', msg, *args )
     
 def exception( e ):
@@ -68,3 +72,6 @@ def pop():
     
     _categoryStack.pop()
     _indentLevel -= 1
+    
+def hasError():
+    return _hasError

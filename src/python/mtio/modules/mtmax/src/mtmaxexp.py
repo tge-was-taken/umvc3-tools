@@ -1,5 +1,5 @@
 import os
-from posixpath import relpath
+from posixpath import relpath, split
 import sys
 from typing import List, Tuple
 
@@ -10,15 +10,21 @@ import mtmaxutil
 from mtlib import texconv
 import maxlog
 
+def _tryParseInt(input, base=10, default=None):
+    try:
+        return int(input, base=base)
+    except Exception:
+        return default
+
 class MtGroupAttribData(object):
     '''Wrapper for group custom attribute data'''
     def __init__( self, maxNode ):
         attribs = maxNode.mtModelGroupAttributes if hasattr(maxNode, 'mtModelGroupAttributes') else None
         if attribs != None:
-            self.id = int(attribs.id)
-            self.field04 = int(attribs.field04)
-            self.field08 = int(attribs.field08)
-            self.field0c = int(attribs.field0c)
+            self.id = _tryParseInt(attribs.id)
+            self.field04 = _tryParseInt(attribs.field04)
+            self.field08 = _tryParseInt(attribs.field08)
+            self.field0c = _tryParseInt(attribs.field0c)
             self.bsphere = attribs.bsphere
         else:
             self.id = None
@@ -32,7 +38,7 @@ class MtPrimitiveAttribData(object):
     def __init__( self, maxNode ):
         attribs = maxNode.mtPrimitiveAttributes if hasattr(maxNode, 'mtPrimitiveAttributes') else None
         if attribs != None:
-            self.flags = int(attribs.flags, base=0)
+            self.flags = _tryParseInt(attribs.flags.strip(), base=0)
             if attribs.groupId == "inherit":
                 if maxNode.parent != None:
                     self.groupId = MtGroupAttribData(maxNode.parent).id
@@ -40,11 +46,11 @@ class MtPrimitiveAttribData(object):
                     # invalid
                     self.groupId = None
             else:
-                self.groupId = int(attribs.groupId, base=0)
-            self.lodIndex = int(attribs.lodIndex)
-            self.renderFlags = int(attribs.renderFlags, base=0)
-            self.id = int(attribs.id)
-            self.field2c = int(attribs.field2c)
+                self.groupId = _tryParseInt(attribs.groupId.strip(), base=0)
+            self.lodIndex = _tryParseInt(attribs.lodIndex)
+            self.renderFlags = _tryParseInt(attribs.renderFlags, base=0)
+            self.id = _tryParseInt(attribs.id)
+            self.field2c = _tryParseInt(attribs.field2c)
         else:
             self.flags = None
             self.groupId = None
@@ -63,10 +69,10 @@ class MtJointAttribData(object):
         attribs = maxNode.mtJointAttributes if hasattr(maxNode, 'mtJointAttributes') else None
         if attribs != None:
             # grab attributes from custom attributes on node
-            self.id = int(attribs.id)
+            self.id = _tryParseInt(attribs.id)
             self.symmetryNode = rt.getNodeByName( attribs.symmetryName )
-            self.field03 = int(attribs.field03)
-            self.field04 = int(attribs.field04)
+            self.field03 = _tryParseInt(attribs.field03)
+            self.field04 = _tryParseInt(attribs.field04)
         elif jointMeta != None:
             # grab attributes from joint metadata
             self.id = jointMeta.id
@@ -261,78 +267,65 @@ class MtModelExporter(object):
         if origPath != None and origPath != '':
             origTex = rTextureData()
             origTex.loadBinaryFile( origPath )
+            
+        # detect format from name
+        fmt = forcedFormat
+        if fmt == '' or fmt == None:
+            if origTex != None:
+                fmt = origTex.header.fmt.surfaceFmt
+            else:
+                fmt = rTextureSurfaceFmt.getFormatFromTextureName( baseName, True )
+                if fmt == None:
+                    # not detected, fallback
+                    fmt = rTextureSurfaceFmt.BM_OPA
         
-        if inExt == 'tex':
-            # convert tex to dds
-            maxlog.info('converting TEX {} to DDS {}'.format(inPath, outPath))
-            tex = rTextureData()
-            tex.loadBinaryFile( inPath )
-            tex.toDDS().saveFile( outPath )
-            
-            if outExt != 'dds':
-                # try to convert with texconv
-                maxlog.debug('\texconv start')
-                texconv( outPath, outPath=outBasePath, fileType=outExt, pow2=False, fmt='RGBA', srgb=True)
-                maxlog.debug('texconv end\n')
-        else:
-            if outExt != 'tex':
-                raise Exception( "Unsupported output format: " + outExt )
-            
-            # detect format from name
-            fmt = forcedFormat
-            if fmt == '' or fmt == None:
-                if origTex != None:
-                    fmt = origTex.header.fmt.surfaceFmt
-                else:
-                    fmt = rTextureSurfaceFmt.getFormatFromTextureName( baseName, True )
-                    if fmt == None:
-                        # not detected, fallback
-                        fmt = rTextureSurfaceFmt.BM_OPA
-            
-            convert = True
-            if inExt.lower() == 'dds':
-                # check if DDS format matches
-                fmtDDS = rTextureSurfaceFmt.getDDSFormat( fmt )
-                dds = DDSFile.fromFile( inPath )
-                if dds.header.ddspf.dwFourCC == fmtDDS:
-                    # don't need to convert to proper format
-                    convert = False
-                    
-            if convert:  
-                # convert file to DDS with texconv
-                fmtDDS = rTextureSurfaceFmt.getDDSFormat( fmt )
-                fmtDDSName = ''
-                if fmtDDS == DDS_FOURCC_DXT1:
-                    fmtDDSName = 'DXT1'
-                elif fmtDDS == DDS_FOURCC_DXT2:
-                    fmtDDSName = 'DXT2'
-                elif fmtDDS == DDS_FOURCC_DXT3:
-                    fmtDDSName = 'DXT3'
-                elif fmtDDS == DDS_FOURCC_DXT4:
-                    fmtDDSName = 'DXT4'
-                elif fmtDDS == DDS_FOURCC_DXT5:
-                    fmtDDSName = 'DXT5'
-                else:
-                    raise Exception("Unhandled dds format: " + str(fmtDDS))
+        convert = True
+        if inExt.lower() == 'dds':
+            # check if DDS format matches
+            fmtDDS = rTextureSurfaceFmt.getDDSFormat( fmt )
+            dds = DDSFile.fromFile( inPath )
+            if dds.header.ddspf.dwFourCC == fmtDDS:
+                # don't need to convert to proper format
+                convert = False
                 
-                maxlog.info( 'converting input {} to DDS {}'.format(inPath, inDDSPath))
-                maxlog.debug( 'DDS format: {}'.format( fmtDDSName ) )
-                maxlog.debug( '\ntexconv start')
-                texconv.texconv( inPath, outPath=inDDSBasePath, fileType='DDS', featureLevel=9.1, pow2=True, fmt=fmtDDSName, overwrite=True, srgb=True )
-                maxlog.debug( 'texconv end\n')
+        if convert:  
+            # convert file to DDS with texconv
+            fmtDDS = rTextureSurfaceFmt.getDDSFormat( fmt )
+            fmtDDSName = ''
+            if fmtDDS == DDS_FOURCC_DXT1:
+                fmtDDSName = 'DXT1'
+            elif fmtDDS == DDS_FOURCC_DXT2:
+                fmtDDSName = 'DXT2'
+            elif fmtDDS == DDS_FOURCC_DXT3:
+                fmtDDSName = 'DXT3'
+            elif fmtDDS == DDS_FOURCC_DXT4:
+                fmtDDSName = 'DXT4'
+            elif fmtDDS == DDS_FOURCC_DXT5:
+                fmtDDSName = 'DXT5'
+            else:
+                raise Exception("Unhandled dds format: " + str(fmtDDS))
             
-            maxlog.info('converting DDS {} to TEX {}'.format( inDDSPath, outPath ))
-            maxlog.debug('TEX format: {}'.format(fmt))
-            dds = DDSFile.fromFile( inDDSPath )
-            tex = rTextureData.fromDDS( dds )
-            tex.header.fmt.surfaceFmt = fmt
-            
-            # copy faces from original cubemap if needed
-            if origTex != None: 
-                for face in origTex.faces:
-                    tex.faces.append( face )
-            
+            maxlog.info( 'converting input {} to DDS {}'.format(inPath, inDDSPath))
+            maxlog.debug( 'DDS format: {}'.format( fmtDDSName ) )
+            maxlog.debug( '\ntexconv start')
+            texconv.texconv( inPath, outPath=inDDSBasePath, fileType='DDS', featureLevel=9.1, pow2=True, fmt=fmtDDSName, overwrite=True, srgb=True )
+            maxlog.debug( 'texconv end\n')
+        
+        maxlog.info('converting DDS {} to TEX {}'.format( inDDSPath, outPath ))
+        maxlog.debug('TEX format: {}'.format(fmt))
+        dds = DDSFile.fromFile( inDDSPath )
+        tex = rTextureData.fromDDS( dds )
+        tex.header.fmt.surfaceFmt = fmt
+        
+        # copy faces from original cubemap if needed
+        if origTex != None: 
+            for face in origTex.faces:
+                tex.faces.append( face )
+        
+        try:
             tex.saveBinaryFile( outPath )
+        except PermissionError as e:
+            maxlog.error( f"unable to save tex file, make sure you have write permissions to {outPath}" )
             
     def _processTextureMap( self, textureMap ):
         if textureMap != None and not textureMap in self._textureMapCache:
@@ -595,7 +588,10 @@ class MtModelExporter(object):
         maxlog.debug('writing binary model')
         stream = NclBitStream()
         binMod.write( stream )
-        util.saveByteArrayToFile( self.outPath.fullPath, stream.getBuffer() )
+        try:
+            util.saveByteArrayToFile( self.outPath.fullPath, stream.getBuffer() )
+        except PermissionError as e:
+            maxlog.error( f"unable to save mod file, make sure you have write permissions to {self.outPath.fullPath}" )
         
         if self.outPath.hash != None:
             mrlExportPath = self.outPath.basePath + '/' + self.outPath.baseName + '.2749c8a8.mrl' 
@@ -606,11 +602,18 @@ class MtModelExporter(object):
             mrlYmlExportPath = mrlExportPath + ".yml"
             maxlog.info(f"writing generated mrl yml to {mrlYmlExportPath}")
             self.mrl.updateTextureList()
-            self.mrl.saveYamlFile( mrlYmlExportPath )
+            try:
+                self.mrl.saveYamlFile( mrlYmlExportPath )
+            except PermissionError as e:
+                maxlog.error( f"unable to save mrl yml file, make sure you have write permissions to {mrlYmlExportPath}" )
             
         if mtmaxconfig.exportGenerateMrl or (mtmaxconfig.exportExistingMrlYml and self.mrl != None):
             maxlog.info(f'exporting mrl yml to {mrlExportPath}')
-            self.mrl.saveBinaryFile( mrlExportPath )
+            
+            try:
+                self.mrl.saveBinaryFile( mrlExportPath )
+            except PermissionError as e:
+                maxlog.error( f"unable to save mrl file, make sure you have write permissions to {mrlExportPath}" )
     
     def _calcTransformMtx( self ):
         mtx = nclCreateMat44()

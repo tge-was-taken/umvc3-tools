@@ -105,8 +105,8 @@ class MtModelImporter:
                 textureDDS = texture.toDDS()
                 try:
                     textureDDS.saveFile( textureDDSPath )
-                except:
-                    maxlog.info( f"ERROR: failed to save TEX file to DDS, make sure you have write permissions to: {textureDDSPath}" )
+                except PermissionError:
+                    maxlog.error( f"failed to save TEX file to DDS, make sure you have write permissions to: {textureDDSPath}" )
                         
             return rt.BitmapTexture( filename=textureDDSPath )
        
@@ -419,7 +419,10 @@ class MtModelImporter:
             if mtmaxconfig.importSaveMrlYml:
                 mrlYmlPath =  mrlName + '.yml'
                 maxlog.info(f'saving mrl yml to {mrlYmlPath}')
-                mtl.saveYamlFile( mrlYmlPath )
+                try:
+                    mtl.saveYamlFile( mrlYmlPath )
+                except PermissionError as e:
+                    maxlog.error( f"unable to save mrl yml file, make sure you have write permissions to {mrlExportPath}" )
         else:
             maxlog.warn(f'skipped loading mrl from {mrlName} because the file does not exist')
         

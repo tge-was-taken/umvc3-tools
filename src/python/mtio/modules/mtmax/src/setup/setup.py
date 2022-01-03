@@ -36,7 +36,6 @@ def parseMaxVersion( name ):
 def findSupportedMaxInstallDirs():
     autodeskDir = os.path.join( os.environ['ProgramFiles'], 'Autodesk' )
     installDirs = []
-    return installDirs
     for dir in os.scandir( autodeskDir ):
         if not dir.is_dir():
             continue

@@ -99,10 +99,15 @@ class MtModelImportRollout(MtRollout):
             maxlog.clear()
             importer = MtModelImporter()
             importer.importModel( mtmaxconfig.importFilePath )
-            mtmaxutil.showMessageBox( 'Import completed successfully' )
+            if maxlog.hasError():
+                mtmaxutil.showMessageBox( "Import completed with one or more errors. See the log or the MaxScript listener for more details." )
+            else:
+                mtmaxutil.showMessageBox( 'Import completed successfully' )
         except Exception as e:
             maxlog.exception( e )
-            mtmaxutil.showMessageBox( 'An error occured during import. See the log or the MaxScript listener for more details.', "Error" )
+            mtmaxutil.showMessageBox( 'A fatal error occured during import. See the log or the MaxScript listener for more details.', "Error" )
+            
+        
         
     @staticmethod
     def btnFilePressed():
@@ -212,7 +217,10 @@ class MtModelExportRollout(MtRollout):
             maxlog.clear()
             exporter = MtModelExporter()
             exporter.exportModel( mtmaxconfig.exportFilePath )
-            mtmaxutil.showMessageBox( 'Export completed successfully' )
+            if maxlog.hasError():
+                mtmaxutil.showMessageBox( "Export completed with one or more errors. See the log or the MaxScript listener for more details." )
+            else:
+                mtmaxutil.showMessageBox( 'Export completed successfully' )
         except Exception as e:
             maxlog.exception( e )
             mtmaxutil.showMessageBox( 'An error occured during export. See the log or the MaxScript listener for more details.', "Error" )

@@ -33,3 +33,8 @@ def showMessageBox( msg, title="Notice" ):
     
 def runMaxScript( name ):
     rt.fileIn( getScriptDir() + '/maxscript/' + name  )
+    
+def getAppDataDir():
+    path = os.path.expandvars( '%APPDATA%\\MtMax' )
+    os.makedirs( path, exist_ok=True )
+    return path

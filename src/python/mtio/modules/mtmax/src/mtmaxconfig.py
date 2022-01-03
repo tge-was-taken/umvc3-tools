@@ -2,6 +2,7 @@ import sys
 import yaml
 import os
 import importlib
+import mtmaxutil
 
 # general
 flipUpAxis = True
@@ -28,7 +29,7 @@ exportGroups = True
 exportSkeleton = True
 exportPrimitives = True
 exportPml = True
-exportExistingMrlYml = True
+exportExistingMrlYml = False
 exportRefPath = ''
 exportMrlYmlPath = ''
 exportUseRefJoints = True
@@ -45,7 +46,7 @@ def _getModule():
     return sys.modules[__name__]
 
 def _getSavePath():
-    return os.path.join(os.path.dirname(__file__), 'config.yml')
+    return os.path.join(mtmaxutil.getAppDataDir(), 'config.yml')
 
 def _getVariables():
     mod = _getModule()
