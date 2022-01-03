@@ -422,7 +422,7 @@ class MtModelImporter:
                 try:
                     mtl.saveYamlFile( mrlYmlPath )
                 except PermissionError as e:
-                    maxlog.error( f"unable to save mrl yml file, make sure you have write permissions to {mrlExportPath}" )
+                    maxlog.error( f"unable to save mrl yml file, make sure you have write permissions to {mrlYmlPath}" )
         else:
             maxlog.warn(f'skipped loading mrl from {mrlName} because the file does not exist')
         
