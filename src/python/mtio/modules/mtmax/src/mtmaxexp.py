@@ -52,6 +52,10 @@ class MtPrimitiveAttribData(object):
             self.renderFlags = None
             self.id = None
             self.field2c = None
+            
+            if maxNode.parent != None:
+                # even if no attribs are set, we should still inherit the group id if the mesh is parented to a group
+                self.groupId = MtGroupAttribData(maxNode.parent).id
 
 class MtJointAttribData(object):
     '''Wrapper for joint custom attribute data'''
