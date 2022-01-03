@@ -22,12 +22,16 @@ class imMaterialTextureInfo:
 class imMaterialCmd:
     Types = ['flag', 'cbuffer', 'samplerstate', 'texture']
     
-    def __init__( self ):
-        self.type = ""
-        self.name = ""
-        self.data = None
+    def __init__( self, type="", name="", data=None ):
+        self.type = type
+        self.name = name
+        self.data = data
         
 class imMaterialInfo:
+    DEFAULT_NORMAL_MAP = "default_NM"
+    DEFAULT_ALBEDO_MAP = "default_BM"
+    DEFAULT_SPECULAR_MAP = "default_MM"
+    
     def __init__( self ):
         self.type = ""
         self.name = ""
@@ -39,8 +43,79 @@ class imMaterialInfo:
         self.cmds = []
         
     @staticmethod
-    def createDefault( self ):
-        pass
+    def createDefault( name = "default_material", normalMap=DEFAULT_NORMAL_MAP, albedoMap=DEFAULT_ALBEDO_MAP, specularMap=DEFAULT_SPECULAR_MAP ):
+        mat = imMaterialInfo()
+        mat.type = 'nDraw::MaterialChar'
+        mat.name = name
+        mat.blendState = 'BSSolid'
+        mat.depthStencilState = 'DSZTestWriteStencilWrite'
+        mat.rasterizerState = 'RSMesh'
+        mat.cmdListFlags = 0x0
+        mat.matFlags = 0x8c800803
+        mat.cmds = [
+            imMaterialCmd( 'flag', 'FVertexDisplacement', 'FVertexDisplacement' ),
+            imMaterialCmd( 'flag', 'FUVTransformPrimary', 'FUVTransformPrimary' ),
+            imMaterialCmd( 'flag', 'FUVTransformSecondary', 'FUVTransformSecondary' ),
+            imMaterialCmd( 'flag', 'FUVTransformUnique', 'FUVTransformUnique' ),
+            imMaterialCmd( 'flag', 'FUVTransformExtend', 'FUVTransformExtend' ),
+            imMaterialCmd( 'flag', 'FBump', 'FBumpNormalMap' ),
+            imMaterialCmd( 'texture', 'tNormalMap', normalMap ),
+            imMaterialCmd( 'samplerstate', 'SSNormalMap', 'SSNormalMap' ),
+            imMaterialCmd( 'flag', 'FUVNormalMap', 'FUVPrimary' ),
+            imMaterialCmd( 'flag', 'FAlbedo', 'FAlbedoMap' ),
+            imMaterialCmd( 'cbuffer', '$Globals', [
+                0.0, 1.0, 1.0, 1.0, 
+                1.0, 1.0, 1.0, 1.0, 
+                1.0, 1.0, 1.0, 1.0, 
+                0.0, 0.6000000238418579, 0.009999999776482582, 1.0, 
+                4.0, 64.0, 0.0, 0.0, 
+                1.0, 1.0, 1.0, 0.0, 
+                1.0, 1.0, 1.0, 0.10000000149011612, 
+                1.0, 1.0, 0.0, 0.0, 
+                0.0, 0.0, 0.05000000074505806, 0.05000000074505806, 
+                1.0, 1.0, 1.0, 1.0, 
+                1.0, 1.0, 1.0, 16.0, 
+                0.5, 0.5, 0.5, 0.0, 
+                1.0, 1.0, 1.0, 1.0, 
+                1.0, 0.32899999618530273, 0.4746600091457367, 0.382999986410141, 
+                0.0, 1.0, 0.0, 1.0, 
+                0.33329999446868896, 1.0, 1.0, 0.20000000298023224, 
+                1.0, 1.0, 1.0, 0.0, 
+                1.0, 1.0, 1.0, 1.0, 
+                1.0, 0.0, 0.0, 0.0,  ]),
+            imMaterialCmd( 'texture', 'tAlbedoMap', albedoMap ),
+            imMaterialCmd( 'samplerstate', 'SSAlbedoMap', 'SSAlbedoMap' ),
+            imMaterialCmd( 'flag', 'FUVAlbedoMap', 'FUVPrimary' ),
+            imMaterialCmd( 'flag', 'FShininess', 'FShininess' ),
+            imMaterialCmd( 'flag', 'FLighting', 'FLighting' ),
+            imMaterialCmd( 'flag', 'FBRDF', 'FToonShaderHigh' ),
+            imMaterialCmd( 'cbuffer', 'CBToon2', [-0.3599950075149536, 80.0, 15.0, 0.0] ),
+            imMaterialCmd( 'flag', 'FToonLightCalc', 'FToonLightCalc' ),
+            imMaterialCmd( 'texture', 'tToonMap', 'UserShader\\toon_BM_HQ' ),
+            imMaterialCmd( 'flag', 'FCalcRimLight', 'FCalcRimLight' ),
+            imMaterialCmd( 'flag', 'FToonLightRevCalc', 'FToonLightRevCalc' ),
+            imMaterialCmd( 'texture', 'tToonRevMap', 'UserShader\\toonRev_BM_HQ' ),
+            imMaterialCmd( 'flag', 'FDiffuse', 'FDiffuseColorCorect' ),
+            imMaterialCmd( 'cbuffer', 'CBDiffuseColorCorect', [1.2200000286102295, 0.0, 0.0, 0.0] ),
+            imMaterialCmd( 'cbuffer', 'CBMaterial', [
+                1.0, 1.0, 1.0, 1.0, 
+                1.0, 1.0, 1.0, 10.0, 
+                1.0, 0.0, 0.0, 0.0, 
+                0.0, 1.0, 0.0, 0.0, 
+                1.0, 0.0, 0.0, 0.0, 
+                0.0, 1.0, 0.0, 0.0, 
+                1.0, 0.0, 0.0, 0.0, 
+                0.0, 1.0, 0.0, 0.0, ]),
+            imMaterialCmd( 'flag', 'FSpecular', 'FSpecularMaskToon' ),
+            imMaterialCmd( 'texture', 'tSpecularMap', specularMap ),
+            imMaterialCmd( 'samplerstate', 'SSSpecularMap', 'SSSpecularMap' ),
+            imMaterialCmd( 'flag', 'FUVSpecularMap', 'FUVPrimary' ),
+            imMaterialCmd( 'flag', 'FReflect', 'FReflect' ),
+            imMaterialCmd( 'flag', 'FFresnel', 'FFresnel' ),
+            imMaterialCmd( 'flag', 'FDistortion', 'FDistortion' ),
+            imMaterialCmd( 'flag', 'FTransparency', 'FTransparency' ),
+        ]
+        return mat
     
     def fixTextureMapPath( self, basePath, path ):
         return basePath + '/' + os.path.basename(path) + ".241f5deb.dds"
@@ -141,7 +216,7 @@ class imMaterialLib:
     def saveYamlIO( self, f ):
         def sanitize( s ):
             return s
-        
+    
         f.write("version: {}\n".format(imMaterialLib.VERSION))
         
         if self._needsExplicitTextureList():
@@ -169,7 +244,7 @@ class imMaterialLib:
                 else:
                     f.write( "            - [ {}, {}, {} ]\n".format( cmd.type, sanitize( cmd.name ), sanitize( cmd.data ) ) )
     
-    def saveYamlFile( self, path ):
+    def saveYamlFile( self, path ):        
         with open( path, "w" ) as f:
             self.saveYamlIO( f )
 
@@ -298,3 +373,17 @@ class imMaterialLib:
             if material.name == materialName:
                 return material
         return None
+    
+    def updateTextureList( self ):
+        texturePathSet = set()
+        for t in self.textures:
+            texturePathSet.add( t.path )
+        
+        for m in self.materials:
+            for cmd in m.cmds:
+                if cmd.type == 'texture' and cmd.data != None and len( cmd.data ) > 0 and not cmd.data in texturePathSet:
+                    tex = imMaterialTextureInfo()
+                    tex.path = cmd.data
+                    tex.type = 'rTexture'
+                    texturePathSet.add( tex.path )
+                    self.textures.append( tex )

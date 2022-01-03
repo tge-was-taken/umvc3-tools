@@ -47,14 +47,14 @@ fn mtCallPythonFunc module func args =
 		print code
 		python.execute code
 	) catch (
-		print( "Exception while calling python function " + module + "." + func + "(" + args + ")" + "\nException: " + getCurrentException() )
+		print( "Exception while calling python function " + module + "." + func + "(" + ( args as string ) + ")" + "\nException: " + (getCurrentException() as string) )
 	)
 )
 
 rollout MtInfoRollout "MT Framework Importer/Exporter"
 (
 	label lblTitle2 "Ultimate Marvel vs Capcom 3"
-	label lblVersion "Version 1.0.2 Beta" align:#center
+	label lblVersion "Version 1.0.3 Beta" align:#center
 	label lblAuthor "© 2021-2022 TGE" align:#center
 )
 
@@ -161,6 +161,10 @@ rollout MtModelExportRollout "Model export"
 	label lblFile "Output file" across:1 align:#left
 	edittext edtFile across:2 width:(_width() - 60) offset:[-0,0]
 	button btnFile "..." align:#right across:2 offset:[10,-2]
+
+	label lblRoot "Archive root path" across:1 align:#left
+	edittext edtRoot across:2 width:(_width() - 60) offset:[-0,0]
+	button btnRoot "..." align:#right across:2 offset:[10,-2]
 	
 	label lblRef "Reference/original model (optional)" across:1 align:#left
 	edittext edtRef across:2 width:(_width() - 60) offset:[-0,0]
@@ -169,10 +173,6 @@ rollout MtModelExportRollout "Model export"
 	label lblMetadata "Metadata (optional)" across:1 align:#left
 	edittext edtMetadata across:2 width:(_width() - 60) offset:[-0,0]
 	button btnMetadata "..." align:#right across:2 offset:[10,-2]
-	
-	label lblMrlYml "MRL yml (optional)" across:1 align:#left
-	edittext edtMrlYml across:2 width:(_width() - 60) offset:[-0,0]
-	button btnMrlYml "..." align:#right across:2 offset:[10,-2]
 	
 	group "Export filters" (
 		checkbox chkExportWeights "Weights" checked:true across:3 align:#center --offset:[0, 20]
@@ -183,10 +183,19 @@ rollout MtModelExportRollout "Model export"
 		checkbox chkExportPrimitives "Meshes" checked:true across:3 align:#center
 		label lblDummy ""
 	)
-	
+	group "Generate MRL" (
+		checkbox chkExportGenerateMrl "Enable" checked:true
+	)
+
+	group "Use existing MRL YML" (
+		checkbox chkExportMrl "Enable" checked:true
+		label lblMrlYml "File path" across:1 align:#left
+		edittext edtMrlYml across:2 width:(_width() - 60) offset:[-0,0]
+		button btnMrlYml "..." align:#right across:2 offset:[10,-2]
+	)
+
 	group "Additional options" (
 		checkbox chkExportTex "Convert textures to TEX" checked:true 
-		checkbox chkExportMrl "Convert MRL YML to MRL" checked:true
 	)
 	
 	button btnExport "Export" align:#center across:1;
@@ -212,5 +221,9 @@ rollout MtModelExportRollout "Model export"
 	on chkExportGroups		changed state	do emit #("chkExportGroupsChanged", state)
 	on chkExportSkeleton	changed state	do emit #("chkExportSkeletonChanged", state)
 	on chkExportPrimitives	changed state	do emit #("chkExportPrimitivesChanged", state)
-	
+	on chkExportGenerateMrl changed state	do emit #("chkExportGenerateMrlChanged", state)
+	on edtTextureRoot		changed state	do emit #("edtTextureRootChanged", state)
+	on btnTextureRoot		pressed			do emit #("btnTextureRootPressed")
+	on edtRoot				changed state	do emit #("edtRootChanged", state)
+	on btnRoot				pressed			do emit #("btnRootPressed")
 )

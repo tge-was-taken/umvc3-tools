@@ -1,4 +1,5 @@
 import os
+from posixpath import relpath
 import sys
 from typing import List, Tuple
 
@@ -336,17 +337,38 @@ class MtModelExporter(object):
             
             maxlog.info(f'processing texture: {textureMap.filename}')
             if os.path.exists(textureMap.filename):
+                relPath = self._getTextureMapRelPathOrDefault( textureMap, None )
+                fullPath = mtmaxconfig.exportRoot + '/' + relPath
+                
                 if self.outPath.hash != None:
-                    outTexPath = os.path.splitext(textureMap.filename)[0] + '.241f5deb.tex'
+                    texPath = fullPath + '.241f5deb.tex'
                 else:
-                    outTexPath = os.path.splitext(textureMap.filename)[0] + '.tex'
-                if not os.path.exists(outTexPath):
+                    texPath = fullPath + '.tex'
+                if not os.path.exists(texPath):
                     maxlog.info('converting texture to TEX')
-                    self._convertTextureToTEX( textureMap.filename, outTexPath, None, None )
+                    self._convertTextureToTEX( textureMap.filename, texPath, None, None )
                 else:
-                    maxlog.info(f'skipping texture conversion because {outTexPath} already exists')
+                    maxlog.info(f'skipping texture conversion because {texPath} already exists')
             else:
                 maxlog.info('skipping texture conversion because {textureMap.filename} does not exist')
+     
+    def _getTextureMapRelPathOrDefault( self, textureMap, default ):
+        if textureMap == None: return default
+        path = util.ResourcePath( textureMap.filename, rootPath=mtmaxconfig.exportRoot )
+        if self.outPath.relBasePath != None:
+            # take the relative directory path of the model and append the name of the texture
+            result = self.outPath.relBasePath + '/' + path.baseName
+        else:
+            # because the model output path is not relative to the root, we put the texture at the root
+            # the user will likely have to fix this
+            result = path.baseName
+        result = result.replace('/', '\\')
+        print(result)
+        return result
+                
+    def _getMaterialTextureMapRelPathOrDefault( self, material, textureMapName, default ):
+        if not hasattr(material, textureMapName) or getattr(material, textureMapName) == None: return default
+        return self._getTextureMapRelPathOrDefault( getattr(material, textureMapName), default )
      
     def _processMaterial( self, material ):
         if material not in self._materialCache:
@@ -354,6 +376,16 @@ class MtModelExporter(object):
             self._materialCache[material] = True
             
             maxlog.info(f'processing material: {material.name}')
+            
+            if mtmaxconfig.exportGenerateMrl:
+                self.mrl.materials.append(
+                    imMaterialInfo.createDefault( material.name, 
+                        normalMap=self._getMaterialTextureMapRelPathOrDefault( material, 'norm_map', imMaterialInfo.DEFAULT_NORMAL_MAP ),
+                        albedoMap=self._getMaterialTextureMapRelPathOrDefault( material, 'base_color_map', imMaterialInfo.DEFAULT_ALBEDO_MAP ),
+                        specularMap=self._getMaterialTextureMapRelPathOrDefault( material, 'specular_map', imMaterialInfo.DEFAULT_SPECULAR_MAP )
+                        )
+                    )
+            
             if mtmaxconfig.exportTexturesToTex:
                 if hasattr(material, 'base_color_map'): self._processTextureMap( material.base_color_map )
                 if hasattr(material, 'specular_map'): self._processTextureMap( material.specular_map )
@@ -420,7 +452,12 @@ class MtModelExporter(object):
                 tempMesh.positions.append( pos )
                 
                 if mtmaxconfig.exportNormals:
-                    nrm = self._convertMaxPoint3ToNclVec4( editNormalsMod.GetNormal( editNormalsMod.GetNormalId( i + 1, j + 1 ) ) )
+                    temp = editNormalsMod.GetNormal( editNormalsMod.GetNormalId( i + 1, j + 1 ) )
+                    if temp == None:
+                        # TODO figure out why this happens
+                        maxlog.debug(f"GetNormal on edit normals returned None at vertex index {vertIdx}")
+                        temp = rt.getNormal( maxMesh, vertIdx )
+                    nrm = self._convertMaxPoint3ToNclVec4( temp )
                 else:
                     nrm = self._convertMaxPoint3ToNclVec4( rt.getNormal( maxMesh, vertIdx ) )
                 nrm = nrm * self.transformMtx # needed with reference model
@@ -556,11 +593,18 @@ class MtModelExporter(object):
         binMod.write( stream )
         util.saveByteArrayToFile( self.outPath.fullPath, stream.getBuffer() )
         
-        if mtmaxconfig.exportMrlYml and self.mrl != None:
-            if self.outPath.hash != None:
-                mrlExportPath = self.outPath.basePath + '/' + self.outPath.baseName + '.2749c8a8.mrl' 
-            else:
-                mrlExportPath = self.outPath.basePath + '/' + self.outPath.baseName + '.mrl'
+        if self.outPath.hash != None:
+            mrlExportPath = self.outPath.basePath + '/' + self.outPath.baseName + '.2749c8a8.mrl' 
+        else:
+            mrlExportPath = self.outPath.basePath + '/' + self.outPath.baseName + '.mrl'
+            
+        if mtmaxconfig.exportGenerateMrl:
+            mrlYmlExportPath = mrlExportPath + ".yml"
+            maxlog.info(f"writing generated mrl yml to {mrlYmlExportPath}")
+            self.mrl.updateTextureList()
+            self.mrl.saveYamlFile( mrlYmlExportPath )
+            
+        if mtmaxconfig.exportGenerateMrl or (mtmaxconfig.exportExistingMrlYml and self.mrl != None):
             maxlog.info(f'exporting mrl yml to {mrlExportPath}')
             self.mrl.saveBinaryFile( mrlExportPath )
     
@@ -583,7 +627,7 @@ class MtModelExporter(object):
         
         # start building intermediate model data for conversion
         self.model = imModel()
-        self.outPath = util.ResourcePath(path)
+        self.outPath = util.ResourcePath(path, rootPath=mtmaxconfig.exportRoot)
         self.metadata = ModelMetadata()
         self.mrl = None
         self.transformMtx = self._calcTransformMtx()
@@ -601,6 +645,9 @@ class MtModelExporter(object):
             maxlog.info(f'loading mrl yml from {mtmaxconfig.exportMrlYmlPath}')
             self.mrl = imMaterialLib()
             self.mrl.loadYamlFile( mtmaxconfig.exportMrlYmlPath )
+        elif mtmaxconfig.exportGenerateMrl:
+            maxlog.info(f'generating new mrl')
+            self.mrl = imMaterialLib()
 
         maxlog.info('processing scene')
         if self.ref != None and mtmaxconfig.exportUseRefBounds:

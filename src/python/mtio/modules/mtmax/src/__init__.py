@@ -155,7 +155,14 @@ class MtModelImportRollout(MtRollout):
 class MtModelExportRollout(MtRollout):
     @staticmethod
     def updateVisibility():
-        rt.MtModelExportRollout.btnExport.enabled = mtmaxconfig.exportFilePath.strip() != ''
+        self = MtModelExportRollout.getMxsVar()
+        self.btnExport.enabled = mtmaxconfig.exportFilePath.strip() != ''
+        self.edtMrlYml.enabled = not mtmaxconfig.exportGenerateMrl and mtmaxconfig.exportExistingMrlYml
+        self.btnMrlYml.enabled = not mtmaxconfig.exportGenerateMrl and mtmaxconfig.exportExistingMrlYml
+        self.chkExportMrl.enabled = not mtmaxconfig.exportGenerateMrl
+        #self.edtTextureRoot.enabled = not mtmaxconfig.exportExistingMrlYml and mtmaxconfig.exportGenerateMrl
+        #self.btnTextureRoot.enabled = not mtmaxconfig.exportExistingMrlYml and mtmaxconfig.exportGenerateMrl
+        self.chkExportGenerateMrl.enabled = not mtmaxconfig.exportExistingMrlYml
     
     @staticmethod
     def loadConfig():
@@ -164,13 +171,16 @@ class MtModelExportRollout(MtRollout):
         self.edtMetadata.text = mtmaxconfig.exportMetadataPath
         self.edtRef.text = mtmaxconfig.exportRefPath
         self.edtMrlYml.text = mtmaxconfig.exportMrlYmlPath
+        self.edtRoot.text = mtmaxconfig.exportRoot
+        #self.edtTextureRoot.text = mtmaxconfig.exportTextureRoot
         self.chkExportWeights.checked = mtmaxconfig.exportWeights
         self.chkExportNormals.checked = mtmaxconfig.exportNormals
         self.chkExportGroups.checked = mtmaxconfig.exportGroups
         self.chkExportSkeleton.checked = mtmaxconfig.exportSkeleton
         self.chkExportPrimitives.checked = mtmaxconfig.exportPrimitives
         self.chkExportTex.checked = mtmaxconfig.exportTexturesToTex
-        self.chkExportMrl.checked = mtmaxconfig.exportMrlYml
+        self.chkExportMrl.checked = mtmaxconfig.exportExistingMrlYml
+        self.chkExportGenerateMrl.checked = mtmaxconfig.exportGenerateMrl
         MtModelExportRollout.updateVisibility()
         
     @staticmethod
@@ -273,7 +283,7 @@ class MtModelExportRollout(MtRollout):
         
     @staticmethod
     def chkExportMrlChanged( state ):
-        mtmaxconfig.exportMrlYml = state
+        mtmaxconfig.exportExistingMrlYml = state
         
     @staticmethod
     def chkExportPrimitivesChanged( state ):
@@ -282,6 +292,36 @@ class MtModelExportRollout(MtRollout):
     @staticmethod
     def chkExportWeightsChanged( state ):
         mtmaxconfig.exportWeights = state
+        
+    @staticmethod
+    def chkExportGenerateMrlChanged( state ):
+        mtmaxconfig.exportGenerateMrl = state
+        
+    @staticmethod
+    def edtTextureRootChanged( state ):
+        mtmaxconfig.exportTextureRoot = state
+        
+    @staticmethod
+    def btnTextureRootPressed():
+        path = rt.getSavePath( caption="Select a folder", initialDir=os.path.dirname(mtmaxconfig.exportFilePath) )
+        if path == None:
+            path = ''
+        
+        mtmaxconfig.exportTextureRoot = os.path.abspath( path ).replace( "\\", "/" )
+        MtModelExportRollout.loadConfig()
+        
+    @staticmethod
+    def edtRootChanged( state ):
+        mtmaxconfig.exportRoot = state
+        
+    @staticmethod
+    def btnRootPressed():
+        path = rt.getSavePath( caption="Select a folder", initialDir=os.path.dirname(mtmaxconfig.exportFilePath) )
+        if path == None:
+            path = ''
+        
+        mtmaxconfig.exportRoot = os.path.abspath( path ).replace( "\\", "/" )
+        MtModelExportRollout.loadConfig()
 
         
 class MtLogRollout(MtRollout):

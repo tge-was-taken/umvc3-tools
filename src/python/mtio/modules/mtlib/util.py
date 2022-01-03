@@ -26,6 +26,7 @@ def loadIntoByteArray( path ):
 def saveByteArrayToFile( path, buffer ):
     '''Saves the given byte array to the specified file'''
     
+    os.makedirs( os.path.dirname( path ), exist_ok=True )
     with open( path, "wb" ) as f:
         f.write( buffer )
 
@@ -155,9 +156,11 @@ def isResourceFilePathWithHash( path ):
     return re.match(r"\w+\.([0-9]|[a-f]|[A-F])+\.\w{3}", path)
 
 class ResourcePath:
-    def __init__( self, fullPath ):
-        self.fullPath = fullPath
+    def __init__( self, fullPath, rootPath=None ):
+        self.fullPath = os.path.abspath( fullPath ).replace("\\", "/")
         self.basePath, self.fullName = os.path.split(fullPath)
+        self.basePath = self.basePath.replace("\\", "/")
+        
         nameParts = self.fullName.split('.')
         self.baseName = nameParts[0]
         self.hash = None
@@ -168,6 +171,25 @@ class ResourcePath:
             self.ext = nameParts[2]
         else:
             raise Exception("Invalid path: " + fullPath)
+        
+        self.fullPathNoExt = self.basePath + '/' + self.baseName
+        
+        self.relPath = None
+        self.relBasePath = None
+        self.relPathNoExt = None
+        
+        if rootPath != None:
+            rootPath = os.path.abspath( rootPath ).replace("\\", "/")
+            pathRootIndex = self.fullPath.find( rootPath )
+            if pathRootIndex == 0 and self.fullPath[len(rootPath)] == '/':
+                # root folder found in path
+                self.relPath = self.fullPath[len(rootPath)+1:]
+                self.relBasePath = self.basePath[len(rootPath)+1:]
+                self.relPathNoExt = self.fullPathNoExt[len(rootPath)+1:]
+            else:
+                # no root folder found in path
+                pass
+
     
 def resolveTexturePath( basePath, texturePath ):
     # load TEX and convert to DDS before loading the model
@@ -216,3 +238,7 @@ def transformMatrixToYUp( mtx ):
     
 def isValidByteIndex( idx ):
     return idx not in [255, -1]
+
+if __name__ == '__main__':
+    test = ResourcePath("X:\\game\\platform\\pc\\Ultimate Marvel vs. Capcom 3\\nativePCx64\\chr\\archive\\0045_00 - falcon\\chr\\Nova\\model\\1p\\Nova.58a15856.mod")
+    pass

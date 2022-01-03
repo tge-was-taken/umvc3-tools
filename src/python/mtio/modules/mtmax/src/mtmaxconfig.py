@@ -28,13 +28,16 @@ exportGroups = True
 exportSkeleton = True
 exportPrimitives = True
 exportPml = True
-exportMrlYml = True
+exportExistingMrlYml = True
 exportRefPath = ''
 exportMrlYmlPath = ''
 exportUseRefJoints = True
 exportUseRefPml = True
 exportUseRefBounds = True
 exportUseRefGroups = True
+exportGenerateMrl = True
+exportTextureRoot = ''
+exportRoot = ''
 
 def _getModule():
     if not __name__ in sys.modules:
