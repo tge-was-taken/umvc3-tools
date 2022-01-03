@@ -58,7 +58,7 @@ rollout MtInfoRollout "MT Framework Importer/Exporter"
 	label lblAuthor "© 2021-2022 TGE" align:#center
 )
 
-rollout MtSettingsRollout "Settings"
+rollout MtSettingsRollout "Global settings"
 (
 	checkbox chkFlipUpAxis "Flip up axis" checked:true align:#left;
 	spinner spnScale "Scale" range:[0,1000000,1] align:#left;

@@ -7,6 +7,7 @@ def getScriptDir():
 
 sys.path.append( os.path.realpath( os.path.dirname( __file__ ) + "/../" ) )
 from modules.mtlib import *
+from modules.mtlib import texconv
 
 def processFile( inPath, outPath, origPath, forcedFormat ):
     basePath, baseName, exts = util.splitPath( inPath )
@@ -50,7 +51,7 @@ def processFile( inPath, outPath, origPath, forcedFormat ):
         if outExt != 'dds':
             # try to convert with texconv
             print('\texconv start')
-            texconv( outPath, outPath=outBasePath, fileType=outExt, pow2=False, fmt='RGBA', srgb=True)
+            texconv.texconv( outPath, outPath=outBasePath, fileType=outExt, pow2=False, fmt='RGBA', srgb=True)
             print('texconv end\n')
     else:
         if outExt != 'tex':
@@ -96,7 +97,7 @@ def processFile( inPath, outPath, origPath, forcedFormat ):
             print( 'converting input {} to DDS {}'.format(inPath, inDDSPath))
             print( 'DDS format: {}'.format( fmtDDSName ) )
             print( '\ntexconv start')
-            texconv( inPath, outPath=inDDSBasePath, fileType='DDS', featureLevel=9.1, pow2=True, fmt=fmtDDSName, overwrite=True, srgb=True )
+            texconv.texconv( inPath, outPath=inDDSBasePath, fileType='DDS', featureLevel=9.1, pow2=True, fmt=fmtDDSName, overwrite=True, srgb=True )
             print( 'texconv end\n')
         
         print('converting DDS {} to TEX {}'.format( inDDSPath, outPath ))
