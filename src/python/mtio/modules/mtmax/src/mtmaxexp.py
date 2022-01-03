@@ -147,6 +147,10 @@ class MtModelExporter(object):
         # node is considered a bone node of it's bone geometry (helper)
         # TODO: investigate otehr possible types (Biped, ...?)
         return rt.classOf( node ) == rt.BoneGeometry
+    
+    def _getObjects( self ):
+        # return a list of scene objects as opposed to enumerating directly to prevent crashes
+        return list( rt.objects )
 
     def _processBone( self, maxNode ): 
         assert( self._isBoneNode( maxNode ) )
@@ -222,7 +226,7 @@ class MtModelExporter(object):
                 joint.symmetry = self.model.joints[refJoint.symmetryIndex] if refJoint.symmetryIndex != 255 else None
         else:
             # process all bones in the scene
-            for maxNode in rt.objects:
+            for maxNode in self._getObjects():
                 if not self._shouldExportNode( maxNode ) or not self._isBoneNode( maxNode ):
                     continue
 
@@ -347,7 +351,7 @@ class MtModelExporter(object):
                 else:
                     maxlog.info(f'skipping texture conversion because {texPath} already exists')
             else:
-                maxlog.info('skipping texture conversion because {textureMap.filename} does not exist')
+                maxlog.info(f'skipping texture conversion because {textureMap.filename} does not exist')
      
     def _getTextureMapRelPathOrDefault( self, textureMap, default ):
         if textureMap == None: return default
@@ -409,6 +413,11 @@ class MtModelExporter(object):
             rt.select( maxNode )
             maxSkin = rt.modPanel.getCurrentObject()
             hasSkin = rt.isKindOf( maxSkin, rt.Skin )
+            if hasSkin:
+                # fix unrigged vertices
+                maxSkin.weightAllVertices = False
+                maxSkin.weightAllVertices = True
+                rt.skinOps.removeZeroWeights( maxSkin )
         else:
             hasSkin = False
 
@@ -452,7 +461,7 @@ class MtModelExporter(object):
                     temp = editNormalsMod.GetNormal( editNormalsMod.GetNormalId( i + 1, j + 1 ) )
                     if temp == None:
                         # TODO figure out why this happens
-                        maxlog.debug(f"GetNormal on edit normals returned None at vertex index {vertIdx}")
+                        # my guess is that it only returns normals that have been explicitly set with the modifier
                         temp = rt.getNormal( maxMesh, vertIdx )
                     nrm = self._convertMaxPoint3ToNclVec4( temp )
                 else:
@@ -509,7 +518,7 @@ class MtModelExporter(object):
         
         # convert meshes
         maxlog.info('processing meshes')
-        for maxNode in rt.objects:
+        for maxNode in self._getObjects():
             if not self._shouldExportNode( maxNode ) or not self._isMeshNode( maxNode ):
                 continue
             
@@ -537,7 +546,7 @@ class MtModelExporter(object):
                 self.model.groups.append(group)
         else:
             # process all groups in the scene
-            for maxNode in rt.objects:
+            for maxNode in self._getObjects():
                 if not self._shouldExportNode( maxNode ) or not self._isGroupNode( maxNode ):
                     continue
                 

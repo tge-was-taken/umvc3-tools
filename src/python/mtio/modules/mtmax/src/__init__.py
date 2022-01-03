@@ -161,7 +161,7 @@ class MtModelExportRollout(MtRollout):
     @staticmethod
     def updateVisibility():
         self = MtModelExportRollout.getMxsVar()
-        self.btnExport.enabled = mtmaxconfig.exportFilePath.strip() != ''
+        self.btnExport.enabled = mtmaxconfig.exportFilePath.strip() != '' and mtmaxconfig.exportRoot.strip() != ''
         self.edtMrlYml.enabled = not mtmaxconfig.exportGenerateMrl and mtmaxconfig.exportExistingMrlYml
         self.btnMrlYml.enabled = not mtmaxconfig.exportGenerateMrl and mtmaxconfig.exportExistingMrlYml
         self.chkExportMrl.enabled = not mtmaxconfig.exportGenerateMrl
@@ -343,9 +343,11 @@ class MtUtilitiesRollout(MtRollout):
         pass
 
     def _addAttributeToSelection(attr):
-        if len(rt.selection) == 0:
+        selection = list(rt.selection)
+        
+        if len(selection) == 0:
             return
-        for node in rt.selection: 
+        for node in selection: 
             rt.custAttributes.add( node, attr )
 
     @staticmethod
