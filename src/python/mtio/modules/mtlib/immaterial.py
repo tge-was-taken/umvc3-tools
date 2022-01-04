@@ -130,6 +130,11 @@ class imMaterialInfo:
                 if cmd.name == cmdName:
                     return cmd.data
         return ""
+    
+    def iterTextures( self ):
+        for cmd in self.cmds:
+            if cmd.type == 'texture':
+                yield cmd.data
         
 class imMaterialLib:
     VERSION = 1

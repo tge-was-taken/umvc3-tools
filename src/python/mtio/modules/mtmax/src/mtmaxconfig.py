@@ -40,6 +40,9 @@ exportGenerateMrl = True
 exportTextureRoot = ''
 exportRoot = ''
 
+# debug settings
+debugForcePhysicalMaterial = False
+
 def _getModule():
     if not __name__ in sys.modules:
         importlib.import_module(__name__)

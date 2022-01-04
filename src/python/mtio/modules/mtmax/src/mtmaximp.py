@@ -407,6 +407,33 @@ class MtModelImporter:
             maxBone = self.maxBoneArray[ i ]
             self._addJointAttribs( joint, maxBone )
             
+    def convertMaterial_PBRSpecGloss( self, material: imMaterialInfo, materialName: str ): 
+        maxMaterial =  rt.PBRSpecGloss()
+        maxMaterial.name = materialName
+        maxMaterial.showInViewport = True
+        maxMaterial.backfaceCull = True
+    
+        if material != None:
+            maxMaterial.base_color_map = self.loadTextureSlot( material, 'tAlbedoMap' )
+            maxMaterial.specular_map = self.loadTextureSlot( material, 'tSpecularMap' )
+            maxMaterial.norm_map = self.loadTextureSlot( material, 'tNormalMap' )
+            maxMaterial.bump_map_amt = 0 # don't display because it won't look right due to swapped channels
+        return maxMaterial
+    
+    def convertMaterial_PhysicalMaterial( self, material: imMaterialInfo, materialName: str ):
+        maxMaterial =  rt.PhysicalMaterial()
+        maxMaterial.name = materialName
+        maxMaterial.showInViewport = True
+        maxMaterial.backfaceCull = True
+    
+        if material != None:
+            maxMaterial.base_color_map = self.loadTextureSlot( material, 'tAlbedoMap' )
+            maxMaterial.metalness_map = self.loadTextureSlot( material, 'tSpecularMap' )
+            maxMaterial.bump_map = rt.Normal_Bump()
+            maxMaterial.bump_map.normal = self.loadTextureSlot( material, 'tNormalMap' )
+            maxMaterial.bump_map.mult_spin = 0 # don't display because it won't look right due to swapped channels
+        return maxMaterial
+            
     def importMaterials( self ):
         maxlog.info('importing materials')
         
@@ -430,18 +457,16 @@ class MtModelImporter:
         for i, materialName in enumerate( self.model.materials ):
             maxlog.info(f'importing material {materialName}')
             material = mtl.getMaterialByName( materialName )
-            maxMaterial = rt.PBRSpecGloss()
-            maxMaterial.name = materialName
-            maxMaterial.showInViewport = True
-            maxMaterial.backfaceCull = True
-        
             if material == None:
                 maxlog.warn( "model references material {} that does not exist in the mrl".format( materialName ) )
+            
+            if hasattr(rt, 'PBRSpecGloss') and not mtmaxconfig.debugForcePhysicalMaterial:
+                # sometimes not available? reported to be missing on 2022 24.0.0.923
+                maxMaterial = self.convertMaterial_PBRSpecGloss( material, materialName )
             else:
-                maxMaterial.base_color_map = self.loadTextureSlot( material, 'tAlbedoMap' )
-                maxMaterial.specular_map = self.loadTextureSlot( material, 'tSpecularMap' )
-                # dont assign normal map because it doesn't display properly
-                #maxMaterial.norm_map = self.loadTextureSlot( material, 'tNormalMap' )
+                maxMaterial = self.convertMaterial_PhysicalMaterial( material, materialName )
+            
+            if material != None:                    
                 rt.custAttributes.add( maxMaterial, rt.mtMaterialAttributesInstance )
                 maxMaterial.mtMaterialAttributes.type = material.type
                 maxMaterial.mtMaterialAttributes.depthStencilState = material.depthStencilState

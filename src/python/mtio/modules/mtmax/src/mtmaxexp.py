@@ -332,29 +332,35 @@ class MtModelExporter(object):
         except PermissionError as e:
             maxlog.error( f"unable to save tex file, make sure you have write permissions to {outPath}" )
             
-    def _processTextureMap( self, textureMap ):
+    def _exportTextureMap( self, textureMap ):
         if textureMap != None and not textureMap in self._textureMapCache:
             # add to cache
             self._textureMapCache[textureMap] = True
             
-            maxlog.info(f'processing texture: {textureMap.filename}')
-            if os.path.exists(textureMap.filename):
-                relPath = self._getTextureMapRelPathOrDefault( textureMap, None )
-                fullPath = mtmaxconfig.exportRoot + '/' + relPath
-                
-                if self.outPath.hash != None:
-                    texPath = fullPath + '.241f5deb.tex'
+            if rt.classOf( textureMap ) in [rt.Bitmap, rt.Bitmaptexture]:
+                maxlog.info(f'processing texture: {textureMap.filename}')
+                if os.path.exists(textureMap.filename):
+                    relPath = self._getTextureMapResourcePathOrDefault( textureMap, None )
+                    fullPath = mtmaxconfig.exportRoot + '/' + relPath
+                    
+                    if self.outPath.hash != None:
+                        texPath = fullPath + '.241f5deb.tex'
+                    else:
+                        texPath = fullPath + '.tex'
+                    if not os.path.exists(texPath):
+                        maxlog.info('converting texture to TEX')
+                        self._convertTextureToTEX( textureMap.filename, texPath, None, None )
+                    else:
+                        maxlog.info(f'skipping texture conversion because {texPath} already exists')
                 else:
-                    texPath = fullPath + '.tex'
-                if not os.path.exists(texPath):
-                    maxlog.info('converting texture to TEX')
-                    self._convertTextureToTEX( textureMap.filename, texPath, None, None )
-                else:
-                    maxlog.info(f'skipping texture conversion because {texPath} already exists')
+                    maxlog.info(f'skipping texture conversion because {textureMap.filename} does not exist')
+            elif rt.classOf( textureMap ) == rt.Normal_Bump:
+                self._exportTextureMap( textureMap.normal_map )
+                self._exportTextureMap( textureMap.bump_map )
             else:
-                maxlog.info(f'skipping texture conversion because {textureMap.filename} does not exist')
+                maxlog.warn(f'unknown texture map type: {rt.classOf( textureMap )}')
      
-    def _getTextureMapRelPathOrDefault( self, textureMap, default ):
+    def _getTextureMapResourcePathOrDefault( self, textureMap, default ):
         if textureMap == None: return default
         path = util.ResourcePath( textureMap.filename, rootPath=mtmaxconfig.exportRoot )
         if self.outPath.relBasePath != None:
@@ -365,12 +371,94 @@ class MtModelExporter(object):
             # the user will likely have to fix this
             result = path.baseName
         result = result.replace('/', '\\')
-        print(result)
         return result
+    
+    def _copyUsedDefaultTexturesToOutput( self, material ):
+        for map in material.iterTextures():
+            if imMaterialInfo.isDefaultTextureMap( map ):
+                # make sure to export the default textures whenever they are used
+                defaultMapTexPath = os.path.join( util.getResourceDir(), 'textures', map + ".tex" )
                 
-    def _getMaterialTextureMapRelPathOrDefault( self, material, textureMapName, default ):
-        if not hasattr(material, textureMapName) or getattr(material, textureMapName) == None: return default
-        return self._getTextureMapRelPathOrDefault( getattr(material, textureMapName), default )
+                # always expected to be at the root
+                defaultMapTexExportPath = os.path.join( mtmaxconfig.exportRoot, map + '.tex' ) if self.outPath.hash == None else \
+                                            os.path.join( mtmaxconfig.exportRoot, map + '.241f5deb.tex' )
+
+                shutil.copy( defaultMapTexPath, defaultMapTexExportPath )
+    
+    def _processMaterial_PBRSpecGloss( self, material ):
+        assert rt.classOf( material ) == rt.PBRSpecGloss
+        
+        materialInstance = None
+        if mtmaxconfig.exportGenerateMrl:
+            # create material instance
+            normalMap = self._getTextureMapResourcePathOrDefault( material.norm_map, imMaterialInfo.DEFAULT_NORMAL_MAP )
+            albedoMap = self._getTextureMapResourcePathOrDefault( material.base_color_map, imMaterialInfo.DEFAULT_ALBEDO_MAP )
+            specularMap = self._getTextureMapResourcePathOrDefault( material.specular_map, imMaterialInfo.DEFAULT_SPECULAR_MAP )
+            materialInstance = imMaterialInfo.createDefault( material.name, 
+                normalMap=normalMap,
+                albedoMap=albedoMap,
+                specularMap=specularMap,
+            )
+
+        if mtmaxconfig.exportTexturesToTex:
+            self._exportTextureMap( material.base_color_map )
+            self._exportTextureMap( material.specular_map )
+            self._exportTextureMap( material.glossiness_map )
+            self._exportTextureMap( material.ao_map )
+            self._exportTextureMap( material.norm_map )
+            self._exportTextureMap( material.emit_color_map )
+            self._exportTextureMap( material.opacity_map )
+            self._exportTextureMap( material.displacement_map )
+            
+        return materialInstance
+    
+    def _processMaterial_PhysicalMaterial( self, material ):
+        assert rt.classOf( material ) == rt.PhysicalMaterial
+        
+        materialInstance = None
+        if mtmaxconfig.exportGenerateMrl:
+            # create material instance
+            if material.bump_map != None and rt.classOf( material.bump_map ) == rt.Normal_Bump:
+                normalMap = self._getTextureMapResourcePathOrDefault( material.bump_map.normal, imMaterialInfo.DEFAULT_NORMAL_MAP )
+            else:
+                # TODO handle different normal map assignments?
+                normalMap = imMaterialInfo.DEFAULT_NORMAL_MAP
+            
+            albedoMap = self._getTextureMapResourcePathOrDefault( material.base_color_map, imMaterialInfo.DEFAULT_ALBEDO_MAP )
+            # TODO is metalness correct for specular?
+            specularMap = self._getTextureMapResourcePathOrDefault( material.metalness_map, imMaterialInfo.DEFAULT_SPECULAR_MAP )
+            materialInstance = imMaterialInfo.createDefault( material.name, 
+                normalMap=normalMap,
+                albedoMap=albedoMap,
+                specularMap=specularMap,
+            )
+
+        if mtmaxconfig.exportTexturesToTex:
+            self._exportTextureMap( material.base_weight_map )
+            self._exportTextureMap( material.base_color_map )
+            self._exportTextureMap( material.reflectivity_map )
+            self._exportTextureMap( material.refl_color_map )
+            self._exportTextureMap( material.metalness_map )
+            self._exportTextureMap( material.diff_rough_map )
+            self._exportTextureMap( material.anisotropy_map )
+            self._exportTextureMap( material.aniso_angle_map )
+            self._exportTextureMap( material.transparency_map )
+            self._exportTextureMap( material.trans_color_map )
+            self._exportTextureMap( material.trans_rough_map )
+            self._exportTextureMap( material.trans_ior_map )
+            self._exportTextureMap( material.scattering_map )
+            self._exportTextureMap( material.sss_color_map )
+            self._exportTextureMap( material.sss_scale_map )
+            self._exportTextureMap( material.emission_map )
+            self._exportTextureMap( material.emit_color_map )
+            self._exportTextureMap( material.coat_map )
+            self._exportTextureMap( material.coat_color_map )
+            self._exportTextureMap( material.bump_map )
+            self._exportTextureMap( material.coat_rough_map )
+            self._exportTextureMap( material.displacement_map )
+            self._exportTextureMap( material.cutout_map )
+            
+        return materialInstance
      
     def _processMaterial( self, material ):
         if material not in self._materialCache:
@@ -378,43 +466,16 @@ class MtModelExporter(object):
             self._materialCache[material] = True
             
             maxlog.info(f'processing material: {material.name}')
+            if rt.classOf( material ) == rt.PBRSpecGloss:
+                materialInstance = self._processMaterial_PBRSpecGloss( material )
+            elif rt.classOf( material ) == rt.PhysicalMaterial:
+                materialInstance = self._processMaterial_PhysicalMaterial( material )
+            else:
+                maxlog.error( f"unsupported material type: {rt.classOf( material )}" )
+                return
             
-            if mtmaxconfig.exportGenerateMrl:
-                # create material instance
-                normalMap = self._getMaterialTextureMapRelPathOrDefault( material, 'norm_map', imMaterialInfo.DEFAULT_NORMAL_MAP )
-                albedoMap = self._getMaterialTextureMapRelPathOrDefault( material, 'base_color_map', imMaterialInfo.DEFAULT_ALBEDO_MAP )
-                specularMap = self._getMaterialTextureMapRelPathOrDefault( material, 'specular_map', imMaterialInfo.DEFAULT_SPECULAR_MAP )
-                materialInstance = imMaterialInfo.createDefault( material.name, 
-                    normalMap=normalMap,
-                    albedoMap=albedoMap,
-                    specularMap=specularMap,
-                )
-                
-                maps = [normalMap, albedoMap, specularMap]
-                for map in maps:
-                    if imMaterialInfo.isDefaultTextureMap( map ):
-                        # make sure to export the default textures whenever they are used
-                        defaultMapTexPath = os.path.join( util.getResourceDir(), 'textures', map + ".tex" )
-                        
-                        # always expected to be at the root
-                        defaultMapTexExportPath = os.path.join( mtmaxconfig.exportRoot, map + '.tex' ) if self.outPath.hash == None else \
-                                                  os.path.join( mtmaxconfig.exportRoot, map + '.241f5deb.tex' )
-    
-                        shutil.copy( defaultMapTexPath, defaultMapTexExportPath )
-
-                
-                self.mrl.materials.append( materialInstance )
-
-            
-            if mtmaxconfig.exportTexturesToTex:
-                if hasattr(material, 'base_color_map'): self._processTextureMap( material.base_color_map )
-                if hasattr(material, 'specular_map'): self._processTextureMap( material.specular_map )
-                if hasattr(material, 'glossiness_map' ): self._processTextureMap( material.glossiness_map )
-                if hasattr(material, 'ao_map' ): self._processTextureMap( material.ao_map )
-                if hasattr(material, 'norm_map' ): self._processTextureMap( material.norm_map )
-                if hasattr(material, 'emit_color_map' ): self._processTextureMap( material.emit_color_map )
-                if hasattr(material, 'opacity_map' ): self._processTextureMap( material.opacity_map )
-                if hasattr(material, 'displacement_map' ): self._processTextureMap( material.displacement_map )
+            self._copyUsedDefaultTexturesToOutput( materialInstance )
+            self.mrl.materials.append( materialInstance )
                 
     def _getMaterialName( self, material ):
         if material == None:
@@ -428,8 +489,6 @@ class MtModelExporter(object):
             
         if mtmaxconfig.exportWeights:
             maxlog.debug('getting skin modifier')
-            #rt.execute('max modify mode')
-            #rt.select( maxNode )
             maxSkin = maxNode.modifiers[rt.Name('Skin')]
             hasSkin = maxSkin != None
             if hasSkin:
