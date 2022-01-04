@@ -735,6 +735,11 @@ class MtModelExporter(object):
         elif mtmaxconfig.exportGenerateMrl:
             maxlog.info(f'generating new mrl')
             self.mrl = imMaterialLib()
+            
+        if not os.path.exists( mtmaxconfig.exportRoot ):
+            os.makedirs( mtmaxconfig.exportRoot )
+        if not os.path.exists( mtmaxconfig.exportFilePath ):
+            os.makedirs( mtmaxconfig.exportFilePath )
 
         maxlog.info('processing scene')
         if self.ref != None and mtmaxconfig.exportUseRefBounds:
