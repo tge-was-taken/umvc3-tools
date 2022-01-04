@@ -9,6 +9,7 @@ import mtmaxconfig
 import mtmaxutil
 from mtlib import texconv
 import maxlog
+import shutil
 
 def _tryParseInt(input, base=10, default=None):
     try:
@@ -379,13 +380,31 @@ class MtModelExporter(object):
             maxlog.info(f'processing material: {material.name}')
             
             if mtmaxconfig.exportGenerateMrl:
-                self.mrl.materials.append(
-                    imMaterialInfo.createDefault( material.name, 
-                        normalMap=self._getMaterialTextureMapRelPathOrDefault( material, 'norm_map', imMaterialInfo.DEFAULT_NORMAL_MAP ),
-                        albedoMap=self._getMaterialTextureMapRelPathOrDefault( material, 'base_color_map', imMaterialInfo.DEFAULT_ALBEDO_MAP ),
-                        specularMap=self._getMaterialTextureMapRelPathOrDefault( material, 'specular_map', imMaterialInfo.DEFAULT_SPECULAR_MAP )
-                        )
-                    )
+                # create material instance
+                normalMap = self._getMaterialTextureMapRelPathOrDefault( material, 'norm_map', imMaterialInfo.DEFAULT_NORMAL_MAP )
+                albedoMap = self._getMaterialTextureMapRelPathOrDefault( material, 'base_color_map', imMaterialInfo.DEFAULT_ALBEDO_MAP )
+                specularMap = self._getMaterialTextureMapRelPathOrDefault( material, 'specular_map', imMaterialInfo.DEFAULT_SPECULAR_MAP )
+                materialInstance = imMaterialInfo.createDefault( material.name, 
+                    normalMap=normalMap,
+                    albedoMap=albedoMap,
+                    specularMap=specularMap,
+                )
+                
+                maps = [normalMap, albedoMap, specularMap]
+                for map in maps:
+                    if imMaterialInfo.isDefaultTextureMap( map ):
+                        # make sure to export the default textures whenever they are used
+                        defaultMapTexPath = os.path.join( util.getResourceDir(), 'textures', map + ".tex" )
+                        
+                        # always expected to be at the root
+                        defaultMapTexExportPath = os.path.join( mtmaxconfig.exportRoot, map + '.tex' ) if self.outPath.hash == None else \
+                                                  os.path.join( mtmaxconfig.exportRoot, map + '.241f5deb.tex' )
+    
+                        shutil.copy( defaultMapTexPath, defaultMapTexExportPath )
+
+                
+                self.mrl.materials.append( materialInstance )
+
             
             if mtmaxconfig.exportTexturesToTex:
                 if hasattr(material, 'base_color_map'): self._processTextureMap( material.base_color_map )

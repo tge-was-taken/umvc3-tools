@@ -43,6 +43,10 @@ class imMaterialInfo:
         self.cmds = []
         
     @staticmethod
+    def isDefaultTextureMap( map ):
+        return map in [imMaterialInfo.DEFAULT_NORMAL_MAP, imMaterialInfo.DEFAULT_ALBEDO_MAP, imMaterialInfo.DEFAULT_SPECULAR_MAP]
+        
+    @staticmethod
     def createDefault( name = "default_material", normalMap=DEFAULT_NORMAL_MAP, albedoMap=DEFAULT_ALBEDO_MAP, specularMap=DEFAULT_SPECULAR_MAP ):
         mat = imMaterialInfo()
         mat.type = 'nDraw::MaterialChar'
