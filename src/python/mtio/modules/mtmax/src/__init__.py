@@ -179,7 +179,7 @@ class MtModelExportRollout(MtRollout):
         self.edtRoot.text = mtmaxconfig.exportRoot
         #self.edtTextureRoot.text = mtmaxconfig.exportTextureRoot
         self.chkExportWeights.checked = mtmaxconfig.exportWeights
-        self.chkExportNormals.checked = mtmaxconfig.exportNormals
+        #self.chkExportNormals.checked = mtmaxconfig.exportNormals
         self.chkExportGroups.checked = mtmaxconfig.exportGroups
         self.chkExportSkeleton.checked = mtmaxconfig.exportSkeleton
         self.chkExportPrimitives.checked = mtmaxconfig.exportPrimitives

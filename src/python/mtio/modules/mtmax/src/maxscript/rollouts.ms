@@ -176,8 +176,9 @@ rollout MtModelExportRollout "Model export"
 	
 	group "Export filters" (
 		checkbox chkExportWeights "Weights" checked:true across:3 align:#center --offset:[0, 20]
-		checkbox chkExportNormals "Normals" checked:true  across:3 align:#center --offset:[0, 20]
+		-- checkbox chkExportNormals "Normals" checked:true  across:3 align:#center --offset:[0, 20]
 		checkbox chkExportGroups "Groups" checked:true across:3 align:#center --offset:[0, 20]
+		label lblDummy2 ""
 
 		checkbox chkExportSkeleton "Skeleton" checked:true across:3 align:#center
 		checkbox chkExportPrimitives "Meshes" checked:true across:3 align:#center

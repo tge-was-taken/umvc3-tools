@@ -428,22 +428,20 @@ class MtModelExporter(object):
             
         if mtmaxconfig.exportWeights:
             maxlog.debug('getting skin modifier')
-            rt.execute('max modify mode')
-            rt.select( maxNode )
-            maxSkin = rt.modPanel.getCurrentObject()
-            hasSkin = rt.isKindOf( maxSkin, rt.Skin )
+            #rt.execute('max modify mode')
+            #rt.select( maxNode )
+            maxSkin = maxNode.modifiers[rt.Name('Skin')]
+            hasSkin = maxSkin != None
             if hasSkin:
                 # fix unrigged vertices
                 maxSkin.weightAllVertices = False
                 maxSkin.weightAllVertices = True
-                rt.skinOps.removeZeroWeights( maxSkin )
+                # node arg is ignored
+                #rt.skinOps.removeZeroWeights( maxSkin, node=maxNode )
         else:
             hasSkin = False
 
-        if mtmaxconfig.exportNormals:
-            maxlog.debug('adding temporary edit normals modifier to get the proper vertex normals')
-            editNormalsMod = rt.Edit_Normals()
-            rt.addModifier( maxNode, editNormalsMod )
+        editNormalsMod = maxNode.modifiers[rt.Name('Edit_Normals')]
         
         # collect all vertex data per material
         maxlog.debug('collecting vertex data')
@@ -476,7 +474,7 @@ class MtModelExporter(object):
                 pos = pos * self.transformMtx # needed with reference model
                 tempMesh.positions.append( pos )
                 
-                if mtmaxconfig.exportNormals:
+                if editNormalsMod != None:
                     temp = editNormalsMod.GetNormal( editNormalsMod.GetNormalId( i + 1, j + 1 ) )
                     if temp == None:
                         # TODO figure out why this happens
@@ -491,12 +489,12 @@ class MtModelExporter(object):
                 tempMesh.uvs.append( self._convertMaxPoint3ToNclVec3UV( rt.getTVert( maxMesh, tvertIdx ) ) )
 
                 if hasSkin:
-                    weightCount = rt.skinOps.getVertexWeightCount( maxSkin, vertIdx )
+                    weightCount = rt.skinOps.getVertexWeightCount( maxSkin, vertIdx, node=maxNode )
                     weight = imVertexWeight()
                     for k in range( 0, weightCount ):
-                        boneId = rt.skinops.getVertexWeightBoneId( maxSkin, vertIdx, k + 1 )
-                        boneWeight = rt.skinOps.getVertexWeight( maxSkin, vertIdx, k + 1 )
-                        boneName = rt.skinOps.getBoneName( maxSkin, boneId, 0 )
+                        boneId = rt.skinops.getVertexWeightBoneId( maxSkin, vertIdx, k + 1, node=maxNode )
+                        boneWeight = rt.skinOps.getVertexWeight( maxSkin, vertIdx, k + 1, node=maxNode )
+                        boneName = rt.skinOps.getBoneName( maxSkin, boneId, 0, node=maxNode )
                         jointIdx = self.jointIdxByName[ boneName ]
                         weight.weights.append( boneWeight )
                         weight.indices.append( jointIdx )
@@ -507,11 +505,6 @@ class MtModelExporter(object):
                     weight.weights.append( 1 )
                     weight.indices.append( 2 )
                     tempMesh.weights.append( weight )
-
-        # remove temporary modifiers
-        if mtmaxconfig.exportNormals:
-            maxlog.debug('delete temporary edit normals modifier')
-            rt.deleteModifier( maxNode, editNormalsMod )
 
         # create optimized primitives
         for tempMesh in tempMeshes.values():
