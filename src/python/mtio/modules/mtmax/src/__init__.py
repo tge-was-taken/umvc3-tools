@@ -354,6 +354,14 @@ class MtUtilitiesRollout(MtRollout):
             return
         for node in selection: 
             rt.custAttributes.add( node, attr )
+            
+    def _removeAttributeFromSelection(attr):
+        selection = list(rt.selection)
+        
+        if len(selection) == 0:
+            return
+        for node in selection: 
+            rt.custAttributes.delete( node, attr )
 
     @staticmethod
     def btnAddJointAttribsPressed():
@@ -366,6 +374,18 @@ class MtUtilitiesRollout(MtRollout):
     @staticmethod
     def btnAddPrimAttribsPressed():
         MtUtilitiesRollout._addAttributeToSelection( rt.mtPrimitiveAttributesInstance )
+        
+    @staticmethod
+    def btnRemJointAttribsPressed():
+        MtUtilitiesRollout._removeAttributeFromSelection( rt.mtJointAttributesInstance )
+
+    @staticmethod
+    def btnRemGroupAttribsPressed():
+        MtUtilitiesRollout._removeAttributeFromSelection( rt.mtModelGroupAttributesInstance )
+
+    @staticmethod
+    def btnRemPrimAttribsPressed():
+        MtUtilitiesRollout._removeAttributeFromSelection( rt.mtPrimitiveAttributesInstance )
 
     @staticmethod
     def btnCreateGroupPressed():

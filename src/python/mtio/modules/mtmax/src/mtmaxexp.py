@@ -572,7 +572,14 @@ class MtModelExporter(object):
 
             # copy over attribs
             if attribs.flags != None: prim.flags = attribs.flags
-            if attribs.groupId != None: prim.group = self.model.getGroupById(attribs.groupId)
+            if attribs.groupId != None: 
+                group = self.model.getGroupById(attribs.groupId)
+                if group == None:
+                    # add group
+                    group = imGroup(self.metadata.getGroupName(attribs.groupId), attribs.groupId, 0, 0, 0, boundingSphere=NclVec4())
+                    self.model.groups.append(group)
+                prim.group = group
+                    
             if attribs.lodIndex != None: prim.lodIndex = attribs.lodIndex
             if attribs.renderFlags != None: prim.renderFlags = attribs.renderFlags
             if attribs.id != None: prim.id = attribs.id

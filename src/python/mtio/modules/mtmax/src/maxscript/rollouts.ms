@@ -85,6 +85,17 @@ rollout MtUtilitiesRollout "Utilities"
 		label pad4;
 	)
 
+	group "Remove MT attributes from selected object" (
+		button btnRemJointAttribs "Joint" across:8
+		button btnRemGroupAttribs "Group"
+		button btnRemPmlAttribs "PML"
+		button btnRemPrimAttribs "Primitive"
+		label pad5;
+		label pad6;
+		label pad7;
+		label pad8;
+	)
+
 	group "Create MT helper" (
 		button btnCreateGroup "Group" across:8
 	)
@@ -98,6 +109,10 @@ rollout MtUtilitiesRollout "Utilities"
 	on btnAddGroupAttribs	pressed do emit #("btnAddGroupAttribsPressed")
 	on btnAddPmlAttribs		pressed do emit #("btnAddPmlAttribsPressed")
 	on btnAddPrimAttribs	pressed do emit #("btnAddPrimAttribsPressed")
+	on btnRemJointAttribs	pressed do emit #("btnRemJointAttribsPressed")
+	on btnRemGroupAttribs	pressed do emit #("btnRemGroupAttribsPressed")
+	on btnRemPmlAttribs		pressed do emit #("btnRemPmlAttribsPressed")
+	on btnRemPrimAttribs	pressed do emit #("btnRemPrimAttribsPressed")
 	on btnCreateGroup 		pressed do emit #("btnCreateGroupPressed")
 )
 
