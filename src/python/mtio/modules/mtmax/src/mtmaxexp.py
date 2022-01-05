@@ -466,6 +466,7 @@ class MtModelExporter(object):
             self._materialCache[material] = True
             
             maxlog.info(f'processing material: {material.name}')
+            materialInstance = None
             if rt.classOf( material ) == rt.PBRSpecGloss:
                 materialInstance = self._processMaterial_PBRSpecGloss( material )
             elif rt.classOf( material ) == rt.PhysicalMaterial:
@@ -474,8 +475,9 @@ class MtModelExporter(object):
                 maxlog.error( f"unsupported material type: {rt.classOf( material )}" )
                 return
             
-            self._copyUsedDefaultTexturesToOutput( materialInstance )
-            self.mrl.materials.append( materialInstance )
+            if materialInstance != None:
+                self._copyUsedDefaultTexturesToOutput( materialInstance )
+                self.mrl.materials.append( materialInstance )
                 
     def _getMaterialName( self, material ):
         if material == None:
