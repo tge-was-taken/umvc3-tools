@@ -5,6 +5,9 @@ import glob
 
 _defaultModules = None
 
+def _isDebugEnv():
+    return os.path.exists( os.path.join( os.path.dirname( __file__ ), '.debug' ) )
+
 def _getDefaultModules():
     global _defaultModules
     if _defaultModules is None:
@@ -15,6 +18,13 @@ def _getDefaultModules():
                 _defaultModules.append(line)
                 line = f.readline().strip()
     return _defaultModules
+
+def _attachDebugger():
+    try:
+        import ptvsd
+        print( ptvsd.enable_attach() )
+    except:
+        pass
 
 def _bootstrap():
     try:
@@ -34,25 +44,20 @@ def _bootstrap():
             
     print(f'bootstrapper: load directories: {dirs}')
 
-    # force reload modules by deleting any loaded instance of a module or package
-    for file in glob.iglob(modulesDir + "/**/*", recursive=True):
-        fileName, _ = os.path.splitext(os.path.basename(file))
-        if fileName in sys.modules:
-            print(f'bootstrapper: deleting module {fileName}')
-            del sys.modules[fileName]
+    if _isDebugEnv():
+        # force reload modules by deleting any loaded instance of a module or package
+        for file in glob.iglob(modulesDir + "/**/*", recursive=True):
+            fileName, _ = os.path.splitext(os.path.basename(file))
+            if fileName in sys.modules:
+                print(f'bootstrapper: deleting module {fileName}')
+                del sys.modules[fileName]
+                
+        _attachDebugger()
                 
     loadedModules = [x for x in sys.modules if not x in _getDefaultModules()]
     print(f'bootstrapper: loaded modules: {loadedModules}')
 
-def _attachDebugger():
-    try:
-        import ptvsd
-        print( ptvsd.enable_attach() )
-    except:
-        pass
-
 if __name__ == '__main__':
     _bootstrap()
-    _attachDebugger()
     from src import *
     main()
