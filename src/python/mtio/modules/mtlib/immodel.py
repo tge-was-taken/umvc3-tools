@@ -339,7 +339,7 @@ class imPrimitive:
             nearestVertexIndex = -1;
             currentDistance = float("+inf");
 
-            for j in range( 0, len( position ) ):
+            for j in range( 0, len( self.positions ) ):
                 positionToCompare = self.positions[ j ];
                 tangentToCompare = self.tangents[ j ];
 
