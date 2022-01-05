@@ -42,7 +42,7 @@ exportRoot = ''
 
 # debug settings
 debugForcePhysicalMaterial = False
-debugImportPrimitiveIdFilter = [26]
+debugImportPrimitiveIdFilter = []
 
 def _getModule():
     if not __name__ in sys.modules:

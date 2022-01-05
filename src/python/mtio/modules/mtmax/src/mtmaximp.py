@@ -294,7 +294,7 @@ class MtModelImporter:
 
             assert len( newMaxVtxJointArray ) > 0 
             assert len( newMaxVtxWeightArray ) > 0
-            rt.skinOps.setVertexWeights( maxSkin, j + 1, newMaxVtxJointArray, newMaxVtxWeightArray, node=maxMesh )
+            rt.skinOps.replaceVertexWeights( maxSkin, j + 1, newMaxVtxJointArray, newMaxVtxWeightArray, node=maxMesh )
             
     def importPrimitive( self, primitive, primitiveJointLinkIndex, indexStream, vertexStream ):
         shaderInfo = mvc3shaderdb.shaderObjectsByHash[ primitive.vertexShader.getHash() ]
