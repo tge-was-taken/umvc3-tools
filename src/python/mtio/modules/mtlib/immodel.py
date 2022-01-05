@@ -376,8 +376,8 @@ class imJoint:
         self.invBindMtx = deepcopy(invBindMtx)
         self.id = id
         self.symmetry = symmetry
-        self.field03 = field03
-        self.field04 = field04
+        self.field03 = 0 if field03 == None else field03
+        self.field04 = 0 if field04 == None else field04
 
         self.localMtx = deepcopy(localMtx)
         self.worldMtx = deepcopy(worldMtx)
@@ -434,11 +434,13 @@ class imJoint:
 
 class imGroup:
     def __init__( self, name, id, field04 = 0, field08 = 0, field0c = 0, boundingSphere = None ):
+        assert id != None
+        
         self.name = name
         self.id = id
-        self.field04 = field04
-        self.field08 = field08
-        self.field0c = field0c
+        self.field04 = 0 if field04 == None else field04
+        self.field08 = 0 if field08 == None else field08
+        self.field0c = 0 if field0c == None else field0c
         self.boundingSphere = deepcopy(boundingSphere) # can be zero, in which case it is calculated later
         
 '''

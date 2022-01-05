@@ -133,6 +133,9 @@ class MtModelExporter(object):
         if hasattr(node, 'mtModelGroupAttributes'):
             return True
         
+        if len(node.children) == 0:
+            return False
+        
         # group nodes should be parented to meshes
         # this doesn't allow empty groups, however the previous clause 
         # should cover that
@@ -355,10 +358,21 @@ class MtModelExporter(object):
                 else:
                     maxlog.info(f'skipping texture conversion because {textureMap.filename} does not exist')
             elif rt.classOf( textureMap ) == rt.Normal_Bump:
-                self._exportTextureMap( textureMap.normal_map )
-                self._exportTextureMap( textureMap.bump_map )
+                self._exportTextureMapSafe( textureMap, 'normal_map' )
+                self._exportTextureMapSafe( textureMap, 'bump_map' )
             else:
                 maxlog.warn(f'unknown texture map type: {rt.classOf( textureMap )}')
+                
+    def _exportTextureMapSafe( self, material, textureMapName ):
+        materialName = getattr(material, "name", None)
+        if hasattr( material, textureMapName ):
+            if getattr( material, textureMapName, None ) != None:
+                self._exportTextureMap( getattr( material, textureMapName ) )
+            else:
+                maxlog.debug( f'material "{materialName}" texture map "{textureMapName}" not exported because it has not been assigned')
+        else:
+            maxlog.debug( f'material "{materialName}" texture map "{textureMapName}" not exported because it does not exist on the material')
+            
      
     def _getTextureMapResourcePathOrDefault( self, textureMap, default ):
         if textureMap == None: return default
@@ -372,6 +386,9 @@ class MtModelExporter(object):
             result = path.baseName
         result = result.replace('/', '\\')
         return result
+    
+    def _getTextureMapResourcePathOrDefaultSafe( self, material, textureMap, default ):
+        return self._getTextureMapResourcePathOrDefault( getattr( material, textureMap, None ), default )
     
     def _copyUsedDefaultTexturesToOutput( self, material ):
         for map in material.iterTextures():
@@ -391,9 +408,9 @@ class MtModelExporter(object):
         materialInstance = None
         if mtmaxconfig.exportGenerateMrl:
             # create material instance
-            normalMap = self._getTextureMapResourcePathOrDefault( material.norm_map, imMaterialInfo.DEFAULT_NORMAL_MAP )
-            albedoMap = self._getTextureMapResourcePathOrDefault( material.base_color_map, imMaterialInfo.DEFAULT_ALBEDO_MAP )
-            specularMap = self._getTextureMapResourcePathOrDefault( material.specular_map, imMaterialInfo.DEFAULT_SPECULAR_MAP )
+            normalMap = self._getTextureMapResourcePathOrDefaultSafe( material, 'norm_map', imMaterialInfo.DEFAULT_NORMAL_MAP )
+            albedoMap = self._getTextureMapResourcePathOrDefaultSafe( material, 'base_color_map', imMaterialInfo.DEFAULT_ALBEDO_MAP )
+            specularMap = self._getTextureMapResourcePathOrDefaultSafe( material, 'specular_map', imMaterialInfo.DEFAULT_SPECULAR_MAP )
             materialInstance = imMaterialInfo.createDefault( material.name, 
                 normalMap=normalMap,
                 albedoMap=albedoMap,
@@ -401,14 +418,14 @@ class MtModelExporter(object):
             )
 
         if mtmaxconfig.exportTexturesToTex:
-            self._exportTextureMap( material.base_color_map )
-            self._exportTextureMap( material.specular_map )
-            self._exportTextureMap( material.glossiness_map )
-            self._exportTextureMap( material.ao_map )
-            self._exportTextureMap( material.norm_map )
-            self._exportTextureMap( material.emit_color_map )
-            self._exportTextureMap( material.opacity_map )
-            self._exportTextureMap( material.displacement_map )
+            self._exportTextureMapSafe( material, 'base_color_map' )
+            self._exportTextureMapSafe( material, 'specular_map' )
+            self._exportTextureMapSafe( material, 'glossiness_map' )
+            self._exportTextureMapSafe( material, 'ao_map' )
+            self._exportTextureMapSafe( material, 'norm_map' )
+            self._exportTextureMapSafe( material, 'emit_color_map' )
+            self._exportTextureMapSafe( material, 'opacity_map' )
+            self._exportTextureMapSafe( material, 'displacement_map' )
             
         return materialInstance
     
@@ -418,15 +435,15 @@ class MtModelExporter(object):
         materialInstance = None
         if mtmaxconfig.exportGenerateMrl:
             # create material instance
-            if material.bump_map != None and rt.classOf( material.bump_map ) == rt.Normal_Bump:
-                normalMap = self._getTextureMapResourcePathOrDefault( material.bump_map.normal, imMaterialInfo.DEFAULT_NORMAL_MAP )
+            if getattr( material, 'bump_map', None ) != None and rt.classOf( material.bump_map ) == rt.Normal_Bump:
+                normalMap = self._getTextureMapResourcePathOrDefaultSafe( material.bump_map, 'normal', imMaterialInfo.DEFAULT_NORMAL_MAP )
             else:
                 # TODO handle different normal map assignments?
                 normalMap = imMaterialInfo.DEFAULT_NORMAL_MAP
             
-            albedoMap = self._getTextureMapResourcePathOrDefault( material.base_color_map, imMaterialInfo.DEFAULT_ALBEDO_MAP )
+            albedoMap = self._getTextureMapResourcePathOrDefaultSafe( material, 'base_color_map', imMaterialInfo.DEFAULT_ALBEDO_MAP )
             # TODO is metalness correct for specular?
-            specularMap = self._getTextureMapResourcePathOrDefault( material.metalness_map, imMaterialInfo.DEFAULT_SPECULAR_MAP )
+            specularMap = self._getTextureMapResourcePathOrDefaultSafe( material, 'metalness_map', imMaterialInfo.DEFAULT_SPECULAR_MAP )
             materialInstance = imMaterialInfo.createDefault( material.name, 
                 normalMap=normalMap,
                 albedoMap=albedoMap,
@@ -434,29 +451,29 @@ class MtModelExporter(object):
             )
 
         if mtmaxconfig.exportTexturesToTex:
-            self._exportTextureMap( material.base_weight_map )
-            self._exportTextureMap( material.base_color_map )
-            self._exportTextureMap( material.reflectivity_map )
-            self._exportTextureMap( material.refl_color_map )
-            self._exportTextureMap( material.metalness_map )
-            self._exportTextureMap( material.diff_rough_map )
-            self._exportTextureMap( material.anisotropy_map )
-            self._exportTextureMap( material.aniso_angle_map )
-            self._exportTextureMap( material.transparency_map )
-            self._exportTextureMap( material.trans_color_map )
-            self._exportTextureMap( material.trans_rough_map )
-            self._exportTextureMap( material.trans_ior_map )
-            self._exportTextureMap( material.scattering_map )
-            self._exportTextureMap( material.sss_color_map )
-            self._exportTextureMap( material.sss_scale_map )
-            self._exportTextureMap( material.emission_map )
-            self._exportTextureMap( material.emit_color_map )
-            self._exportTextureMap( material.coat_map )
-            self._exportTextureMap( material.coat_color_map )
-            self._exportTextureMap( material.bump_map )
-            self._exportTextureMap( material.coat_rough_map )
-            self._exportTextureMap( material.displacement_map )
-            self._exportTextureMap( material.cutout_map )
+            self._exportTextureMapSafe( material, 'base_weight_map' )
+            self._exportTextureMapSafe( material, 'base_color_map' )
+            self._exportTextureMapSafe( material, 'reflectivity_map' )
+            self._exportTextureMapSafe( material, 'refl_color_map' )
+            self._exportTextureMapSafe( material, 'metalness_map' )
+            self._exportTextureMapSafe( material, 'diff_rough_map' )
+            self._exportTextureMapSafe( material, 'anisotropy_map' )
+            self._exportTextureMapSafe( material, 'aniso_angle_map' )
+            self._exportTextureMapSafe( material, 'transparency_map' )
+            self._exportTextureMapSafe( material, 'trans_color_map' )
+            self._exportTextureMapSafe( material, 'trans_rough_map' )
+            self._exportTextureMapSafe( material, 'trans_ior_map' )
+            self._exportTextureMapSafe( material, 'scattering_map' )
+            self._exportTextureMapSafe( material, 'sss_color_map' )
+            self._exportTextureMapSafe( material, 'sss_scale_map' )
+            self._exportTextureMapSafe( material, 'emission_map' )
+            self._exportTextureMapSafe( material, 'emit_color_map' )
+            self._exportTextureMapSafe( material, 'coat_map' )
+            self._exportTextureMapSafe( material, 'coat_color_map' )
+            self._exportTextureMapSafe( material, 'bump_map' )
+            self._exportTextureMapSafe( material, 'coat_rough_map' )
+            self._exportTextureMapSafe( material, 'displacement_map' )
+            self._exportTextureMapSafe( material, 'cutout_map' )
             
         return materialInstance
      
@@ -556,6 +573,9 @@ class MtModelExporter(object):
                         boneId = rt.skinops.getVertexWeightBoneId( maxSkin, vertIdx, k + 1, node=maxNode )
                         boneWeight = rt.skinOps.getVertexWeight( maxSkin, vertIdx, k + 1, node=maxNode )
                         boneName = rt.skinOps.getBoneName( maxSkin, boneId, 0, node=maxNode )
+                        if boneName not in self.jointIdxByName:
+                            raise RuntimeError(f'mesh "{maxNode.name}" references bone "{boneName}" that does not exist in the skeleton' )
+                            
                         jointIdx = self.jointIdxByName[ boneName ]
                         weight.weights.append( boneWeight )
                         weight.indices.append( jointIdx )
@@ -748,7 +768,7 @@ class MtModelExporter(object):
         maxlog.debug('creating output directories')
         if not os.path.exists( mtmaxconfig.exportRoot ):
             os.makedirs( mtmaxconfig.exportRoot )
-        if not os.path.exists( mtmaxconfig.exportFilePath ):
+        if not os.path.exists( os.path.dirname( mtmaxconfig.exportFilePath ) ):
             os.makedirs( mtmaxconfig.exportFilePath )
 
         maxlog.info('processing scene')

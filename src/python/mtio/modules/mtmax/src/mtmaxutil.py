@@ -43,5 +43,5 @@ def getAppDataDir():
 def getLogFilePath():
     return os.path.join( getAppDataDir(), 'log.txt' )
 
-def showErrorMessageBox( context ):
-    showMessageBox( f"{context} See the log or the MaxScript listener for more details.\nThe log file can be found at {getLogFilePath()}\nScript version: {mtmaxver.version}" )
+def showErrorMessageBox( brief, details = '' ):
+    showMessageBox( f"{brief}\n\n{details}\n\nSee the log or the MaxScript listener for more details.\nThe log file can be found at {getLogFilePath()}\nScript version: {mtmaxver.version}" )
