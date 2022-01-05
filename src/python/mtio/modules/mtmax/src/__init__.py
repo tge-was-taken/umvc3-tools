@@ -13,6 +13,7 @@ from mtmaxexp import *
 from mtmaximp import *
 import mtmaxutil
 import maxlog
+import mtmaxver
 
 class MtRollout:
     @classmethod
@@ -97,15 +98,17 @@ class MtModelImportRollout(MtRollout):
     def btnImportPressed():
         try:
             maxlog.clear()
+            mtmaxconfig.dump()
+            
             importer = MtModelImporter()
             importer.importModel( mtmaxconfig.importFilePath )
             if maxlog.hasError():
-                mtmaxutil.showMessageBox( "Import completed with one or more errors. See the log or the MaxScript listener for more details." )
+                mtmaxutil.showErrorMessageBox( "Import completed with one or more errors." )
             else:
                 mtmaxutil.showMessageBox( 'Import completed successfully' )
         except Exception as e:
             maxlog.exception( e )
-            mtmaxutil.showMessageBox( 'A fatal error occured during import. See the log or the MaxScript listener for more details.', "Error" )
+            mtmaxutil.showErrorMessageBox( "A fatal error occured during import." )
             
         
         
@@ -215,15 +218,17 @@ class MtModelExportRollout(MtRollout):
     def btnExportPressed():
         try:
             maxlog.clear()
+            mtmaxconfig.dump()
+            
             exporter = MtModelExporter()
             exporter.exportModel( mtmaxconfig.exportFilePath )
             if maxlog.hasError():
-                mtmaxutil.showMessageBox( "Export completed with one or more errors. See the log or the MaxScript listener for more details." )
+                mtmaxutil.showErrorMessageBox( "Export completed with one or more errors." )
             else:
                 mtmaxutil.showMessageBox( 'Export completed successfully' )
         except Exception as e:
             maxlog.exception( e )
-            mtmaxutil.showMessageBox( 'An error occured during export. See the log or the MaxScript listener for more details.', "Error" )
+            mtmaxutil.showErrorMessageBox( "An error occured during export." )
         
     @staticmethod
     def btnFilePressed():

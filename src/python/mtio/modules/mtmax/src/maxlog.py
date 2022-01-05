@@ -11,7 +11,7 @@ def _getScriptDir():
 
 _categoryStack = []
 _indentLevel = 0
-_logFilePath = os.path.join( mtmaxutil.getAppDataDir(), 'log.txt' )
+_logFilePath = mtmaxutil.getLogFilePath()
 _hasError = False
 
 if os.path.exists( _logFilePath ):

@@ -1,6 +1,7 @@
 import os
 import sys
 from pymxs import runtime as rt
+import mtmaxver
 
 def getScriptDir():
     return os.path.dirname(os.path.realpath(__file__))
@@ -38,3 +39,9 @@ def getAppDataDir():
     path = os.path.expandvars( '%APPDATA%\\MtMax' )
     os.makedirs( path, exist_ok=True )
     return path
+
+def getLogFilePath():
+    return os.path.join( getAppDataDir(), 'log.txt' )
+
+def showErrorMessageBox( context ):
+    showMessageBox( f"{context} See the log or the MaxScript listener for more details.\nThe log file can be found at {getLogFilePath()}\nScript version: {mtmaxver.version}" )

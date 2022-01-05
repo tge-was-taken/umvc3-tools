@@ -3,6 +3,7 @@ import yaml
 import os
 import importlib
 import mtmaxutil
+import maxlog
 
 # general
 flipUpAxis = True
@@ -81,6 +82,14 @@ def load():
     global exportGenerateMrl
     if exportExistingMrlYml and exportGenerateMrl:
         exportGenerateMrl = False
+        
+def dump():
+    s = "config:\n"
+    for key in _getVariables():
+        val = getattr(_getModule(), key)
+        s += f"{key} = {val}\n"
+    maxlog.debug(s)
+        
 
 if __name__ == '__main__':
     save()
