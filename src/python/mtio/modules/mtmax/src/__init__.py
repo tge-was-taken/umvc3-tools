@@ -14,6 +14,7 @@ from mtmaximp import *
 import mtmaxutil
 import maxlog
 import mtmaxver
+from mtlib import log
 
 class MtRollout:
     @classmethod
@@ -180,15 +181,14 @@ class MtModelExportRollout(MtRollout):
         self.edtRef.text = mtmaxconfig.exportRefPath
         self.edtMrlYml.text = mtmaxconfig.exportMrlYmlPath
         self.edtRoot.text = mtmaxconfig.exportRoot
-        #self.edtTextureRoot.text = mtmaxconfig.exportTextureRoot
         self.chkExportWeights.checked = mtmaxconfig.exportWeights
-        #self.chkExportNormals.checked = mtmaxconfig.exportNormals
         self.chkExportGroups.checked = mtmaxconfig.exportGroups
         self.chkExportSkeleton.checked = mtmaxconfig.exportSkeleton
         self.chkExportPrimitives.checked = mtmaxconfig.exportPrimitives
         self.chkExportTex.checked = mtmaxconfig.exportTexturesToTex
         self.chkExportMrl.checked = mtmaxconfig.exportExistingMrlYml
         self.chkExportGenerateMrl.checked = mtmaxconfig.exportGenerateMrl
+        self.chkExportTexOverwrite.checked = mtmaxconfig.exportOverwriteTextures
         MtModelExportRollout.updateVisibility()
         
     @staticmethod
@@ -335,6 +335,10 @@ class MtModelExportRollout(MtRollout):
         
         mtmaxconfig.exportRoot = os.path.abspath( path ).replace( "\\", "/" )
         MtModelExportRollout.loadConfig()
+        
+    @staticmethod
+    def chkExportTexOverwriteChanged( state ):
+        mtmaxconfig.exportOverwriteTextures = state
 
         
 class MtLogRollout(MtRollout):
@@ -424,11 +428,25 @@ def createMainWindow():
         rt.addRollout( rollout.getMxsVar(), rt.g_mtWindow )
         rollout.loadConfig()
     
+class MaxLogger():
+    def debug( self, msg, *args ):
+        maxlog.debug( msg, *args )
+    
+    def info( self, msg, *args ):
+        maxlog.info( msg, *args )
+    
+    def warn( self, msg, *args ):
+        maxlog.warn( msg, *args )
+    
+    def error( self, msg, *args ):
+        maxlog.error( msg, *args )
+    
 def main():
     rt.gc()
     rt.gc()
     
-    maxlog.clear()
+    log.setLogger(MaxLogger())
+    #maxlog.clear()
     mtmaxconfig.load()
     
     # import maxscript files

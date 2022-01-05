@@ -40,6 +40,7 @@ exportUseRefGroups = True
 exportGenerateMrl = True
 exportTextureRoot = ''
 exportRoot = ''
+exportOverwriteTextures = False
 
 # debug settings
 debugForcePhysicalMaterial = False

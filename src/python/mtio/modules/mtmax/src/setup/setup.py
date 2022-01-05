@@ -4,7 +4,7 @@ import subprocess
 from zipfile import ZipFile
 import ctypes
 
-DEPENDENCIES = ['--upgrade pip', 'pyyaml', 'ruamel.yaml', 'numpy', 'pyglm', 'ptvsd']
+DEPENDENCIES = ['--upgrade pip', 'pyyaml', 'ruamel.yaml', 'numpy', 'pyglm', 'ptvsd', 'Pillow']
 MIN_SUPPORTED_VER = 2021
 
 def getScriptDir():
@@ -57,7 +57,7 @@ def execPython( pythonDir, args ):
     subprocess.run( [ pythonExePath, *args.split(' ') ], stdout=sys.stdout)
     
 def pipInstall( pythonDir, args ):
-    execPython( pythonDir, f'-m pip install --user {args}' )
+    execPython( pythonDir, f'-m pip install --user --upgrade {args}' )
     
 def selectMaxInstallDir():
     print( 'locating compatible 3ds Max installations...' )

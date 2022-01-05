@@ -54,7 +54,7 @@ fn mtCallPythonFunc module func args =
 rollout MtInfoRollout "MT Framework Importer/Exporter"
 (
 	label lblTitle2 "Ultimate Marvel vs Capcom 3"
-	label lblVersion "Version 1.0.13 Beta" align:#center
+	label lblVersion "Version 1.0.14 Beta" align:#center
 	label lblAuthor "© 2021-2022 TGE" align:#center
 )
 
@@ -212,6 +212,7 @@ rollout MtModelExportRollout "Model export"
 
 	group "Additional options" (
 		checkbox chkExportTex "Convert textures to TEX" checked:true 
+		checkbox chkExportTexOverwrite "Overwrite existing textures" checked:false
 	)
 	
 	button btnExport "Export" align:#center across:1;
@@ -242,4 +243,5 @@ rollout MtModelExportRollout "Model export"
 	on btnTextureRoot		pressed			do emit #("btnTextureRootPressed")
 	on edtRoot				changed state	do emit #("edtRootChanged", state)
 	on btnRoot				pressed			do emit #("btnRootPressed")
+	on chkExportTexOverwrite changed state 	do emit #("chkExportTexOverwriteChanged", state)
 )

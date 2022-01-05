@@ -10,6 +10,7 @@ import mtmaxutil
 from mtlib import texconv
 import maxlog
 import shutil
+from mtlib import textureutil
 
 def _tryParseInt(input, base=10, default=None):
     try:
@@ -243,95 +244,9 @@ class MtModelExporter(object):
                 attribs = MtJointAttribData( maxNode, jointMeta )
                 joint.symmetry = self._processBone( attribs.symmetryNode ) if attribs.symmetryNode != None else None
                 
-    def _convertTextureToTEX( self, inPath, outPath, origPath, forcedFormat ):
-        # TODO this code is almost the same as the code in mttexconv
-        basePath, baseName, exts = util.splitPath( inPath )
-        inExt = exts[len(exts) - 1]
-        
-        inDDSBasePath = basePath
-        inDDSPath = os.path.join( basePath, baseName )
-        if len(exts) > 1:
-            for i in range(0, len(exts) - 1):
-                inDDSPath += '.' + exts[i]
-        inDDSPath += '.DDS'
-        
-        if outPath == None:
-            outPath = os.path.join( basePath, baseName )
-            if len(exts) > 1:
-                for i in range(0, len(exts) - 1):
-                    outPath += '.' + exts[i]
-            
-            outExt = 'tex'
-            if inExt == 'tex':
-                outExt = 'dds'
-            outPath += '.' + outExt
-                
-        outBasePath, outBaseName, outExts = util.splitPath( outPath )
-
-        
-        outExt = outExts[len(outExts) - 1]
-        
-        origTex = None
-        if origPath != None and origPath != '':
-            origTex = rTextureData()
-            origTex.loadBinaryFile( origPath )
-            
-        # detect format from name
-        fmt = forcedFormat
-        if fmt == '' or fmt == None:
-            if origTex != None:
-                fmt = origTex.header.fmt.surfaceFmt
-            else:
-                fmt = rTextureSurfaceFmt.getFormatFromTextureName( baseName, True )
-                if fmt == None:
-                    # not detected, fallback
-                    fmt = rTextureSurfaceFmt.BM_OPA
-        
-        convert = True
-        if inExt.lower() == 'dds':
-            # check if DDS format matches
-            fmtDDS = rTextureSurfaceFmt.getDDSFormat( fmt )
-            dds = DDSFile.fromFile( inPath )
-            if dds.header.ddspf.dwFourCC == fmtDDS:
-                # don't need to convert to proper format
-                convert = False
-                
-        if convert:  
-            # convert file to DDS with texconv
-            fmtDDS = rTextureSurfaceFmt.getDDSFormat( fmt )
-            fmtDDSName = ''
-            if fmtDDS == DDS_FOURCC_DXT1:
-                fmtDDSName = 'DXT1'
-            elif fmtDDS == DDS_FOURCC_DXT2:
-                fmtDDSName = 'DXT2'
-            elif fmtDDS == DDS_FOURCC_DXT3:
-                fmtDDSName = 'DXT3'
-            elif fmtDDS == DDS_FOURCC_DXT4:
-                fmtDDSName = 'DXT4'
-            elif fmtDDS == DDS_FOURCC_DXT5:
-                fmtDDSName = 'DXT5'
-            else:
-                raise Exception("Unhandled dds format: " + str(fmtDDS))
-            
-            maxlog.info( 'converting input {} to DDS {}'.format(inPath, inDDSPath))
-            maxlog.debug( 'DDS format: {}'.format( fmtDDSName ) )
-            maxlog.debug( '\ntexconv start')
-            texconv.texconv( inPath, outPath=inDDSBasePath, fileType='DDS', featureLevel=9.1, pow2=True, fmt=fmtDDSName, overwrite=True, srgb=True )
-            maxlog.debug( 'texconv end\n')
-        
-        maxlog.info('converting DDS {} to TEX {}'.format( inDDSPath, outPath ))
-        maxlog.debug('TEX format: {}'.format(fmt))
-        dds = DDSFile.fromFile( inDDSPath )
-        tex = rTextureData.fromDDS( dds )
-        tex.header.fmt.surfaceFmt = fmt
-        
-        # copy faces from original cubemap if needed
-        if origTex != None: 
-            for face in origTex.faces:
-                tex.faces.append( face )
-        
+    def _convertTextureToTEX( self, inPath, outPath):
         try:
-            tex.saveBinaryFile( outPath )
+            textureutil.convertTexture( inPath, outPath )
         except PermissionError as e:
             maxlog.error( f"unable to save tex file, make sure you have write permissions to {outPath}" )
             
@@ -350,9 +265,9 @@ class MtModelExporter(object):
                         texPath = fullPath + '.241f5deb.tex'
                     else:
                         texPath = fullPath + '.tex'
-                    if not os.path.exists(texPath):
+                    if mtmaxconfig.exportOverwriteTextures or not os.path.exists(texPath):
                         maxlog.info('converting texture to TEX')
-                        self._convertTextureToTEX( textureMap.filename, texPath, None, None )
+                        self._convertTextureToTEX( textureMap.filename, texPath )
                     else:
                         maxlog.info(f'skipping texture conversion because {texPath} already exists')
                 else:

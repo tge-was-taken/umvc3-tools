@@ -8,6 +8,7 @@ from rmaterial import *
 import mvc3materialdb
 import mvc3shaderdb
 from ncl import *
+import log
               
 class imConstantBufferCBMaterial:
     def __init__( self ):
@@ -175,7 +176,7 @@ class imMaterialLib:
             try:
                 matInfo.name = mvc3materialdb.getName( binMatInfo.nameHash )
             except:
-                print("unknown material name hash: {}".format( hex( binMatInfo.nameHash ) ) )
+                log.error("unknown material name hash: {}".format( hex( binMatInfo.nameHash ) ) )
                 matInfo.name = '_' + hex( binMatInfo.nameHash )
                 
             matInfo.blendState = mvc3shaderdb.shaderObjectsByHash[ binMatInfo.blendState.getHash() ].name
