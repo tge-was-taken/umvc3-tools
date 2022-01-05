@@ -212,6 +212,9 @@ class MtModelImporter:
         newMaxJointArray = []
         newMaxWeightArray = []
         for j in range( 0, primitive.vertexCount ):
+            if j == 1751:
+                print('')
+            
             # get weights and indices for this vertex
             maxVtxJointArray = maxJointArray[j]
             assert ( len(maxVtxJointArray) > 0 )
@@ -235,16 +238,34 @@ class MtModelImporter:
                 for k in range( 0, numMissingWeights ):
                     rt.append( maxVtxWeightArray, weightDelta )
 
-            # remove useless weights and track used joints
+            # remove useless weights, track used joints and merge weights to the same joint id
             newMaxVtxJointArray = rt.Array()
             newMaxVtxWeightArray = rt.Array()
-
+            jointMap = dict()
+            
             for k in range(len(maxVtxJointArray)):
-                if maxVtxWeightArray[k] > 0.001:
-                    maxBone = self.maxBoneArray[maxVtxJointArray[k] - 1]
-                    if not maxBone in usedMaxBones: usedMaxBones.append( maxBone )
-                    rt.append( newMaxVtxJointArray, maxVtxJointArray[k] )
-                    rt.append( newMaxVtxWeightArray, maxVtxWeightArray[k] )
+                if maxVtxWeightArray[k] > 0.00001:
+                    id = maxVtxJointArray[k]
+                    weight = maxVtxWeightArray[k]
+                    if id in jointMap:
+                        # merge weight
+                        newMaxVtxWeightArray[jointMap[id]] += weight
+                    else:
+                        # add weight
+                        jointMap[id] = len(newMaxVtxWeightArray)
+                        maxBone = self.maxBoneArray[id - 1]
+                        if not maxBone in usedMaxBones: usedMaxBones.append( maxBone )
+                        rt.append( newMaxVtxJointArray, id )
+                        rt.append( newMaxVtxWeightArray, weight )
+                    
+            # normalize weights again after removing some
+            weightSum = 0
+            for w in newMaxVtxWeightArray:
+                weightSum += w
+            weightRemainder = 1 - weightSum
+            weightDelta = weightRemainder / len(newMaxVtxWeightArray)
+            for k in range( 0, len( newMaxVtxWeightArray ) ):
+                newMaxVtxWeightArray[k] += weightDelta
 
             newMaxJointArray.append( newMaxVtxJointArray )
             newMaxWeightArray.append( newMaxVtxWeightArray )
@@ -373,6 +394,10 @@ class MtModelImporter:
         primitiveJointLinkIndex = 0
         for i in range( len( self.model.primitives ) ):
             primitive = self.model.primitives[i]
+            
+            if len(mtmaxconfig.debugImportPrimitiveIdFilter) > 0 and primitive.id not in mtmaxconfig.debugImportPrimitiveIdFilter:
+                maxlog.debug(f'skipped importing primitive {self.metadata.getPrimitiveName( primitive.id )} (id {primitive.id}) because it does not match the filter')
+                continue
 
             maxlog.info( "importing primitive " + str(i) + " " + self.metadata.getPrimitiveName( primitive.id ) )
             mtmaxutil.updateUI()

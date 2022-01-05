@@ -736,6 +736,7 @@ class MtModelExporter(object):
             maxlog.info(f'generating new mrl')
             self.mrl = imMaterialLib()
             
+        maxlog.debug('creating output directories')
         if not os.path.exists( mtmaxconfig.exportRoot ):
             os.makedirs( mtmaxconfig.exportRoot )
         if not os.path.exists( mtmaxconfig.exportFilePath ):
