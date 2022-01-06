@@ -195,7 +195,7 @@ mtModelGroupAttributesInstance = attributes mtModelGroupAttributes attribID: #(0
 		field04 type:#integer ui:field04 default:0
 		field08 type:#integer ui:field08 default:0
 		field0c type:#integer ui:field0c default:0
-		bsphere type:#point3 default:[0,0,0]
+		bsphere type:#point4 default:[0,0,0,0]
 	)
 	
 	rollout params "MT Group Attributes"

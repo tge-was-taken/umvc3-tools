@@ -186,8 +186,8 @@ class MtModelImporter:
         rt.custAttributes.add( maxBone.baseObject, rt.mtJointAttributesInstance )
         attribs = maxBone.mtJointAttributes
         attribs.id = joint.id
-        attribs.parentIndex = joint.parentIndex
-        attribs.symmetryIndex = joint.symmetryIndex
+        attribs.parentIndex = str(joint.parentIndex)
+        attribs.symmetryIndex = str(joint.symmetryIndex)
         attribs.symmetryName = self.maxBoneArray[ joint.symmetryIndex ].name if joint.symmetryIndex != 255 else ""
         attribs.field03 = joint.field03
         attribs.field04 = joint.field04
@@ -223,9 +223,6 @@ class MtModelImporter:
         newMaxJointArray = []
         newMaxWeightArray = []
         for j in range( 0, primitive.vertexCount ):
-            if j == 1751:
-                print('')
-            
             # get weights and indices for this vertex
             maxVtxJointArray = maxJointArray[j]
             assert ( len(maxVtxJointArray) > 0 )
@@ -427,13 +424,13 @@ class MtModelImporter:
         self.maxBoneLookup = dict()
         for i, joint in enumerate( self.model.joints ):
             localMtx = self.model.jointLocalMtx[i]
-            if not util.isValidByteIndex( joint.parentIndex ):
+            if joint.parentIndex == 255:
                 # only transform root
                 localMtx = self.transformMtx * localMtx
             
             tfm = self.convertNclMat44ToMaxMatrix3( localMtx )
             maxParentBone = None
-            if util.isValidByteIndex( joint.parentIndex ):
+            if joint.parentIndex != 255:
                 maxParentBone = self.maxBoneArray[ joint.parentIndex ]
                 tfm *= maxParentBone.Transform
                     
