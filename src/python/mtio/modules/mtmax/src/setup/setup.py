@@ -23,7 +23,7 @@ def parseMaxVersion( name ):
         try:
             ver = int( verStr )
         except:
-            print( f'warning: unable to determine 3ds Max installation version for {dir.path}')
+            print( f'warning: unable to determine 3ds Max installation version for {name}')
             return None
         
         if ver < MIN_SUPPORTED_VER:
