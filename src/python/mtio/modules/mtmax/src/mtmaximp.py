@@ -244,7 +244,7 @@ class MtModelImporter:
             jointMap = dict()
             
             for k in range(len(maxVtxJointArray)):
-                if maxVtxWeightArray[k] > 0.00001:
+                if maxVtxWeightArray[k] > 0.001:
                     id = maxVtxJointArray[k]
                     weight = maxVtxWeightArray[k]
                     if id in jointMap:
