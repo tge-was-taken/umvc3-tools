@@ -19,6 +19,7 @@ importGroups = True
 importSkeleton = True
 importPrimitives = True
 importSaveMrlYml = True
+importCreateLayer = False
 
 # export settings
 exportWeights = True

@@ -34,7 +34,7 @@ class MtRollout:
             mtmaxconfig.save()
         except Exception as e:
             maxlog.exception( e )
-            mtmaxutil.showMessageBox( 'An error occured. See the log or the MaxScript listener for more details.', "Error" )
+            mtmaxutil.showExceptionMessageBox( 'An error occured while processing user input', e )
 
     @classmethod
     def getMxsVar( cls ):
@@ -83,6 +83,7 @@ class MtModelImportRollout(MtRollout):
         self.chkImportPrimitives.checked = mtmaxconfig.importPrimitives
         self.chkConvertDDS.checked = mtmaxconfig.importConvertTexturesToDDS
         self.chkSaveMrlYml.checked = mtmaxconfig.importSaveMrlYml
+        self.chkCreateLayer.checked = mtmaxconfig.importCreateLayer
         MtModelImportRollout.updateVisibility()
         
     @staticmethod
@@ -160,6 +161,11 @@ class MtModelImportRollout(MtRollout):
     @staticmethod
     def chkImportPrimitivesChanged( state ):
         mtmaxconfig.importPrimitives = state
+        
+    @staticmethod
+    def chkCreateLayerChanged( state ):
+        mtmaxconfig.importCreateLayer = state
+
         
 class MtModelExportRollout(MtRollout):
     @staticmethod
@@ -339,7 +345,6 @@ class MtModelExportRollout(MtRollout):
     @staticmethod
     def chkExportTexOverwriteChanged( state ):
         mtmaxconfig.exportOverwriteTextures = state
-
         
 class MtLogRollout(MtRollout):
     @staticmethod

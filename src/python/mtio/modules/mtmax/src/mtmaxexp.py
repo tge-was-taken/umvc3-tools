@@ -130,7 +130,7 @@ class MtModelExporter(object):
 
         # node is considered a mesh of it is an editable mesh or editable poly
         # TODO: investigate other possible types
-        return rt.classOf( node ) in [rt.Editable_mesh, rt.Editable_poly]
+        return rt.classOf( node ) in [rt.Editable_mesh, rt.Editable_poly, rt.PolyMeshObject]
 
     def _isGroupNode( self, node ):
         '''Returns if the node represents a group'''
@@ -180,7 +180,7 @@ class MtModelExporter(object):
         
         joint = imJoint(
             name=maxNode.name, 
-            id=attribs.id, 
+            id=attribs.id if attribs.id != None else len(self.model.joints), 
             #worldMtx=self._convertMaxMatrix3ToNclMat44( maxNode.transform ),
             localMtx=localMtx,
             parent=self.maxNodeToJointMap[ maxNode.parent ] if maxNode.parent != None else None, # must be specified here to not infere with matrix calculations

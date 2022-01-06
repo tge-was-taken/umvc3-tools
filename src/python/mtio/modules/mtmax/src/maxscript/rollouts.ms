@@ -142,6 +142,7 @@ rollout MtModelImportRollout "Model import"
 	group "Additional options" (
 		checkbox chkConvertDDS "Convert textures to DDS" checked:true 
 		checkbox chkSaveMrlYml "Convert MRL to YML" checked:true
+		checkbox chkCreateLayer "Create layer" checked:true
 	)
 	
 	
@@ -166,6 +167,7 @@ rollout MtModelImportRollout "Model import"
 	on chkImportPrimitives	changed state	do emit #("chkImportPrimitivesChanged", state)
 	on chkConvertDDS		changed state	do emit #("chkConvertDDSChanged", state)
 	on chkSaveMrlYml		changed state	do emit #("chkSaveMrlYmlChanged", state)
+	on chkCreateLayer		changed state	do emit #("chkCreateLayerChanged", state)
 )
 
 rollout MtModelExportRollout "Model export"

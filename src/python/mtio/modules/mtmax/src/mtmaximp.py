@@ -18,9 +18,9 @@ class MtModelImporter:
         self.maxBoneLookup = dict()
         self.maxGroupArray = []
         self.maxGroupLookup = dict()
+        self.layer = None
     
-    @staticmethod
-    def createMaxBone( name, tfm, parentBone ):
+    def createMaxBone( self, name, tfm, parentBone ):
         bone = rt.boneSys.createBone( tfm.row4, ( tfm.row4 + 0.01 * rt.normalize( tfm.row1 ) ), rt.normalize( tfm.row3 ) )
         bone.name = name
         bone.width = 0.001
@@ -32,6 +32,10 @@ class MtModelImporter:
         bone.position.controller = rt.TCB_position()
         bone.rotation.controller = rt.TCB_rotation()
         bone.parent = parentBone
+        
+        if self.layer != None:
+            self.layer.addNode( bone )
+        
         return bone
       
     def convertNclVec3ToMaxPoint3( self, nclVec3 ):
@@ -197,6 +201,9 @@ class MtModelImporter:
             maxGroup = rt.dummy()
             #maxGroup.pos = rt.Point3( group.boundingSphere[0], group.boundingSphere[1], group.boundingSphere[2] )
             maxGroup.name = self.metadata.getGroupName( group.id )
+            if self.layer != None:
+                self.layer.addNode( maxGroup )
+            
             self._addGroupAttribs( group, maxGroup )
             self.maxGroupArray.append( maxGroup )
             self.maxGroupLookup[ group.id ] = maxGroup
@@ -386,6 +393,10 @@ class MtModelImporter:
         elif len( maxJointArray ) == 0:
             maxlog.info( 'primitive {maxMesh.name} has no vertex weights' )
             
+        if self.layer != None:
+            # add to layer
+            self.layer.addNode( maxMesh )
+            
     def importPrimitives( self ):
         maxlog.info('importing primitives')
         
@@ -529,6 +540,9 @@ class MtModelImporter:
         self.transformMtx = self.calcTransformMtx()
         self.maxModelMtx = self.calcModelMtx( self.model )
         #self.maxModelMtx = rt.Matrix3(1)
+        if mtmaxconfig.importCreateLayer:
+            self.layer = rt.LayerManager.newLayerFromName( self.baseName )
+        
         self.importMaterials()
         if mtmaxconfig.importSkeleton:
             self.importSkeleton()
