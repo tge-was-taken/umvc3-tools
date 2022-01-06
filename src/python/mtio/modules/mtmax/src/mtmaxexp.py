@@ -79,8 +79,13 @@ class MtJointAttribData(object):
             # grab attributes from joint metadata
             self.id = jointMeta.id
             self.symmetryNode = None # TODO try to guess symmetry from names?
-            self.field03 = 0
-            self.field04 = 0
+            self.field03 = None
+            self.field04 = None
+        else:
+            self.id = None
+            self.symmetryNode = None
+            self.field03 = None
+            self.field04 = None
 
 class MtModelExporter(object):
     '''Model scene exporter interface'''
@@ -151,7 +156,7 @@ class MtModelExporter(object):
 
         # node is considered a bone node of it's bone geometry (helper)
         # TODO: investigate otehr possible types (Biped, ...?)
-        return rt.classOf( node ) == rt.BoneGeometry
+        return rt.classOf( node ) in [rt.BoneGeometry, rt.Dummy]
     
     def _getObjects( self ):
         # return a list of scene objects as opposed to enumerating directly to prevent crashes

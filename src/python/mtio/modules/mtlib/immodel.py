@@ -374,7 +374,7 @@ class imJoint:
 
         self.name = name
         self.invBindMtx = deepcopy(invBindMtx)
-        self.id = id
+        self.id = 0 if id == None else id
         self.symmetry = symmetry
         self.field03 = 0 if field03 == None else field03
         self.field04 = 0 if field04 == None else field04
