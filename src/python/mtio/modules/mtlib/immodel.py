@@ -317,7 +317,7 @@ class imPrimitive:
             bitangents[ triangleC ] += bitangent
             
         for i in range( 0, len( tangents ) ):
-            normal = self.normals[ i ];
+            normal = self.normals[ i ]
 
             tangent = nclNormalize( tangents[ i ] )
             bitangent = nclNormalize( bitangents[ i ] )
@@ -330,21 +330,21 @@ class imPrimitive:
 
         # Look for NaNs
         for i in range( 0, len( self.positions ) ):
-            position = self.positions[ i ];
-            tangent = self.tangents[ i ];
+            position = self.positions[ i ]
+            tangent = self.tangents[ i ]
 
             if not math.isnan( tangent[0] ) and not math.isnan( tangent[1] ) and not math.isnan( tangent[2] ):
-                continue;
+                continue
 
-            nearestVertexIndex = -1;
-            currentDistance = float("+inf");
+            nearestVertexIndex = -1
+            currentDistance = float("+inf")
 
             for j in range( 0, len( self.positions ) ):
-                positionToCompare = self.positions[ j ];
-                tangentToCompare = self.tangents[ j ];
+                positionToCompare = self.positions[ j ]
+                tangentToCompare = self.tangents[ j ]
 
                 if i == j or math.isnan( tangentToCompare[0] ) or math.isnan( tangentToCompare[1] ) or math.isnan( tangentToCompare[2] ):
-                    continue;
+                    continue
 
                 #distance = nclDistanceSq( position, positionToCompare );
                 temp = position - positionToCompare
@@ -353,11 +353,11 @@ class imPrimitive:
                 if distance > currentDistance: 
                     continue;
 
-                nearestVertexIndex = j;
-                currentDistance = distance;
+                nearestVertexIndex = j
+                currentDistance = distance
 
             if nearestVertexIndex != -1:
-                self.tangents[ i ] = self.tangents[ nearestVertexIndex ];
+                self.tangents[ i ] = self.tangents[ nearestVertexIndex ]
 
 class imVertexFormat:
     def __init__( self ):
@@ -848,7 +848,6 @@ class imModel:
         for v in vertices:
             v.position = nclTransform( v.position, modelMtx )
 
-            # slightly dim...?
             v.normal = nclNormalize( nclTransform( v.normal, modelMtxNormal ) )
         
         # create buffers

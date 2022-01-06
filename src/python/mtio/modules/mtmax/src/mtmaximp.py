@@ -143,7 +143,11 @@ class MtModelImporter:
     def calcModelMtx( self, model: rModelData ):
         modelMtx = self.transformMtx * model.calcModelMtx()
         return self.convertNclMat44ToMaxMatrix3( modelMtx )
-
+    
+    def calcModelNormalMtx( self, model: rModelData ):
+        modelMtx = self.transformMtx * model.calcModelMtx()
+        modelMtxNormal = nclTranspose( nclInverse( modelMtx ) )
+        return self.convertNclMat44ToMaxMatrix3( modelMtxNormal )
 
     def _addPrimitiveAttribs( self, primitive, shaderInfo, maxMesh ):
         rt.custAttributes.add( maxMesh.baseObject, rt.mtPrimitiveAttributesInstance )
@@ -330,7 +334,7 @@ class MtModelImporter:
                     if key == 'Position':
                         rt.append( maxVertexArray, self.decodeInputToMaxPoint3( inputInfo, vertexStream ) * self.maxModelMtx )
                     elif key == 'Normal':
-                        rt.append( maxNormalArray, self.decodeInputToMaxPoint3( inputInfo, vertexStream ) * self.maxModelMtx )
+                        rt.append( maxNormalArray, rt.normalize( self.decodeInputToMaxPoint3( inputInfo, vertexStream ) * self.maxModelNormalMtx ) )
                     elif key == 'Joint':
                         if maxVtxJointArray == None:
                             maxVtxJointArray = rt.Array()
@@ -539,9 +543,12 @@ class MtModelImporter:
         self.model = self.loadModel( self.filePath )
         self.transformMtx = self.calcTransformMtx()
         self.maxModelMtx = self.calcModelMtx( self.model )
+        self.maxModelNormalMtx = self.calcModelNormalMtx( self.model )
         #self.maxModelMtx = rt.Matrix3(1)
         if mtmaxconfig.importCreateLayer:
             self.layer = rt.LayerManager.newLayerFromName( self.baseName )
+            if self.layer == None:
+                self.layer = rt.LayerManager.getLayerFromName( self.baseName )
         
         self.importMaterials()
         if mtmaxconfig.importSkeleton:

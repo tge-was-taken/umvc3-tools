@@ -481,7 +481,7 @@ class MtModelExporter(object):
                     nrm = self._convertMaxPoint3ToNclVec4( temp )
                 else:
                     nrm = self._convertMaxPoint3ToNclVec4( rt.getNormal( maxMesh, vertIdx ) )
-                nrm = nrm * self.transformMtx # needed with reference model
+                nrm = nclNormalize( nrm * self.transformMtxNormal )
                 tempMesh.normals.append( nrm )
                 
                 tempMesh.uvs.append( self._convertMaxPoint3ToNclVec3UV( rt.getTVert( maxMesh, tvertIdx ) ) )
@@ -667,6 +667,7 @@ class MtModelExporter(object):
         self.metadata = ModelMetadata()
         self.mrl = None
         self.transformMtx = self._calcTransformMtx()
+        self.transformMtxNormal = nclTranspose( nclInverse( self.transformMtx ) )
 
         if os.path.exists( mtmaxconfig.exportMetadataPath ):
             maxlog.info(f'loading metadata file from {mtmaxconfig.exportMetadataPath}')
