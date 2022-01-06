@@ -470,6 +470,7 @@ class MtModelExporter(object):
                 
                 pos = self._convertMaxPoint3ToNclVec4( rt.getVert( maxMesh, vertIdx ) )
                 pos = pos * self.transformMtx # needed with reference model
+                pos = NclVec3( pos[0], pos[1], pos[2] )
                 tempMesh.positions.append( pos )
                 
                 if editNormalsMod != None:
@@ -482,6 +483,7 @@ class MtModelExporter(object):
                 else:
                     nrm = self._convertMaxPoint3ToNclVec4( rt.getNormal( maxMesh, vertIdx ) )
                 nrm = nclNormalize( nrm * self.transformMtxNormal )
+                nrm = NclVec3( nrm[0], nrm[1], nrm[2] )
                 tempMesh.normals.append( nrm )
                 
                 tempMesh.uvs.append( self._convertMaxPoint3ToNclVec3UV( rt.getTVert( maxMesh, tvertIdx ) ) )
@@ -499,12 +501,16 @@ class MtModelExporter(object):
                         jointIdx = self.jointIdxByName[ boneName ]
                         weight.weights.append( boneWeight )
                         weight.indices.append( jointIdx )
+                    if tempMesh.weights == None:
+                        tempMesh.weights = []
                     tempMesh.weights.append( weight )
                 else:
-                    # TODO is this correct?
+                    # TODO fix this hack
                     weight = imVertexWeight()
                     weight.weights.append( 1 )
                     weight.indices.append( 2 )
+                    if tempMesh.weights == None:
+                        tempMesh.weights = []
                     tempMesh.weights.append( weight )
 
         # create optimized primitives
@@ -527,8 +533,8 @@ class MtModelExporter(object):
             if attribs.id != None: prim.id = attribs.id
             if attribs.field2c != None: prim.field2c = attribs.field2c
 
-            prim.makeIndexed()
             prim.generateTangents()
+            prim.makeIndexed()
             self.model.primitives.append( prim )
         
     def _processMeshes( self ):

@@ -78,7 +78,7 @@ class imPrimitive:
         self.tangents = tangents if tangents != None else []
         self.normals = normals if normals != None else []
         self.uvs = uvs if uvs != None else []
-        self.weights = weights if weights != None else []
+        self.weights = weights
         self.indices = indices
         self.bitangents = []
 
@@ -112,13 +112,14 @@ class imPrimitive:
         Get the max. number of used bones in the primitive
         '''
         self._maxUsedBoneCount = 0
-        for w in self.weights:
-            usedBoneCount = 0
-            for j in range( 0, len( w.weights ) ):
-                weight = w.weights[ j ]
-                if weight > 0.001:
-                    usedBoneCount += 1            
-            self._maxUsedBoneCount = max( usedBoneCount, self._maxUsedBoneCount )
+        if self.isSkinned():
+            for w in self.weights:
+                usedBoneCount = 0
+                for j in range( 0, len( w.weights ) ):
+                    weight = w.weights[ j ]
+                    if weight > 0.001:
+                        usedBoneCount += 1            
+                self._maxUsedBoneCount = max( usedBoneCount, self._maxUsedBoneCount )
         return self._maxUsedBoneCount
 
     def reduceWeights( self, maxWeightsPerVertex ):
@@ -128,26 +129,27 @@ class imPrimitive:
         '''
         
         # pick 4 most influential weights and remove the others
-        for k, w in enumerate( self.weights ):
-            weightIndex = []
-            for k in range( 0, len(w.weights) ):
-                weightIndex.append((w.weights[k], w.indices[k]))
-            weightIndex = sorted(weightIndex, key=lambda x: x[0])
+        if self.isSkinned():
+            for k, w in enumerate( self.weights ):
+                weightIndex = []
+                for k in range( 0, len(w.weights) ):
+                    weightIndex.append((w.weights[k], w.indices[k]))
+                weightIndex = sorted(weightIndex, key=lambda x: x[0])
 
-            weightTotal = 0
-            w.weights = []
-            w.indices = []
-            for k in range( 0, min(len(weightIndex), maxWeightsPerVertex) ):
-                weight, index = weightIndex[k]
-                weightTotal += weight
-                w.weights.append( weight )
-                w.indices.append( index )
+                weightTotal = 0
+                w.weights = []
+                w.indices = []
+                for k in range( 0, min(len(weightIndex), maxWeightsPerVertex) ):
+                    weight, index = weightIndex[k]
+                    weightTotal += weight
+                    w.weights.append( weight )
+                    w.indices.append( index )
 
-            # average out the weights
-            weightRemainder = 1 - weightTotal
-            weightAvgStep = weightRemainder / len(w.weights)
-            for k in range( 0, len(w.weights) ):
-                w.weights[k] += weightAvgStep
+                # average out the weights
+                weightRemainder = 1 - weightTotal
+                weightAvgStep = weightRemainder / len(w.weights)
+                for k in range( 0, len(w.weights) ):
+                    w.weights[k] += weightAvgStep
 
     def getVertexFlags( self ):
         '''
@@ -214,10 +216,10 @@ class imPrimitive:
         return self._maxWeightCount
 
     def isIndexed( self ):
-        return len( self.indices ) > 0
+        return self.indices != None
     
     def isSkinned( self ):
-        return len( self.weights ) > 0
+        return self.weights != None
     
     def makeDirect( self ):
         '''
@@ -246,8 +248,8 @@ class imPrimitive:
         self.positions = []
         self.normals = []
         self.uvs = []
-        self.weights = []
-        self.tangents = []
+        self.weights = [] if weights != None else None
+        self.tangents = [] if tangents != None else None
         self.indices = []
         
         # optimize vertex buffer
@@ -258,10 +260,7 @@ class imPrimitive:
             cv.position = (positions[i][0], positions[i][1], positions[i][2])
             cv.normal = (normals[i][0], normals[i][1], normals[i][2])
             cv.uv = (uvs[i][0], uvs[i][1])
-
-            # TODO: figure out how to generate proper tangents
-            cv.tangent = cv.normal
-            #cv.tangent = (tangents[i][0], tangents[i][1], tangents[i][2])
+            cv.tangent = (tangents[i][0], tangents[i][1], tangents[i][2], tangents[i][3]) if tangents != None else None
 
             if isSkinned:
                 cv.weights = tuple(weights[i].weights)
@@ -275,7 +274,7 @@ class imPrimitive:
                 self.positions.append( NclVec3( cv.position ) )
                 self.normals.append( NclVec3( cv.normal ) )
                 self.uvs.append( NclVec2( cv.uv ) ) 
-                self.tangents.append( NclVec3( cv.tangent ) )
+                self.tangents.append( NclVec4( cv.tangent ) )
 
                 vtxWeight = imVertexWeight()
                 vtxWeight.indices = cv.weightIndices
@@ -291,10 +290,10 @@ class imPrimitive:
         bitangents = [NclVec3()] * len(self.positions)
         self.tangents = []
         
-        for i in range( 0, len( self.indices ), 3 ):
-            triangleA = self.indices[i]
-            triangleB = self.indices[i+1]
-            triangleC = self.indices[i+2]
+        for i in range( 0, len( self.indices ) if self.isIndexed() else len( self.positions ), 3 ):
+            triangleA = self.indices[i] if self.isIndexed() else i
+            triangleB = self.indices[i+1] if self.isIndexed() else i+1
+            triangleC = self.indices[i+2] if self.isIndexed() else i+2
             positionA = self.positions[ triangleC ] - self.positions[ triangleA ]
             positionB = self.positions[ triangleB ] - self.positions[ triangleA ]
 
@@ -351,7 +350,7 @@ class imPrimitive:
                 distance = nclDot(temp, temp)
 
                 if distance > currentDistance: 
-                    continue;
+                    continue
 
                 nearestVertexIndex = j
                 currentDistance = distance
