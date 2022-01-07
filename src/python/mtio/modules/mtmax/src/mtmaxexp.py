@@ -337,11 +337,11 @@ class MtModelExporter(object):
         for map in material.iterTextures():
             if imMaterialInfo.isDefaultTextureMap( map ):
                 # make sure to export the default textures whenever they are used
-                defaultMapTexPath = os.path.join( util.getResourceDir(), 'textures', map + ".tex" )
+                defaultMapTexPath = os.path.join( util.getResourceDir(), 'textures', os.path.basename( map ) + ".tex" )
                 
                 # always expected to be at the root
                 defaultMapTexExportPath = os.path.join( mtmaxconfig.exportRoot, map + '.tex' ) if self.outPath.hash == None else \
-                                            os.path.join( mtmaxconfig.exportRoot, map + '.241f5deb.tex' )
+                                          os.path.join( mtmaxconfig.exportRoot, map + '.241f5deb.tex' )
 
                 shutil.copy( defaultMapTexPath, defaultMapTexExportPath )
     
@@ -351,9 +351,12 @@ class MtModelExporter(object):
         materialInstance = None
         if mtmaxconfig.exportGenerateMrl:
             # create material instance
-            normalMap = self._getTextureMapResourcePathOrDefaultSafe( material, 'norm_map', imMaterialInfo.DEFAULT_NORMAL_MAP )
-            albedoMap = self._getTextureMapResourcePathOrDefaultSafe( material, 'base_color_map', imMaterialInfo.DEFAULT_ALBEDO_MAP )
-            specularMap = self._getTextureMapResourcePathOrDefaultSafe( material, 'specular_map', imMaterialInfo.DEFAULT_SPECULAR_MAP )
+            normalMap = self._getTextureMapResourcePathOrDefaultSafe( material, 'norm_map', 
+                                                                     self.outPath.relBasePath + '\\' + imMaterialInfo.DEFAULT_NORMAL_MAP )
+            albedoMap = self._getTextureMapResourcePathOrDefaultSafe( material, 'base_color_map', 
+                                                                     self.outPath.relBasePath + '\\' + imMaterialInfo.DEFAULT_ALBEDO_MAP )
+            specularMap = self._getTextureMapResourcePathOrDefaultSafe( material, 'specular_map', 
+                                                                       self.outPath.relBasePath + '\\' + imMaterialInfo.DEFAULT_SPECULAR_MAP )
             materialInstance = imMaterialInfo.createDefault( material.name, 
                 normalMap=normalMap,
                 albedoMap=albedoMap,
@@ -561,10 +564,10 @@ class MtModelExporter(object):
             if attribs.field2c != None: prim.field2c = attribs.field2c
 
             maxlog.debug("generating tangents")
-            prim.generateTangents()
+            prim.generateTangents(lambda pct: mtmaxutil.updateUI())
             
             maxlog.debug("optimizing mesh")
-            prim.makeIndexed()
+            prim.makeIndexed(lambda pct: mtmaxutil.updateUI())
             
             self.model.primitives.append( prim )
             

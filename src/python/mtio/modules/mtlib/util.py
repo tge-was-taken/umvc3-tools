@@ -157,9 +157,9 @@ def isResourceFilePathWithHash( path ):
 
 class ResourcePath:
     def __init__( self, fullPath, rootPath=None ):
-        self.fullPath = os.path.abspath( fullPath ).replace("\\", "/")
+        self.fullPath = os.path.abspath( fullPath ).replace("/", "\\")
         self.basePath, self.fullName = os.path.split(fullPath)
-        self.basePath = self.basePath.replace("\\", "/")
+        self.basePath = self.basePath.replace("/", "\\")
         
         nameParts = self.fullName.split('.')
         self.baseName = nameParts[0]
@@ -172,16 +172,16 @@ class ResourcePath:
         else:
             raise Exception("Invalid path: " + fullPath)
         
-        self.fullPathNoExt = self.basePath + '/' + self.baseName
+        self.fullPathNoExt = self.basePath + '\\' + self.baseName
         
         self.relPath = None
         self.relBasePath = None
         self.relPathNoExt = None
         
         if rootPath != None:
-            rootPath = os.path.abspath( rootPath ).replace("\\", "/")
+            rootPath = os.path.abspath( rootPath ).replace("/", "\\")
             pathRootIndex = self.fullPath.find( rootPath )
-            if pathRootIndex == 0 and self.fullPath[len(rootPath)] == '/':
+            if pathRootIndex == 0 and self.fullPath[len(rootPath)] == '\\':
                 # root folder found in path
                 self.relPath = self.fullPath[len(rootPath)+1:]
                 self.relBasePath = self.basePath[len(rootPath)+1:]

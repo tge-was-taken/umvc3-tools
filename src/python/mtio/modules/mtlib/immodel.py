@@ -230,7 +230,7 @@ class imPrimitive:
         else:
             raise NotImplementedError()
     
-    def makeIndexed( self ):
+    def makeIndexed( self, progressCb = None ):
         '''
         Makes the model indexed by removing all duplicate vertex data and generating an index buffer that refers to each vertex component by index.
         '''
@@ -256,6 +256,8 @@ class imPrimitive:
         vertexIdxLookup = dict()
         nextVertexIdx = 0
         for i in range( 0, len( positions ) ):
+            if progressCb != None: progressCb( i/len(positions) )
+            
             cv = imCacheVertex()
             cv.position = (positions[i][0], positions[i][1], positions[i][2])
             cv.normal = (normals[i][0], normals[i][1], normals[i][2])
@@ -285,12 +287,14 @@ class imPrimitive:
 
             self.indices.append(idx)
             
-    def generateTangents( self ):
+    def generateTangents( self, progressCb=None ):
         tangents = [NclVec3()] * len(self.positions)
         bitangents = [NclVec3()] * len(self.positions)
         self.tangents = []
+        count = len( self.indices ) if self.isIndexed() else len( self.positions )
         
-        for i in range( 0, len( self.indices ) if self.isIndexed() else len( self.positions ), 3 ):
+        for i in range( 0, count, 3 ):
+            if progressCb != None: progressCb( i/count )
             triangleA = self.indices[i] if self.isIndexed() else i
             triangleB = self.indices[i+1] if self.isIndexed() else i+1
             triangleC = self.indices[i+2] if self.isIndexed() else i+2
@@ -316,6 +320,7 @@ class imPrimitive:
             bitangents[ triangleC ] += bitangent
             
         for i in range( 0, len( tangents ) ):
+            if progressCb != None: progressCb( i/len( tangents ) )
             normal = self.normals[ i ]
 
             tangent = nclNormalize( tangents[ i ] )
@@ -329,6 +334,7 @@ class imPrimitive:
 
         # Look for NaNs
         for i in range( 0, len( self.positions ) ):
+            if progressCb != None: progressCb( i/len( self.positions ) )
             position = self.positions[ i ]
             tangent = self.tangents[ i ]
 
