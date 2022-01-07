@@ -644,6 +644,9 @@ class imModel:
             mod.boneMap.append(-1)
             
         # create id -> index map
+        if len( self.joints ) > 255:
+            raise RuntimeError( f"Too many bones. (max 256, got {len(self.joints)})" )
+        
         for i, joint in enumerate( self.joints ):
             mod.boneMap[ joint.id ] = i
         

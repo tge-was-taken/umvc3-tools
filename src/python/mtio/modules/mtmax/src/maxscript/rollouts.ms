@@ -54,7 +54,7 @@ fn mtCallPythonFunc module func args =
 rollout MtInfoRollout "MT Framework Importer/Exporter"
 (
 	label lblTitle2 "Ultimate Marvel vs Capcom 3"
-	label lblVersion "Version 1.0.16 Beta" align:#center
+	label lblVersion "Version 1.0.17 Beta" align:#center
 	label lblAuthor "© 2021-2022 TGE" align:#center
 )
 
@@ -193,7 +193,7 @@ rollout MtModelExportRollout "Model export"
 	
 	group "Export filters" (
 		checkbox chkExportWeights "Weights" checked:true across:3 align:#center --offset:[0, 20]
-		-- checkbox chkExportNormals "Normals" checked:true  across:3 align:#center --offset:[0, 20]
+		checkbox chkExportNormals "Explicit normals" checked:true  across:3 align:#center --offset:[0, 20]
 		checkbox chkExportGroups "Groups" checked:true across:3 align:#center --offset:[0, 20]
 		label lblDummy2 ""
 

@@ -96,6 +96,10 @@ class MtJointAttribData(object):
             self.symmetryNode = \
                 rt.getNodeByName( util.replaceSuffix( name, "_l", "_r" ) ) if name.endswith("_l") else \
                 rt.getNodeByName( util.replaceSuffix( name, "_r", "_l" ) ) if name.endswith("_r") else \
+                rt.getNodeByName( util.replaceSuffix( name, "_L", "_R" ) ) if name.endswith("_L") else \
+                rt.getNodeByName( util.replaceSuffix( name, "_R", "_L" ) ) if name.endswith("_R") else \
+                rt.getNodeByName( util.replaceSuffix( name, "L", "R" ) ) if name.endswith("L") else \
+                rt.getNodeByName( util.replaceSuffix( name, "R", "L" ) ) if name.endswith("R") else \
                 None
             
             self.field03 = None
@@ -204,7 +208,7 @@ class MtModelExporter(object):
         
         joint = imJoint(
             name=maxNode.name, 
-            id=attribs.id if attribs.id != None else len(self.model.joints), 
+            id=attribs.id if attribs.id != None else len(self.model.joints) + 1, 
             localMtx=localMtx,
             parent=self._processBone( maxNode.parent ) if maxNode.parent != None else None, # must be specified here to not infere with matrix calculations
             field03=attribs.field03,
@@ -315,18 +319,22 @@ class MtModelExporter(object):
             else:
                 maxlog.debug( f'material "{materialName}" texture map "{textureMapName}" not exported because it has not been assigned')
         else:
-            maxlog.debug( f'material "{materialName}" texture map "{textureMapName}" not exported because it does not exist on the material')         
-     
-    def _getTextureMapResourcePathOrDefault( self, textureMap, default ):
-        if textureMap == None: return default
-        path = util.ResourcePath( textureMap.filename, rootPath=mtmaxconfig.exportRoot )
+            maxlog.debug( f'material "{materialName}" texture map "{textureMapName}" not exported because it does not exist on the material')
+            
+    def _getTextureMapResourcePathInternal( self, name ):
         if self.outPath.relBasePath != None:
             # take the relative directory path of the model and append the name of the texture
-            result = self.outPath.relBasePath + '/' + path.baseName
+            result = self.outPath.relBasePath + '\\' + name
         else:
             # because the model output path is not relative to the root, we put the texture at the root
             # the user will likely have to fix this
-            result = path.baseName
+            result = name
+        return result
+            
+    def _getTextureMapResourcePathOrDefault( self, textureMap, default ):
+        if textureMap == None: return self._getTextureMapResourcePathInternal( default )
+        path = util.ResourcePath( textureMap.filename, rootPath=mtmaxconfig.exportRoot )
+        result = self._getTextureMapResourcePathInternal( path.baseName )
         result = result.replace('/', '\\')
         return result
     
@@ -351,12 +359,9 @@ class MtModelExporter(object):
         materialInstance = None
         if mtmaxconfig.exportGenerateMrl:
             # create material instance
-            normalMap = self._getTextureMapResourcePathOrDefaultSafe( material, 'norm_map', 
-                                                                     self.outPath.relBasePath + '\\' + imMaterialInfo.DEFAULT_NORMAL_MAP )
-            albedoMap = self._getTextureMapResourcePathOrDefaultSafe( material, 'base_color_map', 
-                                                                     self.outPath.relBasePath + '\\' + imMaterialInfo.DEFAULT_ALBEDO_MAP )
-            specularMap = self._getTextureMapResourcePathOrDefaultSafe( material, 'specular_map', 
-                                                                       self.outPath.relBasePath + '\\' + imMaterialInfo.DEFAULT_SPECULAR_MAP )
+            normalMap = self._getTextureMapResourcePathOrDefaultSafe( material, 'norm_map', imMaterialInfo.DEFAULT_NORMAL_MAP )
+            albedoMap = self._getTextureMapResourcePathOrDefaultSafe( material, 'base_color_map', imMaterialInfo.DEFAULT_ALBEDO_MAP )
+            specularMap = self._getTextureMapResourcePathOrDefaultSafe( material, 'specular_map', imMaterialInfo.DEFAULT_SPECULAR_MAP )
             materialInstance = imMaterialInfo.createDefault( material.name, 
                 normalMap=normalMap,
                 albedoMap=albedoMap,
@@ -385,7 +390,7 @@ class MtModelExporter(object):
                 normalMap = self._getTextureMapResourcePathOrDefaultSafe( material.bump_map, 'normal', imMaterialInfo.DEFAULT_NORMAL_MAP )
             else:
                 # TODO handle different normal map assignments?
-                normalMap = imMaterialInfo.DEFAULT_NORMAL_MAP
+                normalMap = self._getTextureMapResourcePathInternal( imMaterialInfo.DEFAULT_NORMAL_MAP )
             
             albedoMap = self._getTextureMapResourcePathOrDefaultSafe( material, 'base_color_map', imMaterialInfo.DEFAULT_ALBEDO_MAP )
             # TODO is metalness correct for specular?
@@ -465,7 +470,15 @@ class MtModelExporter(object):
         else:
             hasSkin = False
 
+        removeEditNormals = False
         editNormalsMod = maxNode.modifiers[rt.Name('Edit_Normals')]
+        if editNormalsMod == None:
+            if mtmaxconfig.exportNormals:
+                maxlog.debug('adding temporary edit normals modifier to get the proper vertex normals')
+                editNormalsMod = rt.Edit_Normals()
+                rt.select( maxNode )
+                rt.modPanel.addModToSelection( editNormalsMod, ui=False )
+                removeEditNormals = True
         
         # collect all vertex data per material
         maxlog.debug('collecting vertex data')
@@ -570,6 +583,10 @@ class MtModelExporter(object):
             prim.makeIndexed(lambda pct: mtmaxutil.updateUI())
             
             self.model.primitives.append( prim )
+            
+        if removeEditNormals:
+            maxlog.debug('delete temporary edit normals modifier')
+            rt.deleteModifier( maxNode, editNormalsMod )
             
         self._processedNodes.add( maxNode )
         

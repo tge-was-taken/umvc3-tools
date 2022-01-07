@@ -289,10 +289,10 @@ def findSimilarJoints( inputName, stats ):
     if len( mod.joints ) > 0:
         for modJoint in mod.joints:     
             parentId = -1
-            if modJoint.parentIndex not in [-1, 255]:
+            if modJoint.parentIndex != 255:
                 parentId = mod.joints[ modJoint.parentIndex ].id
             symmetryId = -1
-            if modJoint.symmetryIndex not in [-1, 255]:
+            if modJoint.symmetryIndex != 255:
                 symmetryId = mod.joints[ modJoint.symmetryIndex ].id
             
             found = False
