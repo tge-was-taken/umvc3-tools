@@ -439,7 +439,7 @@ class MtModelExporter(object):
             
             maxlog.info(f'processing material: {material.name}')
             materialInstance = None
-            if rt.classOf( material ) == rt.PBRSpecGloss:
+            if hasattr( rt, 'PBRSpecGloss' ) and rt.classOf( material ) == rt.PBRSpecGloss:
                 materialInstance = self._processMaterial_PBRSpecGloss( material )
             elif rt.classOf( material ) == rt.PhysicalMaterial:
                 materialInstance = self._processMaterial_PhysicalMaterial( material )
@@ -717,7 +717,7 @@ class MtModelExporter(object):
         if mtmaxconfig.flipUpAxis:
             mtx *= util.Z_TO_Y_UP_MATRIX
         if mtmaxconfig.scale != 1:
-            mtx *= nclScale( mtmaxconfig.scale )
+            mtx *= nclScale( -mtmaxconfig.scale )
         return mtx
     
     def exportModel( self, path ):
@@ -726,6 +726,9 @@ class MtModelExporter(object):
         # start building intermediate model data for conversion
         self.model = imModel()
         self.outPath = util.ResourcePath(path, rootPath=mtmaxconfig.exportRoot)
+        if self.outPath.relBasePath == None:
+            raise RuntimeError("The model export path is not in a subfolder of the specified extracted archive directory.")
+        
         self.metadata = ModelMetadata()
         self.mrl = None
         self._transformMtx = self._calcTransformMtx()

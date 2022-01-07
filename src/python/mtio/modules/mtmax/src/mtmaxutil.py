@@ -47,4 +47,7 @@ def showErrorMessageBox( brief, details = '' ):
     showMessageBox( f"{brief}\n\n{details}\n\nSee the log or the MaxScript listener for more details.\nThe log file can be found at {getLogFilePath()}\nScript version: {mtmaxver.version}" )
     
 def showExceptionMessageBox( brief, e ):
-    showErrorMessageBox( brief, e.args[0] if len(e.args) > 0 else "" )
+    msg = ''
+    if hasattr(e, 'args') and len(e.args) > 0:
+        msg = e.args[0]
+    showErrorMessageBox( brief, msg )

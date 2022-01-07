@@ -54,7 +54,7 @@ fn mtCallPythonFunc module func args =
 rollout MtInfoRollout "MT Framework Importer/Exporter"
 (
 	label lblTitle2 "Ultimate Marvel vs Capcom 3"
-	label lblVersion "Version 1.0.17 Beta" align:#center
+	label lblVersion "Version 1.0.18 Beta" align:#center
 	label lblAuthor "© 2021-2022 TGE" align:#center
 )
 
@@ -121,11 +121,11 @@ rollout MtModelImportRollout "Model import"
 	fn _width = ( MtModelImportRollout.width )
 	fn _height = ( MtModelImportRollout.height )
 
-	label lblFile "Input file" across:1 align:#left
+	label lblFile "Input model file" across:1 align:#left
 	edittext edtFile across:2 width:(_width() - 60) offset:[0,0]
 	button btnFile "..." align:#right across:2 offset:[10,-2]
 	
-	label lblMetadata "Metadata (optional)" across:1 align:#left
+	label lblMetadata "Metadata file (optional)" across:1 align:#left
 	edittext edtMetadata across:2 width:(_width() - 60) offset:[0,0]
 	button btnMetadata "..." align:#right across:2 offset:[10,-2]
 	
@@ -175,19 +175,19 @@ rollout MtModelExportRollout "Model export"
 	fn _width = ( MtModelImportRollout.width )
 	fn _height = ( MtModelImportRollout.height )
 	
-	label lblFile "Output file" across:1 align:#left
+	label lblFile "Output model file" across:1 align:#left
 	edittext edtFile across:2 width:(_width() - 60) offset:[-0,0]
 	button btnFile "..." align:#right across:2 offset:[10,-2]
 
-	label lblRoot "Archive root path" across:1 align:#left
+	label lblRoot "Extracted archive directory" across:1 align:#left
 	edittext edtRoot across:2 width:(_width() - 60) offset:[-0,0]
 	button btnRoot "..." align:#right across:2 offset:[10,-2]
 	
-	label lblRef "Reference/original model (optional)" across:1 align:#left
+	label lblRef "Reference/original model file (optional)" across:1 align:#left
 	edittext edtRef across:2 width:(_width() - 60) offset:[-0,0]
 	button btnRef "..." align:#right across:2 offset:[10,-2]
 	
-	label lblMetadata "Metadata (optional)" across:1 align:#left
+	label lblMetadata "Metadata file (optional)" across:1 align:#left
 	edittext edtMetadata across:2 width:(_width() - 60) offset:[-0,0]
 	button btnMetadata "..." align:#right across:2 offset:[10,-2]
 	
@@ -195,7 +195,6 @@ rollout MtModelExportRollout "Model export"
 		checkbox chkExportWeights "Weights" checked:true across:3 align:#center --offset:[0, 20]
 		checkbox chkExportNormals "Explicit normals" checked:true  across:3 align:#center --offset:[0, 20]
 		checkbox chkExportGroups "Groups" checked:true across:3 align:#center --offset:[0, 20]
-		label lblDummy2 ""
 
 		checkbox chkExportSkeleton "Skeleton" checked:true across:3 align:#center
 		checkbox chkExportPrimitives "Meshes" checked:true across:3 align:#center

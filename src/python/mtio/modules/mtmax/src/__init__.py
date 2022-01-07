@@ -89,7 +89,9 @@ class MtModelImportRollout(MtRollout):
     @staticmethod
     def setFilePath( path ):
         mtmaxconfig.importFilePath = path
-        mtmaxconfig.importMetadataPath = ModelMetadata.getDefaultFilePath( os.path.basename( mtmaxconfig.importFilePath ).split('.')[0] )
+        newMetadataPath = ModelMetadata.getDefaultFilePath( os.path.basename( mtmaxconfig.importFilePath ).split('.')[0] )
+        if os.path.exists( newMetadataPath ):
+            mtmaxconfig.importMetadataPath = newMetadataPath
         MtModelImportRollout.loadConfig()
     
     @staticmethod
@@ -201,14 +203,18 @@ class MtModelExportRollout(MtRollout):
     def setFilePath( path ):
         mtmaxconfig.exportFilePath = path
         if not os.path.exists(mtmaxconfig.exportMetadataPath): 
-            mtmaxconfig.exportMetadataPath = ModelMetadata.getDefaultFilePath( os.path.basename( mtmaxconfig.exportFilePath ).split('.')[0] )
+            newMetadataPath = ModelMetadata.getDefaultFilePath( os.path.basename( mtmaxconfig.exportFilePath ).split('.')[0] )
+            if os.path.exists( newMetadataPath ):
+                mtmaxconfig.exportMetadataPath = newMetadataPath
         MtModelExportRollout.loadConfig()
 
     @staticmethod
     def setRefFilePath( path ):
         mtmaxconfig.exportRefPath = path
-        if not os.path.exists(mtmaxconfig.exportMetadataPath): 
-            mtmaxconfig.exportMetadataPath = ModelMetadata.getDefaultFilePath( os.path.basename( mtmaxconfig.exportRefPath ).split('.')[0] )
+        if not os.path.exists(mtmaxconfig.exportMetadataPath):
+            newMetadataPath = ModelMetadata.getDefaultFilePath( os.path.basename( mtmaxconfig.exportRefPath ).split('.')[0] )
+            if os.path.exists( newMetadataPath ): 
+                mtmaxconfig.exportMetadataPath = newMetadataPath
         MtModelExportRollout.loadConfig()
         
     @staticmethod

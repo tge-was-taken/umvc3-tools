@@ -103,8 +103,9 @@ if not libtarget.noesis:
     def nclTranspose( mtx ):
         return glm.transpose( mtx )
     
-    def nclScale( vec ):
-        return glm.scale( vec )
+    def nclScale( scalar ):
+        temp = glm.mat4()
+        return glm.scale( temp, glm.vec3( scalar, scalar, scalar ) )
     
     def nclTranslation( vec ):
         return glm.translation( vec )
