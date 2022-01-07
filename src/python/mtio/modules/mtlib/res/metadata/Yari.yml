@@ -2,8 +2,8 @@ version: 1
 name: Yari
 joints: {}
 groups:
-  id, name, field04, field08, field0c, boundingSphere:
-  - [0, grp_0, 0, 0, 0, [-0.11023521423339844, -0.0692300796508789, 44.59510040283203, 72.8705825805664]]
+  id, name:
+  - [0, grp_0]
 primitives:
-  id, name, links:
-  - [1, prm_1, []]
+  id, name:
+  - [1, prm_1]

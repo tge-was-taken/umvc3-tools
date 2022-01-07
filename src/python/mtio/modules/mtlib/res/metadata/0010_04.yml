@@ -2,8 +2,8 @@ version: 1
 name: '0010_04'
 joints: {}
 groups:
-  id, name, field04, field08, field0c, boundingSphere:
-  - [4, grp_4, 0, 0, 0, [8.394912719726562, 137.23876953125, -36.819576263427734, 74.35901641845703]]
+  id, name:
+  - [4, grp_4]
 primitives:
-  id, name, links:
-  - [1, prm_1, []]
+  id, name:
+  - [1, prm_1]

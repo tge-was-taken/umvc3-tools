@@ -1,22 +1,22 @@
 version: 1
 name: tumugari
 joints:
-  id, name, field03, field04, length, parentId, symmetryId, offset:
-  - [1, root, 0, 24.999094009399414, 28.670001983642578, 3, 1, [0.0, 0.0, -28.670001983642578]]
-  - [2, pelvis, 0, 12.498190879821777, 0.0, 3, 2, [0.0, 0.0, 0.0]]
-  - [3, spine, 0, 132.8671112060547, 0.0, -1, 3, [0.0, 0.0, 0.0]]
+  id, name:
+  - [1, root]
+  - [2, pelvis]
+  - [3, spine]
 groups:
-  id, name, field04, field08, field0c, boundingSphere:
-  - [0, grp_0, 0, 0, 0, [-9.5367431640625e-06, -5.0067901611328125e-06, 33.941749572753906, 105.01646423339844]]
+  id, name:
+  - [0, grp_0]
 primitives:
-  id, name, links:
-  - [1, prm_1, []]
-  - [2, prm_2, []]
-  - [3, prm_3, []]
-  - [4, prm_4, []]
-  - [5, prm_5, []]
-  - [6, prm_6, []]
-  - [7, prm_7, []]
-  - [8, prm_8, []]
-  - [9, prm_9, []]
-  - [10, prm_10, []]
+  id, name:
+  - [1, prm_1]
+  - [2, prm_2]
+  - [3, prm_3]
+  - [4, prm_4]
+  - [5, prm_5]
+  - [6, prm_6]
+  - [7, prm_7]
+  - [8, prm_8]
+  - [9, prm_9]
+  - [10, prm_10]

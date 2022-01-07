@@ -81,6 +81,9 @@ class MtJointAttribData(object):
             # grab attributes from custom attributes on node
             self.id = _tryParseInt(attribs.id)
             self.symmetryNode = rt.getNodeByName( attribs.symmetryName )
+            # auto detect if symmetry node is not found and symmetry name is set to 'auto'
+            if self.symmetryNode == None and attribs.symmetryName == "auto":
+                self.symmetryNode = self._detectSymmetryNode( name )
             self.field03 = _tryParseInt(attribs.field03)
             self.field04 = _tryParseFloat(attribs.field04)
             self.length = _tryParseFloat(attribs.length)
@@ -93,21 +96,22 @@ class MtJointAttribData(object):
             else:
                 self.id = None
                 
-            self.symmetryNode = \
-                rt.getNodeByName( util.replaceSuffix( name, "_l", "_r" ) ) if name.endswith("_l") else \
-                rt.getNodeByName( util.replaceSuffix( name, "_r", "_l" ) ) if name.endswith("_r") else \
-                rt.getNodeByName( util.replaceSuffix( name, "_L", "_R" ) ) if name.endswith("_L") else \
-                rt.getNodeByName( util.replaceSuffix( name, "_R", "_L" ) ) if name.endswith("_R") else \
-                rt.getNodeByName( util.replaceSuffix( name, "L", "R" ) ) if name.endswith("L") else \
-                rt.getNodeByName( util.replaceSuffix( name, "R", "L" ) ) if name.endswith("R") else \
-                None
-            
+            self.symmetryNode = self._detectSymmetryNode( name )
             self.field03 = None
             self.field04 = None
             self.length = None
             self.offsetX = None
             self.offsetY = None
             self.offsetZ = None
+            
+    def _detectSymmetryNode( self, name: str ):
+        return rt.getNodeByName( util.replaceSuffix( name, "_l", "_r" ) ) if name.endswith("_l") else \
+               rt.getNodeByName( util.replaceSuffix( name, "_r", "_l" ) ) if name.endswith("_r") else \
+               rt.getNodeByName( util.replaceSuffix( name, "_L", "_R" ) ) if name.endswith("_L") else \
+               rt.getNodeByName( util.replaceSuffix( name, "_R", "_L" ) ) if name.endswith("_R") else \
+               rt.getNodeByName( util.replaceSuffix( name, "L", "R" ) ) if name.endswith("L") else \
+               rt.getNodeByName( util.replaceSuffix( name, "R", "L" ) ) if name.endswith("R") else \
+               None
 
 class MtModelExporter(object):
     '''Model scene exporter interface'''
@@ -548,8 +552,15 @@ class MtModelExporter(object):
                 else:
                     # TODO fix this hack
                     weight = imVertexWeight()
+                    if len(self.model.joints) < 3:
+                        # assume stage model
+                        rootIndex = 0
+                    else:
+                        # works better for characters
+                        rootIndex = 2
+                    
                     weight.weights.append( 1 )
-                    weight.indices.append( 2 )
+                    weight.indices.append( rootIndex )
                     if tempMesh.weights == None:
                         tempMesh.weights = []
                     tempMesh.weights.append( weight )

@@ -1,17 +1,17 @@
 version: 1
 name: CrsKnife
 joints:
-  id, name, field03, field04, length, parentId, symmetryId, offset:
-  - [1, root, 0, 53.53116989135742, 3.771587610244751, -1, 1, [0.0, -3.622620105743408, 1.049522042274475]]
+  id, name:
+  - [1, root]
 groups:
-  id, name, field04, field08, field0c, boundingSphere:
-  - [0, grp_0, 0, 0, 0, [0.016269981861114502, 21.60094451904297, 3.186790704727173, 32.32154846191406]]
+  id, name:
+  - [0, grp_0]
 primitives:
-  id, name, links:
-  - [1, prm_1, []]
-  - [2, prm_2, []]
-  - [3, prm_3, []]
-  - [4, prm_4, []]
-  - [5, prm_5, []]
-  - [6, prm_6, []]
-  - [7, prm_7, []]
+  id, name:
+  - [1, prm_1]
+  - [2, prm_2]
+  - [3, prm_3]
+  - [4, prm_4]
+  - [5, prm_5]
+  - [6, prm_6]
+  - [7, prm_7]

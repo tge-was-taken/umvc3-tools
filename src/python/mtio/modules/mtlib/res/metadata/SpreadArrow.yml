@@ -1,14 +1,14 @@
 version: 1
 name: SpreadArrow
 joints:
-  id, name, field03, field04, length, parentId, symmetryId, offset:
-  - [1, root, 0, 118.65692138671875, 0.0, -1, 1, [0.0, 0.0, 0.0]]
+  id, name:
+  - [1, root]
 groups:
-  id, name, field04, field08, field0c, boundingSphere:
-  - [0, grp_0, 0, 0, 0, [-0.0031000375747680664, 0.5160799622535706, 57.99946212768555, 60.7645149230957]]
+  id, name:
+  - [0, grp_0]
 primitives:
-  id, name, links:
-  - [1, prm_1, []]
-  - [2, prm_2, []]
-  - [3, prm_3, []]
-  - [4, prm_4, []]
+  id, name:
+  - [1, prm_1]
+  - [2, prm_2]
+  - [3, prm_3]
+  - [4, prm_4]

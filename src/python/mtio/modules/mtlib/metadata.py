@@ -26,12 +26,12 @@ class JointMetadata:
     def __init__( self ):
         self.id = int()
         self.name = str()
-        self.parent = None 
-        self.symmetry = None 
-        self.field03 = int()
-        self.field04 = float()
-        self.length = float()
-        self.offset = NclVec3()
+        # self.parent = None 
+        # self.symmetry = None 
+        # self.field03 = int()
+        # self.field04 = float()
+        # self.length = float()
+        # self.offset = NclVec3()
         
     @staticmethod
     def getDefaultName( id ):
@@ -51,10 +51,10 @@ class GroupMetadata:
     def __init__( self ):
         self.id = int()
         self.name = str()
-        self.field04 = int()
-        self.field08 = int()
-        self.field0c = int()
-        self.boundingSphere = NclVec4()
+        # self.field04 = int()
+        # self.field08 = int()
+        # self.field0c = int()
+        # self.boundingSphere = NclVec4()
         
     @staticmethod
     def getDefaultName( id ):
@@ -68,17 +68,17 @@ class GroupMetadata:
     def getIdFromName( name ):
         return int(name[len( GroupMetadata.DEFAULT_NAME_PREFIX ):])
         
-class PrimitiveJointLinkMetadata:
-    def __init__( self ):
-        self.jointId = int()
-        self.field04 = int()
-        self.field08 = int()
-        self.field0c = int()
-        self.boundingSphere = NclVec4()
-        self.min = NclVec4()
-        self.max = NclVec4()
-        self.localMtx = nclCreateMat44()
-        self.field80 = NclVec4()
+# class PrimitiveJointLinkMetadata:
+#     def __init__( self ):
+#         self.jointId = int()
+#         self.field04 = int()
+#         self.field08 = int()
+#         self.field0c = int()
+#         self.boundingSphere = NclVec4()
+#         self.min = NclVec4()
+#         self.max = NclVec4()
+#         self.localMtx = nclCreateMat44()
+#         self.field80 = NclVec4()
         
 class PrimitiveMetadata:
     DEFAULT_NAME_PREFIX = 'prm_'
@@ -86,7 +86,7 @@ class PrimitiveMetadata:
     def __init__( self ):
         self.id = int()
         self.name = str()
-        self.links = []
+        # self.links = []
         
     @staticmethod
     def getDefaultName( id ):
@@ -127,6 +127,7 @@ class ModelMetadata:
         for key in yObj:
             if key not in excluded:
                 setattr( obj, key, yObj[ key ] )
+                
     @staticmethod              
     def _copyAttributesExcept( obj, yObj, excluded ):
         for key in obj.__dict__:
@@ -247,16 +248,16 @@ class ModelMetadata:
             if joint.name in [None, '']:
                 joint.name = JointMetadata.getDefaultName( joint.id )
                 isDefaultName = True
-            joint.parent = None
-            if mJoint.parentIndex != 255:
-                joint.parent = self.getJointById( modelData.joints[ mJoint.parentIndex].id )
-            joint.symmetry = None
-            if mJoint.symmetryIndex != 255:
-                joint.symmetry = self.getJointById( modelData.joints[ mJoint.symmetryIndex ].id )
-            joint.field03 = mJoint.field03
-            joint.field04 = mJoint.field04
-            joint.length = mJoint.length
-            joint.offset = mJoint.offset
+            # joint.parent = None
+            # if mJoint.parentIndex != 255:
+            #     joint.parent = self.getJointById( modelData.joints[ mJoint.parentIndex].id )
+            # joint.symmetry = None
+            # if mJoint.symmetryIndex != 255:
+            #     joint.symmetry = self.getJointById( modelData.joints[ mJoint.symmetryIndex ].id )
+            # joint.field03 = mJoint.field03
+            # joint.field04 = mJoint.field04
+            # joint.length = mJoint.length
+            # joint.offset = mJoint.offset
             
             if isDefaultName and refMetadata != None:
                 refJoint = refMetadata.getJointById( joint.id )
@@ -277,10 +278,10 @@ class ModelMetadata:
             if group.name in [None, '']:
                 group.name = GroupMetadata.getDefaultName( group.id )
                 isDefaultName = True
-            group.field04 = mGroup.field04 
-            group.field08 = mGroup.field08
-            group.field0c = mGroup.field0c
-            group.boundingSphere = mGroup.boundingSphere
+            # group.field04 = mGroup.field04 
+            # group.field08 = mGroup.field08
+            # group.field0c = mGroup.field0c
+            # group.boundingSphere = mGroup.boundingSphere
             
             if isDefaultName and refMetadata != None and \
                 ( group.id >= 70 or refMetadata.name == self.name ):
@@ -302,7 +303,7 @@ class ModelMetadata:
                 prim.name = PrimitiveMetadata.getDefaultName( prim.id )
                 isDefaultName = True
             
-            prim.links = []
+            # prim.links = []
             if isDefaultName and refMetadata != None and refMetadata.name == self.name:
                 refPrim = refMetadata.getPrimitiveById( prim.id )
                 if refPrim != None:
@@ -335,16 +336,16 @@ class ModelMetadata:
         for yJoint in self._iterComplexMappings( yamlObj['joints'] ):
             joint = self.jointLookupById[yJoint['id']]
             self._copyValuesExcept( joint, yJoint, ['parentId', 'symmetryId', 'offset'] )
-            joint.parent = self.getJointById( yJoint['parentId'] )
-            joint.symmetry = self.getJointById( yJoint['symmetryId'] )
-            joint.offset = NclVec3(yJoint['offset'])
+            # joint.parent = self.getJointById( yJoint['parentId'] )
+            # joint.symmetry = self.getJointById( yJoint['symmetryId'] )
+            # joint.offset = NclVec3(yJoint['offset'])
             self.jointLookupByName[joint.name] = joint
             self.joints.append( joint )
         
         for yGroup in self._iterComplexMappings( yamlObj['groups'] ):
             group = GroupMetadata()
             self._copyValuesExcept( group, yGroup, ['boundingSphere'])
-            group.boundingSphere = NclVec4( yGroup['boundingSphere'] )
+            # group.boundingSphere = NclVec4( yGroup['boundingSphere'] )
             self.groupLookupById[group.id] = group
             self.groupLookupByName[group.name] = group
             self.groups.append( group )
@@ -362,16 +363,16 @@ class ModelMetadata:
         for joint in self.joints:
             yJoint = dict()
             self._copyAttributesExcept( joint, yJoint, ['parent', 'symmetry', 'offset'] )
-            yJoint['parentId'] = joint.parent.id if joint.parent != None else -1
-            yJoint['symmetryId'] = joint.symmetry.id if joint.symmetry != None else -1
-            yJoint['offset'] = joint.offset.toList()
+            # yJoint['parentId'] = joint.parent.id if joint.parent != None else -1
+            # yJoint['symmetryId'] = joint.symmetry.id if joint.symmetry != None else -1
+            # yJoint['offset'] = joint.offset.toList()
             joints.append( yJoint )
             
         groups = []
         for group in self.groups:
             yGroup = dict()
             self._copyAttributesExcept( group, yGroup, 'boundingSphere' )
-            yGroup['boundingSphere'] = group.boundingSphere.toList()
+            # yGroup['boundingSphere'] = group.boundingSphere.toList()
             groups.append( yGroup )
             
         primitives = []
@@ -389,10 +390,10 @@ class ModelMetadata:
             yamlObj['primitives'] = self._createComplexMapping( primitives )
             
             try:
-                yaml = yaml.YAML()
-                yaml.width = 1024
-                yaml.dump( yamlObj, f )
-            except:
+                yamlInst = yaml.YAML()
+                yamlInst.width = 1024
+                yamlInst.dump( yamlObj, f )
+            except Exception as e:
                 f.write( yaml.dump( yamlObj ) )
         
     def getJointById( self, jointId ):
@@ -423,21 +424,21 @@ class ModelMetadata:
         return self._getObjectName( PrimitiveMetadata, self.primLookupById, id )
     
 if __name__ == '__main__':
-    m = ModelMetadata()
-    m.loadFile( ModelMetadata.getDefaultFilePath('_ref') )
-    j = m.getJointByName('pelvis')
-    j2 = m.getJointById(2)
-    assert( j.id == j2.id )
-    g = m.getGroupByName('grp_body')
-    g2 = m.getGroupById( 3 )
-    assert( g.id == g2.id )
-    p = m.getPrimitiveByName( 'prm_headband' )
-    p2 = m.getPrimitiveById( 3 )
-    assert( p.id == p2.id )
+    # m = ModelMetadata()
+    # m.loadFile( ModelMetadata.getDefaultFilePath('_ref') )
+    # j = m.getJointByName('pelvis')
+    # j2 = m.getJointById(2)
+    # assert( j.id == j2.id )
+    # g = m.getGroupByName('grp_body')
+    # g2 = m.getGroupById( 3 )
+    # assert( g.id == g2.id )
+    # p = m.getPrimitiveByName( 'prm_headband' )
+    # p2 = m.getPrimitiveById( 3 )
+    # assert( p.id == p2.id )
     
-    m.saveFile( ModelMetadata.getDefaultFilePath('test') )
+    # m.saveFile( ModelMetadata.getDefaultFilePath('test') )
     
-    ModelMetadata.generateInitialMetadata('X:\\work\\umvc3_model\\samples\\test')
+    ModelMetadata.generateInitialMetadata('X:\\project\\umvc3_model\\samples\\test')
     
     pass
     

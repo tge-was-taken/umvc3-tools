@@ -1,14 +1,14 @@
 version: 1
 name: Cipher
 joints:
-  id, name, field03, field04, length, parentId, symmetryId, offset:
-  - [1, root, 0, 73.7384033203125, 0.0, -1, 1, [0.0, 0.0, 0.0]]
+  id, name:
+  - [1, root]
 groups:
-  id, name, field04, field08, field0c, boundingSphere:
-  - [0, grp_0, 0, 0, 0, [-0.17133504152297974, 19.878711700439453, -3.6332497596740723, 54.62401580810547]]
+  id, name:
+  - [0, grp_0]
 primitives:
-  id, name, links:
-  - [1, prm_1, []]
-  - [2, prm_2, []]
-  - [3, prm_3, []]
-  - [4, prm_4, []]
+  id, name:
+  - [1, prm_1]
+  - [2, prm_2]
+  - [3, prm_3]
+  - [4, prm_4]

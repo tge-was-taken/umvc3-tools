@@ -1,12 +1,12 @@
 version: 1
 name: sunglasses
 joints:
-  id, name, field03, field04, length, parentId, symmetryId, offset:
-  - [1, root, 0, 10.906450271606445, 0.0, -1, 1, [0.0, 0.0, 0.0]]
+  id, name:
+  - [1, root]
 groups:
-  id, name, field04, field08, field0c, boundingSphere:
-  - [1, grp_1, 0, 0, 0, [0.0, 0.007420003414154053, -3.6444649696350098, 8.208722114562988]]
+  id, name:
+  - [1, grp_1]
 primitives:
-  id, name, links:
-  - [1, prm_1, []]
-  - [2, prm_2, []]
+  id, name:
+  - [1, prm_1]
+  - [2, prm_2]

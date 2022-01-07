@@ -1,15 +1,15 @@
 version: 1
 name: 0005_KobunHead
 joints:
-  id, name, field03, field04, length, parentId, symmetryId, offset:
-  - [3, spine, 0, 30.95803451538086, 1.0, -1, -1, [1.0, 0.0, 0.0]]
+  id, name:
+  - [3, spine]
 groups:
-  id, name, field04, field08, field0c, boundingSphere:
-  - [1, grp_1, 0, 0, 0, [13.560464859008789, 0.22568988800048828, 0.0, 27.88348388671875]]
-  - [2, grp_2, 0, 0, 0, [-13.816044807434082, 0.22568988800048828, 0.0, 27.74346160888672]]
+  id, name:
+  - [1, grp_1]
+  - [2, grp_2]
 primitives:
-  id, name, links:
-  - [1, prm_1, []]
-  - [2, prm_2, []]
-  - [3, prm_3, []]
-  - [4, prm_4, []]
+  id, name:
+  - [1, prm_1]
+  - [2, prm_2]
+  - [3, prm_3]
+  - [4, prm_4]

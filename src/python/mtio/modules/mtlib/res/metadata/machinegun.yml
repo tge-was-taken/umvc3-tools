@@ -1,14 +1,14 @@
 version: 1
 name: machinegun
 joints:
-  id, name, field03, field04, length, parentId, symmetryId, offset:
-  - [204, jnt_204, 0, 32.20286178588867, 0.0, -1, 204, [0.0, 0.0, 0.0]]
+  id, name:
+  - [204, jnt_204]
 groups:
-  id, name, field04, field08, field0c, boundingSphere:
-  - [0, grp_0, 0, 0, 0, [-1.3888249397277832, -13.243949890136719, 3.9921650886535645, 20.41494369506836]]
+  id, name:
+  - [0, grp_0]
 primitives:
-  id, name, links:
-  - [1, prm_1, []]
-  - [2, prm_2, []]
-  - [3, prm_3, []]
-  - [4, prm_4, []]
+  id, name:
+  - [1, prm_1]
+  - [2, prm_2]
+  - [3, prm_3]
+  - [4, prm_4]

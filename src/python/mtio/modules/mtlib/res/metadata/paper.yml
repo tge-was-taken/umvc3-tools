@@ -1,13 +1,13 @@
 version: 1
 name: paper
 joints:
-  id, name, field03, field04, length, parentId, symmetryId, offset:
-  - [1, root, 0, 33.321598052978516, 0.0, -1, 1, [0.0, 0.0, 0.0]]
+  id, name:
+  - [1, root]
 groups:
-  id, name, field04, field08, field0c, boundingSphere:
-  - [1, grp_1, 0, 0, 0, [0.47640013694763184, -14.851160049438477, -1.7005505561828613, 25.194122314453125]]
-  - [2, grp_2, 0, 0, 0, [-0.47640013694763184, -14.851160049438477, -1.7005505561828613, 25.194122314453125]]
+  id, name:
+  - [1, grp_1]
+  - [2, grp_2]
 primitives:
-  id, name, links:
-  - [1, prm_1, []]
-  - [2, prm_2, []]
+  id, name:
+  - [1, prm_1]
+  - [2, prm_2]

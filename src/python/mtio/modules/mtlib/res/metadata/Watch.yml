@@ -1,16 +1,16 @@
 version: 1
 name: Watch
 joints:
-  id, name, field03, field04, length, parentId, symmetryId, offset:
-  - [1, root, 0, 10.738245010375977, 10.5, 2, 1, [0.0, 10.5, 0.0]]
-  - [2, pelvis, 0, 0.6123724579811096, 0.0, -1, 2, [0.0, 0.0, 0.0]]
+  id, name:
+  - [1, root]
+  - [2, pelvis]
 groups:
-  id, name, field04, field08, field0c, boundingSphere:
-  - [0, grp_0, 0, 0, 0, [0.0, 0.0, 0.0, 11.361868858337402]]
-  - [127, grp_debug_cube, 0, 0, 0, [0.0, 0.25, 0.0, 0.4330126941204071]]
+  id, name:
+  - [0, grp_0]
+  - [127, grp_debug_cube]
 primitives:
-  id, name, links:
-  - [1, prm_1, []]
-  - [2, prm_2, []]
-  - [3, prm_3, []]
-  - [4, prm_4, []]
+  id, name:
+  - [1, prm_1]
+  - [2, prm_2]
+  - [3, prm_3]
+  - [4, prm_4]

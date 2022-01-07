@@ -1,13 +1,13 @@
 version: 1
 name: Ironpipe
 joints:
-  id, name, field03, field04, length, parentId, symmetryId, offset:
-  - [204, jnt_204, 0, 1.0429165363311768, 65.69172668457031, -1, 204, [0.0, 0.0, 65.69172668457031]]
-  - [207, jnt_207, 0, 149.0545654296875, 0.0, -1, 207, [0.0, 0.0, 0.0]]
+  id, name:
+  - [204, jnt_204]
+  - [207, jnt_207]
 groups:
-  id, name, field04, field08, field0c, boundingSphere:
-  - [0, grp_0, 0, 0, 0, [-6.508827209472656e-05, -3.3136448860168457, 64.30267333984375, 84.9151840209961]]
+  id, name:
+  - [0, grp_0]
 primitives:
-  id, name, links:
-  - [1, prm_1, []]
-  - [2, prm_2, []]
+  id, name:
+  - [1, prm_1]
+  - [2, prm_2]

@@ -1,12 +1,12 @@
 version: 1
 name: Ax
 joints:
-  id, name, field03, field04, length, parentId, symmetryId, offset:
-  - [3, spine, 0, 166.14413452148438, 107.63932037353516, -1, 3, [0.0, 21.889999389648438, 105.38999938964844]]
+  id, name:
+  - [3, spine]
 groups:
-  id, name, field04, field08, field0c, boundingSphere:
-  - [0, grp_0, 0, 0, 0, [-0.0050106048583984375, -31.47545051574707, -66.49726867675781, 111.70670318603516]]
+  id, name:
+  - [0, grp_0]
 primitives:
-  id, name, links:
-  - [1, prm_1, []]
-  - [2, prm_2, []]
+  id, name:
+  - [1, prm_1]
+  - [2, prm_2]

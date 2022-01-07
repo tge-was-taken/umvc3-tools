@@ -1,12 +1,12 @@
 version: 1
 name: transceiver
 joints:
-  id, name, field03, field04, length, parentId, symmetryId, offset:
-  - [0, jnt_0, 0, 8.159175872802734, 0.0, -1, 0, [0.0, 0.0, 0.0]]
+  id, name:
+  - [0, jnt_0]
 groups:
-  id, name, field04, field08, field0c, boundingSphere:
-  - [0, grp_0, 0, 0, 0, [0.0, 0.0, 0.0, 8.29349422454834]]
+  id, name:
+  - [0, grp_0]
 primitives:
-  id, name, links:
-  - [1, prm_1, []]
-  - [2, prm_2, []]
+  id, name:
+  - [1, prm_1]
+  - [2, prm_2]

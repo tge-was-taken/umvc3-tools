@@ -2,9 +2,9 @@ version: 1
 name: Sword
 joints: {}
 groups:
-  id, name, field04, field08, field0c, boundingSphere:
-  - [1, grp_1, 0, 0, 0, [0.0, 0.0, 40.18914031982422, 68.96830749511719]]
+  id, name:
+  - [1, grp_1]
 primitives:
-  id, name, links:
-  - [1, prm_1, []]
-  - [2, prm_2, []]
+  id, name:
+  - [1, prm_1]
+  - [2, prm_2]

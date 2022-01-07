@@ -1,12 +1,12 @@
 version: 1
 name: DRDgun
 joints:
-  id, name, field03, field04, length, parentId, symmetryId, offset:
-  - [193, jnt_193, 0, 51.92239761352539, 0.002730000065639615, -1, -1, [-0.002730000065639615, 0.0, 0.0]]
+  id, name:
+  - [193, jnt_193]
 groups:
-  id, name, field04, field08, field0c, boundingSphere:
-  - [0, grp_0, 0, 0, 0, [0.0027298927307128906, 13.838419914245605, 23.58904457092285, 26.676816940307617]]
+  id, name:
+  - [0, grp_0]
 primitives:
-  id, name, links:
-  - [1, prm_1, []]
-  - [2, prm_2, []]
+  id, name:
+  - [1, prm_1]
+  - [2, prm_2]

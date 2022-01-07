@@ -1,19 +1,19 @@
 version: 1
 name: '0016'
 joints:
-  id, name, field03, field04, length, parentId, symmetryId, offset:
-  - [1, root, 0, 4.54684591293335, 0.0, -1, 1, [0.0, 0.0, 0.0]]
-  - [2, pelvis, 0, 4.54684591293335, 0.0, 1, 2, [0.0, 0.0, 0.0]]
-  - [3, spine, 0, 4.54684591293335, 0.0, 1, 3, [0.0, 0.0, 0.0]]
-  - [4, spine2, 0, 4.54684591293335, 0.0, 1, 4, [0.0, 0.0, 0.0]]
-  - [5, spine3, 0, 4.54684591293335, 0.0, 1, 5, [0.0, 0.0, 0.0]]
+  id, name:
+  - [1, root]
+  - [2, pelvis]
+  - [3, spine]
+  - [4, spine2]
+  - [5, spine3]
 groups:
-  id, name, field04, field08, field0c, boundingSphere:
-  - [0, grp_0, 0, 0, 0, [0.0, 0.0, 0.0, 4.54684591293335]]
+  id, name:
+  - [0, grp_0]
 primitives:
-  id, name, links:
-  - [1, prm_1, []]
-  - [2, prm_2, []]
-  - [3, prm_3, []]
-  - [4, prm_4, []]
-  - [5, prm_5, []]
+  id, name:
+  - [1, prm_1]
+  - [2, prm_2]
+  - [3, prm_3]
+  - [4, prm_4]
+  - [5, prm_5]
