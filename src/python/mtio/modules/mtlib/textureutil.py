@@ -81,65 +81,68 @@ def convertTexture( srcTexturePath: str, dstTexturePath: str = None,
             log.info('texconv end\n')
     else:
         if dstExt != 'tex':
-            raise Exception( "Unsupported output format: " + dstExt )
-        
-        # determine format
-        fmt = forcedFormat
-        if fmt == '' or fmt == None:
-            if refTex != None:
-                # copy format from reference texture
-                fmt = refTex.header.fmt.surfaceFmt
-            else:
-                # detect format from name
-                fmt = rTextureSurfaceFmt.getFormatFromTextureName( srcBaseName, doesTextureUseAlpha( srcTexturePath ) )
-                if fmt == None:
-                    # not detected, fallback
-                    fmt = rTextureSurfaceFmt.BM_OPA
-        
-        convert = True
-        isNormal = fmt == rTextureSurfaceFmt.NM
-        if srcExt.lower() == 'dds':
-            # check if DDS format matches
-            fmtDDS = rTextureSurfaceFmt.getDDSFormat( fmt )
-            dds = DDSFile.fromFile( srcTexturePath )
-            if dds.header.ddspf.dwFourCC == fmtDDS:
-                # don't need to convert to proper format
-                convert = False
-                
-        if convert:  
-            # convert file to DDS with texconv
-            fmtDDS = rTextureSurfaceFmt.getDDSFormat( fmt )
-            fmtDDSName = ''
-            if fmtDDS == DDS_FOURCC_DXT1:
-                fmtDDSName = 'DXT1'
-            elif fmtDDS == DDS_FOURCC_DXT2:
-                fmtDDSName = 'DXT2'
-            elif fmtDDS == DDS_FOURCC_DXT3:
-                fmtDDSName = 'DXT3'
-            elif fmtDDS == DDS_FOURCC_DXT4:
-                fmtDDSName = 'DXT4'
-            elif fmtDDS == DDS_FOURCC_DXT5:
-                fmtDDSName = 'DXT5'
-            elif fmtDDS == DDS_FOURCC_NONE:
-                fmtDDSName = 'RGBA'
-            else:
-                raise Exception("Unhandled dds format: " + str(fmtDDS))
+            # if the target type is not tex, convert the input with texconv
+            log.info('\texconv start')
+            texconv.texconv( srcTexturePath, outPath=dstBasePath, fileType=dstExt, pow2=False, fmt='RGBA', srgb=True)
+            log.info('texconv end\n')
+        else:
+            # determine format
+            fmt = forcedFormat
+            if fmt == '' or fmt == None:
+                if refTex != None:
+                    # copy format from reference texture
+                    fmt = refTex.header.fmt.surfaceFmt
+                else:
+                    # detect format from name
+                    fmt = rTextureSurfaceFmt.getFormatFromTextureName( srcBaseName, doesTextureUseAlpha( srcTexturePath ) )
+                    if fmt == None:
+                        # not detected, fallback
+                        fmt = rTextureSurfaceFmt.BM_OPA
             
-            log.info( 'converting input {} to DDS {}'.format(srcTexturePath, srcDDSPath))
-            log.debug( 'DDS format: {}'.format( fmtDDSName ) )
-            log.debug( 'texconv start')
-            texconv.texconv( srcTexturePath, outPath=srcDDSBasePath, fileType='DDS', featureLevel=9.1, pow2=True, fmt=fmtDDSName, overwrite=True, srgb=True )
-            log.debug( 'texconv end')
-        
-        log.info('converting DDS {} to TEX {}'.format( srcDDSPath, dstTexturePath ))
-        log.debug('TEX format: {}'.format(fmt))
-        dds = DDSFile.fromFile( srcDDSPath )
-        tex = rTextureData.fromDDS( dds )
-        tex.header.fmt.surfaceFmt = fmt
-        
-        # copy faces from original cubemap if needed
-        if refTex != None: 
-            for face in refTex.faces:
-                tex.faces.append( face )
-        
-        tex.saveBinaryFile( dstTexturePath )
+            convert = True
+            isNormal = fmt == rTextureSurfaceFmt.NM
+            if srcExt.lower() == 'dds':
+                # check if DDS format matches
+                fmtDDS = rTextureSurfaceFmt.getDDSFormat( fmt )
+                dds = DDSFile.fromFile( srcTexturePath )
+                if dds.header.ddspf.dwFourCC == fmtDDS:
+                    # don't need to convert to proper format
+                    convert = False
+                    
+            if convert:  
+                # convert file to DDS with texconv
+                fmtDDS = rTextureSurfaceFmt.getDDSFormat( fmt )
+                fmtDDSName = ''
+                if fmtDDS == DDS_FOURCC_DXT1:
+                    fmtDDSName = 'DXT1'
+                elif fmtDDS == DDS_FOURCC_DXT2:
+                    fmtDDSName = 'DXT2'
+                elif fmtDDS == DDS_FOURCC_DXT3:
+                    fmtDDSName = 'DXT3'
+                elif fmtDDS == DDS_FOURCC_DXT4:
+                    fmtDDSName = 'DXT4'
+                elif fmtDDS == DDS_FOURCC_DXT5:
+                    fmtDDSName = 'DXT5'
+                elif fmtDDS == DDS_FOURCC_NONE:
+                    fmtDDSName = 'RGBA'
+                else:
+                    raise Exception("Unhandled dds format: " + str(fmtDDS))
+                
+                log.info( 'converting input {} to DDS {}'.format(srcTexturePath, srcDDSPath))
+                log.debug( 'DDS format: {}'.format( fmtDDSName ) )
+                log.debug( 'texconv start')
+                texconv.texconv( srcTexturePath, outPath=srcDDSBasePath, fileType='DDS', featureLevel=9.1, pow2=True, fmt=fmtDDSName, overwrite=True, srgb=True )
+                log.debug( 'texconv end')
+            
+            log.info('converting DDS {} to TEX {}'.format( srcDDSPath, dstTexturePath ))
+            log.debug('TEX format: {}'.format(fmt))
+            dds = DDSFile.fromFile( srcDDSPath )
+            tex = rTextureData.fromDDS( dds )
+            tex.header.fmt.surfaceFmt = fmt
+            
+            # copy faces from original cubemap if needed
+            if refTex != None: 
+                for face in refTex.faces:
+                    tex.faces.append( face )
+            
+            tex.saveBinaryFile( dstTexturePath )
