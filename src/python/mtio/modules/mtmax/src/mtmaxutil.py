@@ -51,3 +51,6 @@ def showExceptionMessageBox( brief, e ):
     if hasattr(e, 'args') and len(e.args) > 0:
         msg = e.args[0]
     showErrorMessageBox( brief, msg )
+    
+def openListener():
+    rt.actionMan.executeAction( 0, "40472" )

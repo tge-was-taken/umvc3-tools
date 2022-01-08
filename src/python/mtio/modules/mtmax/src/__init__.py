@@ -35,6 +35,7 @@ class MtRollout:
         except Exception as e:
             maxlog.exception( e )
             mtmaxutil.showExceptionMessageBox( 'An error occured while processing user input', e )
+            mtmaxutil.openListener()
 
     @classmethod
     def getMxsVar( cls ):
@@ -108,11 +109,13 @@ class MtModelImportRollout(MtRollout):
             importer.importModel( mtmaxconfig.importFilePath )
             if maxlog.hasError():
                 mtmaxutil.showErrorMessageBox( "Import completed with one or more errors.", '' )
+                mtmaxutil.openListener()
             else:
                 mtmaxutil.showMessageBox( 'Import completed successfully' )
         except Exception as e:
             maxlog.exception( e )
             mtmaxutil.showErrorMessageBox( "A fatal error occured during import.", e.args[0] if len(e.args) > 0 else "" )
+            mtmaxutil.openListener()
             
         
         
@@ -236,11 +239,14 @@ class MtModelExportRollout(MtRollout):
             exporter.exportModel( mtmaxconfig.exportFilePath )
             if maxlog.hasError():
                 mtmaxutil.showErrorMessageBox( "Export completed with one or more errors." )
+                mtmaxutil.openListener()
             else:
                 mtmaxutil.showMessageBox( 'Export completed successfully' )
+                
         except Exception as e:
             maxlog.exception( e )
             mtmaxutil.showErrorMessageBox( "An error occured during export.",  e.args[0] if len(e.args) > 0 else "" )
+            mtmaxutil.openListener()
         
     @staticmethod
     def btnFilePressed():
