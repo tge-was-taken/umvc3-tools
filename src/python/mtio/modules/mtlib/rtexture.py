@@ -121,19 +121,29 @@ class rTextureSurfaceFmt:
     
     @staticmethod
     def getDDSFormat( fmt ):
-        if fmt in [19, 20, 25, 26, 30, 41]: 
+        if fmt in [rTextureSurfaceFmt.BM_OPA, rTextureSurfaceFmt.DXT1_20, 
+                   rTextureSurfaceFmt.MM_OPA, rTextureSurfaceFmt.DXT1_26, 
+                   rTextureSurfaceFmt.DXT1_30, rTextureSurfaceFmt.DXT1_41]: 
             return DDS_FOURCC_DXT1
-        else:
+        elif fmt in [rTextureSurfaceFmt.DXT5_21, rTextureSurfaceFmt.DXT5_22,
+                     rTextureSurfaceFmt.BM_XLU, rTextureSurfaceFmt.DXT5_24,
+                     rTextureSurfaceFmt.DXT5_27, rTextureSurfaceFmt.NM,
+                     rTextureSurfaceFmt.DXT5_32, rTextureSurfaceFmt.DXT5_33,
+                     rTextureSurfaceFmt.DXT5_35, rTextureSurfaceFmt.DXT5_36,
+                     rTextureSurfaceFmt.DXT5_37, rTextureSurfaceFmt.BM_HQ,
+                     rTextureSurfaceFmt.DXT5_43, rTextureSurfaceFmt.DXT5_47]:
             return DDS_FOURCC_DXT5
+        elif fmt in[rTextureSurfaceFmt.LIN]:
+            return DDS_FOURCC_NONE # RGBA
         
     _specialTextureNames = {
-        'DEAmoji00_MM': 21,
-        'yari_MM': 39,
-        'Wesker_nuno_DM': 30,
-        'DefaultCube_CM': 32,
-        'ZERmoyou02': 39,
-        'ZERmoyoured02': 39,
-        'ZERmoyouyellow02': 39,
+        'DEAmoji00_MM': DXT5_21,
+        'yari_MM': LIN,
+        'Wesker_nuno_DM': DXT1_30,
+        'DefaultCube_CM': DXT5_32,
+        'ZERmoyou02': LIN,
+        'ZERmoyoured02': LIN,
+        'ZERmoyouyellow02': LIN,
     }
         
     @staticmethod
@@ -142,26 +152,25 @@ class rTextureSurfaceFmt:
             return rTextureSurfaceFmt._specialTextureNames[ name ]
         elif '_BM' in name:
             if 'toon' in name:
-                return 39
+                return rTextureSurfaceFmt.LIN
             elif '_HQ' in name:
-                return 42
+                return rTextureSurfaceFmt.BM_HQ
             elif alpha:
-                return 23
+                return rTextureSurfaceFmt.BM_XLU
             else:
-                return 19
+                return rTextureSurfaceFmt.BM_OPA
         elif '_LM' in name or \
              '_CM' in name or \
              '_NUKI' in name:
-            return 19
+            return rTextureSurfaceFmt.BM_OPA
         elif '_AM' in name or \
              '_MM' in name:
-            return 25
+            return rTextureSurfaceFmt.MM_OPA
         elif '_DM' in name or \
              '_NM' in name:
-            return 31
+            return rTextureSurfaceFmt.NM
         elif '_LIN' in name:
-            return 39
-
+            return rTextureSurfaceFmt.LIN
 
 class rTextureHeaderFmt:
     def __init__( self, value=0 ):
@@ -323,56 +332,80 @@ class rTextureData:
         util.saveByteArrayToFile( path, stream.getBuffer() )
         
     def toDDS( self ):
-        fourCC = rTextureSurfaceFmt.getDDSFormat( self.header.fmt.getSurfaceFmt() )
-        blockSize = 16
-        if fourCC == DDS_FOURCC_DXT1:
-            blockSize = 8
-        
-        pitch = ddsCalcLinearSizeCompressed( self.header.dim.getWidth(), self.header.dim.getHeight(), blockSize )
         hasMips = self.header.dim.mipCount > 1
         
         dds = DDSFile()
         dds.header.dwFlags |= DDSD_LINEARSIZE
         if hasMips:
             dds.header.dwFlags |= DDSD_MIPMAPCOUNT
-            
+            dds.header.dwCaps |= DDSCAPS_MIPMAP
+                   
         dds.header.dwHeight = self.header.dim.getHeight()
         dds.header.dwWidth = self.header.dim.getWidth()
-        dds.header.dwPitchOrLinearSize = pitch
-        dds.header.dwMipMapCount = self.header.dim.getMipCount()
-        dds.header.ddspf.dwFlags |= DDPF_FOURCC
-        dds.header.ddspf.dwFourCC = fourCC
-        if hasMips:
-            dds.header.dwCaps |= DDSCAPS_MIPMAP
+        dds.header.dwMipMapCount = self.header.dim.getMipCount()   
         dds.buffer = bytearray()
         for surface in self.surfaces:
             for mip in surface.mips:
                 dds.buffer += mip
+
+        fourCC = rTextureSurfaceFmt.getDDSFormat( self.header.fmt.getSurfaceFmt() )
+        if fourCC != DDS_FOURCC_NONE:
+            blockSize = 16
+            if fourCC == DDS_FOURCC_DXT1:
+                blockSize = 8
+            
+            pitch = ddsCalcLinearSizeBlockCompressed( self.header.dim.getWidth(), self.header.dim.getHeight(), blockSize )
+            dds.header.dwPitchOrLinearSize = pitch
+            dds.header.ddspf.dwFlags |= DDPF_FOURCC
+            dds.header.ddspf.dwFourCC = fourCC
+        else:
+            # TODO RGBA is assumed here
+            dds.header.ddspf.dwFlags |= DDS_RGBA
+            dds.header.ddspf.dwRGBBitCount = 32
+            dds.header.ddspf.dwRBitMask = 0xff
+            dds.header.ddspf.dwGBitMask = 0xff00
+            dds.header.ddspf.dwBBitMask = 0xff0000
+            dds.header.ddspf.dwABitMask = 0xff000000
+            dds.header.dwPitchOrLinearSize = ddsCalcPitchBpp( dds.header.dwWidth, dds.header.ddspf.dwRGBBitCount )
+
         return dds
     
     @staticmethod
     def fromDDS( dds ):
-        if not dds.header.ddspf.dwFlags & DDPF_FOURCC:
-            raise Exception("Uncompressed DDS are not supported")
-        
-        blockSize = 8
-        fmt = rTextureSurfaceFmt.BM_OPA
-        if dds.header.ddspf.dwFourCC != DDS_FOURCC_DXT1:
-            fmt = rTextureSurfaceFmt.BM_XLU
-            blockSize = 16
-           
         surface = rTextureSurfaceData()
-        width = dds.header.dwWidth 
-        height = dds.header.dwHeight
-        off = 0
-        for i in range( dds.header.dwMipMapCount ):
-            size = ddsCalcLinearSizeCompressed( width, height, blockSize )
-            mip = dds.buffer[off:off+size]
-            assert(len(mip) == size)
-            off += size
-            width //= 2
-            height //= 2
-            surface.mips.append( mip )
+        fmt = None
+        if dds.header.ddspf.dwFlags & DDPF_FOURCC:
+            blockSize = 8
+            fmt = rTextureSurfaceFmt.BM_OPA
+            if dds.header.ddspf.dwFourCC != DDS_FOURCC_DXT1:
+                fmt = rTextureSurfaceFmt.BM_XLU
+                blockSize = 16
+            
+            width = dds.header.dwWidth 
+            height = dds.header.dwHeight
+            off = 0
+            for i in range( dds.header.dwMipMapCount ):
+                size = ddsCalcLinearSizeBlockCompressed( width, height, blockSize )
+                mip = dds.buffer[off:off+size]
+                assert(len(mip) == size)
+                off += size
+                width //= 2
+                height //= 2
+                surface.mips.append( mip )
+        else:
+            # TODO LIN assumed here
+            fmt = rTextureSurfaceFmt.LIN
+            width = dds.header.dwWidth 
+            height = dds.header.dwHeight
+            off = 0
+            for i in range( dds.header.dwMipMapCount ):
+                size = ddsCalcLinearSizeBpp( width, height, dds.header.ddspf.dwRGBBitCount )
+                mip = dds.buffer[off:off+size]
+                assert(len(mip) == size)
+                off += size
+                width = max( 1, width // 2 )
+                height = max( 1, height // 2 )
+                surface.mips.append( mip )
 
         tex = rTextureData()
         tex.surfaces.append( surface )
@@ -386,12 +419,17 @@ class rTextureData:
         return tex
         
 def _test():
+    # tex = rTextureData()
+    # tex.loadBinaryFile( "X:/work/umvc3_model/samples/UMVC3ModelSamples/Ryu/Ryu_tex1_BM.241f5deb.tex" )
+    # tex.saveBinaryFile( "test.tex" )
+    # tex.toDDS().saveFile( "test.dds" )
+    # newTex = rTextureData.fromDDS( DDSFile.fromFile( 'test.dds' ) )
+    # newTex.saveBinaryFile( "testnew.tex" )
     tex = rTextureData()
-    tex.loadBinaryFile( "X:/work/umvc3_model/samples/UMVC3ModelSamples/Ryu/Ryu_tex1_BM.241f5deb.tex" )
-    tex.saveBinaryFile( "test.tex" )
-    tex.toDDS().saveFile( "test.dds" )
-    newTex = rTextureData.fromDDS( DDSFile.fromFile( 'test.dds' ) )
-    newTex.saveBinaryFile( "testnew.tex" )
+    tex.loadBinaryFile( "X:\\game\\platform\\pc\\Ultimate Marvel vs. Capcom 3\\nativePCx64\\UserShader\\toon_Black_BM_HQ.tex" )
+    tex.toDDS().saveFile( "X:\\game\\platform\\pc\\Ultimate Marvel vs. Capcom 3\\nativePCx64\\UserShader\\toon_Black_BM_HQ.dds" )
+    newTex = rTextureData.fromDDS( DDSFile.fromFile("X:\\game\\platform\\pc\\Ultimate Marvel vs. Capcom 3\\nativePCx64\\UserShader\\toon_Black_BM_HQ.dds" ))
+    newTex.saveBinaryFile( "X:\\game\\platform\\pc\\Ultimate Marvel vs. Capcom 3\\nativePCx64\\UserShader\\toon_Black_BM_HQ_new.tex" )
         
 if __name__ == '__main__':
     _test()

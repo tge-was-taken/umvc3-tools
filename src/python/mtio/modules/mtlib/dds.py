@@ -142,11 +142,20 @@ def FOURCC(a,b,c,d):
     return ( (ord(a) & 0xFF) << 0 | (ord(b) & 0xFF) << 8 | (ord(c) & 0xFF) << 16 | (ord(d) & 0xFF) << 24 ) & 0xFFFFFFFF
 
 DDS_MAGIC = FOURCC( 'D', 'D', 'S', ' ' )
+DDS_FOURCC_NONE = 0
 DDS_FOURCC_DXT1 = FOURCC( 'D', 'X', 'T', '1' )
 DDS_FOURCC_DXT2 = FOURCC( 'D', 'X', 'T', '2' )
 DDS_FOURCC_DXT3 = FOURCC( 'D', 'X', 'T', '3' )
 DDS_FOURCC_DXT4 = FOURCC( 'D', 'X', 'T', '4' )
 DDS_FOURCC_DXT5 = FOURCC( 'D', 'X', 'T', '5' )
+
+DDS_FOURCC = DDPF_FOURCC
+DDS_RGB = DDPF_RGB
+DDS_RGBA = DDPF_RGB | DDPF_ALPHAPIXELS
+DDS_LUMINANCE = DDPF_LUMINANCE
+DDS_LUMINANCEA = DDPF_LUMINANCE | DDPF_ALPHAPIXELS
+DDS_ALPHA = DDPF_ALPHA
+#DDS_PAL8 = DDPF_PALETTEINDEXED8
 
 class DDS_HEADER:
     def __init__( self ):
@@ -199,20 +208,23 @@ class DDS_HEADER:
         stream.writeUInt( self.dwCaps4 )
         stream.writeUInt( self.dwReserved2 )
     
-def ddsCalcPitchCompressed( width, blockSize ):
+def ddsCalcPitchBlockCompressed( width, blockSize ):
     return int(max( 1, ((width+3)//4) ) * blockSize)
 
 def ddsCalcPitchRgb( width ):
     return ((width+1) >> 1) * 4
 
-def ddsCalcPitchGeneric( width, bpp ):
+def ddsCalcPitchBpp( width, bpp ):
     return ( width * bpp + 7 ) // 8
 
 def ddsAlign4( val ):
     return int(max(1, ( (val + 3) // 4 ) ))
 
-def ddsCalcLinearSizeCompressed( width, height, blockSize ):
+def ddsCalcLinearSizeBlockCompressed( width, height, blockSize ):
     return int( ( ddsAlign4( width ) * ddsAlign4( height ) ) * blockSize )
+
+def ddsCalcLinearSizeBpp( width, height, bpp ):
+    return int( ( width * height ) * (bpp / 8) )
         
 class DDSFile:
     def __init__( self ):
@@ -237,9 +249,9 @@ class DDSFile:
             blockSize = 16
             if self.header.ddspf.dwFourCC == DDS_FOURCC_DXT1:
                 blockSize = 8
-            pitch = ddsCalcPitchCompressed( self.header.dwWidth, blockSize )
+            pitch = ddsCalcPitchBlockCompressed( self.header.dwWidth, blockSize )
         else:
-            pitch = ddsCalcPitchGeneric( self.header.dwWidth, self.header.ddspf.dwRGBBitCount )
+            pitch = ddsCalcPitchBpp( self.header.dwWidth, self.header.ddspf.dwRGBBitCount )
         return pitch
     
     def loadFile( self, path ):

@@ -30,13 +30,14 @@ def doesTextureUseAlpha( textureFilePath: str ) -> bool:
             # failed to load the image, so assume it uses alpha as to not lose any potential 
             # alpha information that may exist in the file
             return True
-    
 
 def convertTexture( srcTexturePath: str, dstTexturePath: str = None, 
-                   refTexturePath: str = None, forcedFormat: int = None ) -> None:    
+                   refTexturePath: str = None, forcedFormat: int = None,
+                   swapNormalMapRAChannels: bool = False, invertNormalMapG: bool = False ) -> None:    
     srcBasePath, srcBaseName, srcExts = util.splitPath( srcTexturePath )
     srcExt = srcExts[len(srcExts) - 1]
     
+    # determine the intermediate dds file path
     srcDDSBasePath = srcBasePath
     srcDDSPath = os.path.join( srcBasePath, srcBaseName )
     if len(srcExts) > 1:
@@ -45,6 +46,7 @@ def convertTexture( srcTexturePath: str, dstTexturePath: str = None,
     srcDDSPath += '.DDS'
     
     if dstTexturePath == None:
+        # determine the destination file path
         dstTexturePath = os.path.join( srcBasePath, srcBaseName )
         if len(srcExts) > 1:
             for i in range(0, len(srcExts) - 1):
@@ -52,28 +54,28 @@ def convertTexture( srcTexturePath: str, dstTexturePath: str = None,
         
         dstExt = 'tex'
         if srcExt == 'tex':
+            # convert to dds by default if tex is provided
             dstExt = 'dds'
         dstTexturePath += '.' + dstExt
             
     dstBasePath, dstBaseName, dstExts = util.splitPath( dstTexturePath )
-
-    
     dstExt = dstExts[len(dstExts) - 1]
     
     refTex = None
     if refTexturePath != None and refTexturePath != '':
+        # open reference texture if provided
         refTex = rTextureData()
         refTex.loadBinaryFile( refTexturePath )
     
     if srcExt == 'tex':
-        # convert tex to dds
+        # convert tex to dds first (lossless)
         log.info('converting TEX {} to DDS {}'.format(srcTexturePath, dstTexturePath))
         tex = rTextureData()
         tex.loadBinaryFile( srcTexturePath )
         tex.toDDS().saveFile( dstTexturePath )
         
         if dstExt != 'dds':
-            # try to convert with texconv
+            # if the target type is not dds, convert the dds with texconv
             log.info('\texconv start')
             texconv.texconv( dstTexturePath, outPath=dstBasePath, fileType=dstExt, pow2=False, fmt='RGBA', srgb=True)
             log.info('texconv end\n')
@@ -95,6 +97,7 @@ def convertTexture( srcTexturePath: str, dstTexturePath: str = None,
                     fmt = rTextureSurfaceFmt.BM_OPA
         
         convert = True
+        isNormal = fmt == rTextureSurfaceFmt.NM
         if srcExt.lower() == 'dds':
             # check if DDS format matches
             fmtDDS = rTextureSurfaceFmt.getDDSFormat( fmt )
@@ -117,6 +120,8 @@ def convertTexture( srcTexturePath: str, dstTexturePath: str = None,
                 fmtDDSName = 'DXT4'
             elif fmtDDS == DDS_FOURCC_DXT5:
                 fmtDDSName = 'DXT5'
+            elif fmtDDS == DDS_FOURCC_NONE:
+                fmtDDSName = 'RGBA'
             else:
                 raise Exception("Unhandled dds format: " + str(fmtDDS))
             
