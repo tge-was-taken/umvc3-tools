@@ -213,7 +213,7 @@ _defaultNames = [
 _isInit = False
 _hashToName = dict()
 
-def _addNames( names ):
+def _registerMaterialNames( names ):
     global _hashToName
     for n in names:
         _hashToName[util.computeHash(n)] = n
@@ -224,17 +224,17 @@ def _ensureInit():
     
     if not _isInit:
         _hashToName = dict()
-        _addNames( _defaultNames )
+        _registerMaterialNames( _defaultNames )
         _isInit = True
         
-def addNames( names ):
+def registerMaterialNames( names ):
     _ensureInit()
-    _addNames( names )
+    _registerMaterialNames( names )
         
-def getName( hsh ):
+def getMaterialName( hsh ):
     global _hashToName
     _ensureInit()
     return _hashToName[ util.u32( hsh ) ]
 
-def getHash( name ):
+def getMaterialNameHash( name ):
     return util.computeHash( name )

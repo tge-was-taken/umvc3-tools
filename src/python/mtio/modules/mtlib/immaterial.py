@@ -174,8 +174,8 @@ class imMaterialLib:
             matInfo.type = mvc3types.getTypeName( binMatInfo.typeHash )
 
             try:
-                matInfo.name = mvc3materialdb.getName( binMatInfo.nameHash )
-            except:
+                matInfo.name = mvc3materialdb.getMaterialName( binMatInfo.nameHash )
+            except Exception as e:
                 log.error("unknown material name hash: {}".format( hex( binMatInfo.nameHash ) ) )
                 matInfo.name = '_' + hex( binMatInfo.nameHash )
                 

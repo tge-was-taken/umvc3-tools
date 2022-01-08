@@ -8,6 +8,7 @@ import maxlog
 # general
 flipUpAxis = True
 scale = 1
+debug = False
 
 # import settings
 importWeights = True

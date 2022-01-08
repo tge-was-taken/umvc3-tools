@@ -35,7 +35,7 @@ def processFile( path, outPath ):
         if os.path.exists( modPath ):
             model = rModelData()
             model.read( NclBitStream( util.loadIntoByteArray( modPath ) ) )
-            mvc3materialdb.addNames( model.materials )
+            mvc3materialdb.registerMaterialNames( model.materials )
             
         if not os.path.exists( mrlPath ):
             print( "mrl file {} does not exist".format( mrlPath ) )

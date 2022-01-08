@@ -208,7 +208,6 @@ class MtModelExporter(object):
         localMtx = nclMultiply( worldMtx, nclInverse( parentWorldMtx ) )
         if maxNode.parent == None:
             localMtx = self._transformMtx * localMtx
-            print(localMtx)
         
         joint = imJoint(
             name=maxNode.name, 

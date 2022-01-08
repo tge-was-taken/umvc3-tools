@@ -25,7 +25,7 @@ def testMrlYaml( mrlBuffer, modPath ):
     # read model for material names
     mod = rModelData()
     mod.read( NclBitStream( util.loadIntoByteArray( modPath ) ) )
-    mvc3materialdb.addNames( mod.materials )
+    mvc3materialdb.registerMaterialNames( mod.materials )
     
     # read mtl into intermediate 
     imMrl = imMaterialLib()

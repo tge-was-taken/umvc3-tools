@@ -935,6 +935,7 @@ class rMaterialData:
                         se2 = rMaterialAnimSubEntry2Data()
                         se2.header = se2Header
                         se2.entryListHeader = reader.getMaterialAnimSubEntry2TypeHeader( se2.header )
+                        # TODO fix this
                         #for se2entry in reader.iterMaterialAnimSubEntry2Entries( se2.header ):
                         #    se2.entries.append( se2entry )
                         animEntryData.entryList2.append( se2 )

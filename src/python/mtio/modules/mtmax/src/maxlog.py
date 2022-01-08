@@ -17,10 +17,11 @@ _hasError = False
 if os.path.exists( _logFilePath ):
     os.remove( _logFilePath )
 
-def _log( level, msg, *args ):
+def _log( level, msg, *args, logToFileOnly=False ):
     global _indentLevel
     formattedMsg = datetime.datetime.today().strftime('%Y-%m-%d %H:%M:%S:%f') + ' [' + level + ']: ' + (_indentLevel * ' ') + str(msg)
-    print( formattedMsg, *args )
+    if not logToFileOnly:
+        print( formattedMsg, *args )
     with open( _logFilePath, 'a' ) as f:
         f.write( formattedMsg + '\n' )
     
@@ -45,6 +46,8 @@ def clear():
 def debug( msg, *args ):
     if mtmaxutil.isDebugEnv():
         _log( 'DEBUG', msg, *args )
+    else:
+        _log( 'DEBUG', msg, *args, logToFileOnly=True )
         
 def info( msg, *args ):
     _log( 'INFO', msg, *args )

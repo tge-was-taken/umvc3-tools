@@ -112,7 +112,7 @@ def modLoadModel(data, mdlList):
     
     model = rModelData()
     model.read(NoeBitStream(data))
-    mvc3materialdb.addNames( model.materials )
+    mvc3materialdb.registerMaterialNames( model.materials )
     
     mtl = imMaterialLib()
     mrlName, _ = util.getExtractedResourceFilePath( basePath + '/' + baseName, '2749c8a8', 'mrl' )

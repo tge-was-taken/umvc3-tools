@@ -15,7 +15,8 @@ def updateUI():
         lastWindowUpdateTime = rt.timestamp()
 
 def isDebugEnv():
-    return True
+    import mtmaxconfig
+    return mtmaxconfig.debug
     
 def selectOpenFile( category, ext ):
     return rt.getOpenFileName(

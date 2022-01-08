@@ -129,7 +129,7 @@ class MtModelImporter:
         model = rModelData()
         maxlog.info(f'loading model from {path}')
         model.read( NclBitStream( util.loadIntoByteArray( path ) ) )
-        mvc3materialdb.addNames( model.materials )
+        mvc3materialdb.registerMaterialNames( model.materials )
         return model
     
     def calcTransformMtx( self ):
@@ -305,8 +305,8 @@ class MtModelImporter:
             rt.skinOps.replaceVertexWeights( maxSkin, j + 1, newMaxVtxJointArray, newMaxVtxWeightArray, node=maxMesh )
             
     def importPrimitive( self, primitive, primitiveJointLinkIndex, indexStream, vertexStream ):
-        shaderInfo = mvc3shaderdb.shaderObjectsByHash[ primitive.vertexShader.getHash() ]
-        maxlog.debug( str(shaderInfo) )
+        shaderInfo: ShaderObjectInfo = mvc3shaderdb.shaderObjectsByHash[ primitive.vertexShader.getHash() ]
+        maxlog.debug( f'shader {shaderInfo.name} ({hex(shaderInfo.hash)})')
 
         # read vertices
         maxVertexArray = rt.Array()
@@ -541,7 +541,7 @@ class MtModelImporter:
         self.transformMtx = self.calcTransformMtx()
         self.maxModelMtx = self.calcModelMtx( self.model )
         self.maxModelNormalMtx = self.calcModelNormalMtx( self.model )
-        #self.maxModelMtx = rt.Matrix3(1)
+
         if mtmaxconfig.importCreateLayer:
             self.layer = rt.LayerManager.newLayerFromName( self.baseName )
             if self.layer == None:
