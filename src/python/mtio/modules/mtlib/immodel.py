@@ -866,7 +866,7 @@ class imModel:
             
         indexBufferStream = NclBitStream()
         for i in indices:
-            indexBufferStream.writeShort( i )
+            indexBufferStream.writeUShort( i )
         mod.indexBuffer = indexBufferStream.getBuffer()
             
         # fill out header
