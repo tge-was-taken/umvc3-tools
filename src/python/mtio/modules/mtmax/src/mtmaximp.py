@@ -116,6 +116,10 @@ class MtModelImporter:
        
     @staticmethod     
     def convertToMaxBoneIndex( val ):
+        if val < 0:
+            # type 4 s16 has this issue
+            val = int( val ) & 0xFF
+        
         return int( val ) + 1
         
     def loadMetadata( self, path ):

@@ -180,7 +180,7 @@ def decodeVertexComponent( compType, stream ):
     if   compType == 1: return [decodeF32(stream.readFloat())]
     elif compType == 2: return [decodeF16(stream.readUShort())]
     elif compType == 3: return [decodeU16(stream.readUShort())]
-    elif compType == 4: return [decodeF16(stream.readUShort())]
+    elif compType == 4: return [decodeS16(stream.readShort())]
     elif compType == 5: return [decodeFS16(stream.readUShort())]
     elif compType == 8: return [decodeU8(stream.readUByte())]
     elif compType == 9: return [decodeFS8(stream.readUByte())]

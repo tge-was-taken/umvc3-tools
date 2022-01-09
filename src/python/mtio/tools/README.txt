@@ -1,0 +1,1 @@
+Run setup.bat before using any of the tools.

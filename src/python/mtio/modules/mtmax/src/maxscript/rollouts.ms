@@ -54,7 +54,7 @@ fn mtCallPythonFunc module func args =
 rollout MtInfoRollout "MT Framework Importer/Exporter"
 (
 	label lblTitle2 "Ultimate Marvel vs Capcom 3"
-	label lblVersion "Version 1.0.19 Beta" align:#center
+	label lblVersion "Version 1.0.20 Beta" align:#center
 	label lblAuthor "© 2021-2022 TGE" align:#center
 )
 
