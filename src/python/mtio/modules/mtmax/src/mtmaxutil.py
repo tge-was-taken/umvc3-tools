@@ -46,7 +46,35 @@ def getLogFilePath():
     return os.path.join( getAppDataDir(), 'log.txt' )
 
 def showErrorMessageBox( brief, details = '' ):
-    showMessageBox( f"{brief}\n\n{details}\n\nSee the log or the MaxScript listener for more details.\nThe log file can be found at {getLogFilePath()}\nScript version: {mtmaxver.version}" )
+    import mtmaxconfig
+    if mtmaxconfig.showLogOnError:
+        msg = \
+        f'''
+        {brief}
+        
+        {details}
+        
+        See the log or the MaxScript listener for more details.
+        The log file will now be opened in your default text editor.
+        Please upload the entire log file whenever you file a bug report.
+        
+        Script version: {mtmaxver.version}
+        '''
+        
+        showMessageBox( msg )
+    else:
+        msg = \
+        f'''
+        {brief}
+        
+        {details}
+        
+        See the log or the MaxScript listener for more details.
+        The log file can be found at {getLogFilePath()}
+        Script version: {mtmaxver.version}
+        '''
+        
+        showMessageBox( msg )
     
 def showExceptionMessageBox( brief, e ):
     msg = ''
@@ -56,3 +84,6 @@ def showExceptionMessageBox( brief, e ):
     
 def openListener():
     rt.actionMan.executeAction( 0, "40472" )
+    
+def openLogFile():
+    os.system( getLogFilePath() )

@@ -4,6 +4,7 @@ import mtmaxconfig
 import mtmaxutil
 import plugin
 import maxlog
+import mtmaxver
 
 class MtModelImporter:
     def __init__( self ):
@@ -530,6 +531,7 @@ class MtModelImporter:
         pass
             
     def importModel( self, modFilePath ):
+        maxlog.info(f'script version: {mtmaxver.version}')
         maxlog.info(f'import model from {modFilePath}')
         
         startTime = rt.timeStamp()

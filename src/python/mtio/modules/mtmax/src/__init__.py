@@ -16,6 +16,14 @@ import maxlog
 import mtmaxver
 from mtlib import log
 
+def _handleException( e, brief ):
+    maxlog.exception( e )
+    mtmaxutil.showExceptionMessageBox( brief, e )
+    if mtmaxconfig.showLogOnError:
+        mtmaxutil.openLogFile()
+    else:
+        mtmaxutil.openListener()
+
 class MtRollout:
     @classmethod
     def onEvent( cls, e, *args ):
@@ -33,10 +41,8 @@ class MtRollout:
 
             mtmaxconfig.save()
         except Exception as e:
-            maxlog.exception( e )
-            mtmaxutil.showExceptionMessageBox( 'An error occured while processing user input', e )
-            mtmaxutil.openListener()
-
+            _handleException( e, 'A fatal error occured while processing user input' )
+            
     @classmethod
     def getMxsVar( cls ):
         assert( hasattr( rt, cls.__name__ ) )
@@ -113,9 +119,7 @@ class MtModelImportRollout(MtRollout):
             else:
                 mtmaxutil.showMessageBox( 'Import completed successfully' )
         except Exception as e:
-            maxlog.exception( e )
-            mtmaxutil.showErrorMessageBox( "A fatal error occured during import.", e.args[0] if len(e.args) > 0 else "" )
-            mtmaxutil.openListener()
+            _handleException( e, 'A fatal error occured during import.' )
             
         
         
@@ -244,9 +248,7 @@ class MtModelExportRollout(MtRollout):
                 mtmaxutil.showMessageBox( 'Export completed successfully' )
                 
         except Exception as e:
-            maxlog.exception( e )
-            mtmaxutil.showErrorMessageBox( "An error occured during export.",  e.args[0] if len(e.args) > 0 else "" )
-            mtmaxutil.openListener()
+            _handleException( e, 'A fatal error occured during export.' )
         
     @staticmethod
     def btnFilePressed():
@@ -459,11 +461,12 @@ class MaxLogger():
         maxlog.error( msg, *args )
     
 def main():
-    rt.gc()
-    rt.gc()
+    maxlog.info(f'script version: {mtmaxver.version}')
     
+    rt.gc()
+    rt.gc()
+
     log.setLogger(MaxLogger())
-    #maxlog.clear()
     mtmaxconfig.load()
     
     # import maxscript files

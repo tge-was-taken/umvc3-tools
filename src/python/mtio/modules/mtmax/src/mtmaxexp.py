@@ -12,6 +12,7 @@ import maxlog
 import shutil
 from mtlib import textureutil
 from mtlib import util
+import mtmaxver
 
 def _tryParseInt(input, base=10, default=None):
     try:
@@ -720,6 +721,7 @@ class MtModelExporter(object):
         return mtx
     
     def exportModel( self, path ):
+        maxlog.info(f'script version: {mtmaxver.version}')
         maxlog.info(f'exporting to {path}')
         
         # start building intermediate model data for conversion
