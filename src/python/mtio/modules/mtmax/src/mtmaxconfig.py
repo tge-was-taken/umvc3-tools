@@ -7,7 +7,6 @@ import maxlog
 
 # general
 flipUpAxis = True
-scale = 1
 debug = False
 showLogOnError = True
 
@@ -22,6 +21,8 @@ importSkeleton = True
 importPrimitives = True
 importSaveMrlYml = True
 importCreateLayer = False
+importScale = 1
+importBakeScale = False
 
 # export settings
 exportWeights = True
@@ -44,6 +45,8 @@ exportGenerateMrl = True
 exportTextureRoot = ''
 exportRoot = ''
 exportOverwriteTextures = False
+exportScale = 1
+exportBakeScale = False
 
 # debug settings
 debugForcePhysicalMaterial = False

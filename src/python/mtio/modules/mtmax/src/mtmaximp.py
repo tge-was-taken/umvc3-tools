@@ -5,6 +5,7 @@ import mtmaxutil
 import plugin
 import maxlog
 import mtmaxver
+import copy
 
 class MtModelImporter:
     def __init__( self ):
@@ -136,23 +137,6 @@ class MtModelImporter:
         model.read( NclBitStream( util.loadIntoByteArray( path ) ) )
         mvc3materialdb.registerMaterialNames( model.materials )
         return model
-    
-    def calcTransformMtx( self ):
-        mtx = nclCreateMat44()
-        if mtmaxconfig.flipUpAxis:
-            mtx *= util.Y_TO_Z_UP_MATRIX
-        if mtmaxconfig.scale != 1:
-            mtx *= nclScale( mtmaxconfig.scale )
-        return mtx
-        
-    def calcModelMtx( self, model: rModelData ):
-        modelMtx = self.transformMtx * model.calcModelMtx()
-        return self.convertNclMat44ToMaxMatrix3( modelMtx )
-    
-    def calcModelNormalMtx( self, model: rModelData ):
-        modelMtx = self.transformMtx * model.calcModelMtx()
-        modelMtxNormal = nclTranspose( nclInverse( modelMtx ) )
-        return self.convertNclMat44ToMaxMatrix3( modelMtxNormal )
 
     def _addPrimitiveAttribs( self, primitive, shaderInfo, maxMesh ):
         rt.custAttributes.add( maxMesh.baseObject, rt.mtPrimitiveAttributesInstance )
@@ -336,7 +320,7 @@ class MtModelImporter:
                     if key == 'Position':
                         rt.append( maxVertexArray, self.decodeInputToMaxPoint3( inputInfo, vertexStream ) * self.maxModelMtx )
                     elif key == 'Normal':
-                        rt.append( maxNormalArray, rt.normalize( self.decodeInputToMaxPoint3( inputInfo, vertexStream ) * self.maxModelNormalMtx ) )
+                        rt.append( maxNormalArray, rt.normalize( self.decodeInputToMaxPoint3( inputInfo, vertexStream ) * self.maxModelMtxNormal ) )
                     elif key == 'Joint':
                         if maxVtxJointArray == None:
                             maxVtxJointArray = rt.Array()
@@ -429,9 +413,18 @@ class MtModelImporter:
         self.maxBoneLookup = dict()
         for i, joint in enumerate( self.model.joints ):
             localMtx = self.model.jointLocalMtx[i]
-            if joint.parentIndex == 255:
-                # only transform root
-                localMtx = self.transformMtx * localMtx
+            
+            if mtmaxconfig.importBakeScale:
+                # transform position by scale
+                localMtx = copy.deepcopy(localMtx)
+                localMtx[3] *= NclVec4((mtmaxconfig.importScale, mtmaxconfig.importScale, mtmaxconfig.importScale, 1))
+                if joint.parentIndex == 255:
+                    # flip up axis if necessary
+                    localMtx = self.transformMtxNoScale * localMtx
+            else:        
+                if joint.parentIndex == 255:
+                    # only transform root
+                    localMtx = self.transformMtx * localMtx         
             
             tfm = self.convertNclMat44ToMaxMatrix3( localMtx )
             maxParentBone = None
@@ -530,6 +523,20 @@ class MtModelImporter:
             #~ maxPrimitiveJointLinks.append( maxPjl )
         pass
             
+    def calcMatrices( self ):
+        self.transformMtx = nclCreateMat44()
+        if mtmaxconfig.flipUpAxis:
+            self.transformMtx *= util.Y_TO_Z_UP_MATRIX
+            
+        self.scaleMtx = nclScale( mtmaxconfig.importScale )
+        self.transformMtxNoScale = copy.deepcopy(self.transformMtx)
+        self.transformMtx *= self.scaleMtx
+            
+        self.modelMtx = self.transformMtx * self.model.calcModelMtx()
+        self.maxModelMtx = self.convertNclMat44ToMaxMatrix3( self.modelMtx )
+        self.modelMtxNormal = nclTranspose( nclInverse( self.modelMtx ) )
+        self.maxModelMtxNormal = self.convertNclMat44ToMaxMatrix3( self.modelMtxNormal )
+            
     def importModel( self, modFilePath ):
         maxlog.info(f'script version: {mtmaxver.version}')
         maxlog.info(f'import model from {modFilePath}')
@@ -544,9 +551,7 @@ class MtModelImporter:
         self.basePath = os.path.dirname( modFilePath )
         self.metadata = self.loadMetadata( mtmaxconfig.importMetadataPath )
         self.model = self.loadModel( self.filePath )
-        self.transformMtx = self.calcTransformMtx()
-        self.maxModelMtx = self.calcModelMtx( self.model )
-        self.maxModelNormalMtx = self.calcModelNormalMtx( self.model )
+        self.calcMatrices()
 
         if mtmaxconfig.importCreateLayer:
             self.layer = rt.LayerManager.newLayerFromName( self.baseName )

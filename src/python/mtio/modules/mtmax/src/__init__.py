@@ -62,15 +62,10 @@ class MtSettingsRollout(MtRollout):
     def loadConfig():
         self = MtSettingsRollout.getMxsVar()
         self.chkFlipUpAxis.checked = mtmaxconfig.flipUpAxis
-        self.spnScale.value = mtmaxconfig.scale
     
     @staticmethod
     def chkFlipUpAxisChanged( state ):
         mtmaxconfig.flipUpAxis = state
-        
-    @staticmethod
-    def spnScaleChanged( state ):
-        mtmaxconfig.scale = state
         
 class MtModelImportRollout(MtRollout):
     @staticmethod
@@ -91,6 +86,8 @@ class MtModelImportRollout(MtRollout):
         self.chkConvertDDS.checked = mtmaxconfig.importConvertTexturesToDDS
         self.chkSaveMrlYml.checked = mtmaxconfig.importSaveMrlYml
         self.chkCreateLayer.checked = mtmaxconfig.importCreateLayer
+        self.spnScale.value = mtmaxconfig.importScale
+        self.chkBakeScale.checked = mtmaxconfig.importBakeScale
         MtModelImportRollout.updateVisibility()
         
     @staticmethod
@@ -174,6 +171,14 @@ class MtModelImportRollout(MtRollout):
     @staticmethod
     def chkCreateLayerChanged( state ):
         mtmaxconfig.importCreateLayer = state
+        
+    @staticmethod
+    def spnScaleChanged( state ):
+        mtmaxconfig.importScale = state
+        
+    @staticmethod
+    def chkBakeScaleChanged( state ):
+        mtmaxconfig.importBakeScale = state
 
         
 class MtModelExportRollout(MtRollout):
@@ -184,8 +189,6 @@ class MtModelExportRollout(MtRollout):
         self.edtMrlYml.enabled = not mtmaxconfig.exportGenerateMrl and mtmaxconfig.exportExistingMrlYml
         self.btnMrlYml.enabled = not mtmaxconfig.exportGenerateMrl and mtmaxconfig.exportExistingMrlYml
         self.chkExportMrl.enabled = not mtmaxconfig.exportGenerateMrl
-        #self.edtTextureRoot.enabled = not mtmaxconfig.exportExistingMrlYml and mtmaxconfig.exportGenerateMrl
-        #self.btnTextureRoot.enabled = not mtmaxconfig.exportExistingMrlYml and mtmaxconfig.exportGenerateMrl
         self.chkExportGenerateMrl.enabled = not mtmaxconfig.exportExistingMrlYml
     
     @staticmethod
@@ -204,6 +207,8 @@ class MtModelExportRollout(MtRollout):
         self.chkExportMrl.checked = mtmaxconfig.exportExistingMrlYml
         self.chkExportGenerateMrl.checked = mtmaxconfig.exportGenerateMrl
         self.chkExportTexOverwrite.checked = mtmaxconfig.exportOverwriteTextures
+        self.spnScale.value = mtmaxconfig.exportScale
+        self.chkBakeScale.checked = mtmaxconfig.exportBakeScale
         MtModelExportRollout.updateVisibility()
         
     @staticmethod
@@ -360,10 +365,13 @@ class MtModelExportRollout(MtRollout):
     def chkExportTexOverwriteChanged( state ):
         mtmaxconfig.exportOverwriteTextures = state
         
-class MtLogRollout(MtRollout):
     @staticmethod
-    def loadConfig():
-        self = MtLogRollout.getMxsVar()
+    def spnScaleChanged( state ):
+        mtmaxconfig.exportScale = state
+        
+    @staticmethod
+    def chkBakeScaleChanged( state ):
+        mtmaxconfig.exportBakeScale = state
 
 class MtUtilitiesRollout(MtRollout):
     @staticmethod

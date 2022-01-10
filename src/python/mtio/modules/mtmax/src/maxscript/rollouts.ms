@@ -54,14 +54,13 @@ fn mtCallPythonFunc module func args =
 rollout MtInfoRollout "MT Framework Importer/Exporter"
 (
 	label lblTitle2 "Ultimate Marvel vs Capcom 3"
-	label lblVersion "Version 1.0.21 Beta" align:#center
+	label lblVersion "Version 1.0.22 Beta" align:#center
 	label lblAuthor "© 2021-2022 TGE" align:#center
 )
 
 rollout MtSettingsRollout "Global settings"
 (
 	checkbox chkFlipUpAxis "Flip up axis" checked:true align:#left;
-	spinner spnScale "Scale" range:[0,1000000,1] align:#left;
 
 	fn emit args = 
 	(
@@ -69,7 +68,6 @@ rollout MtSettingsRollout "Global settings"
 	)
 	
 	on chkFlipUpAxis 	changed state do emit #("chkFlipUpAxisChanged", state)
-	on spnScale 		changed state do emit #("spnScaleChanged", state)
 )
 
 rollout MtUtilitiesRollout "Utilities"
@@ -140,6 +138,8 @@ rollout MtModelImportRollout "Model import"
 	)
 	
 	group "Additional options" (
+		spinner spnScale "Scale" range:[0,1000000,1] align:#left;
+		checkbox chkBakeScale "Bake scale into translation" checked:false
 		checkbox chkConvertDDS "Convert textures to DDS" checked:true 
 		checkbox chkSaveMrlYml "Convert MRL to YML" checked:true
 		checkbox chkCreateLayer "Create layer" checked:true
@@ -168,6 +168,8 @@ rollout MtModelImportRollout "Model import"
 	on chkConvertDDS		changed state	do emit #("chkConvertDDSChanged", state)
 	on chkSaveMrlYml		changed state	do emit #("chkSaveMrlYmlChanged", state)
 	on chkCreateLayer		changed state	do emit #("chkCreateLayerChanged", state)
+	on spnScale				changed state	do emit #("spnScaleChanged", state)
+	on chkBakeScale			changed state	do emit #("chkBakeScale", state)
 )
 
 rollout MtModelExportRollout "Model export"
@@ -212,6 +214,8 @@ rollout MtModelExportRollout "Model export"
 	)
 
 	group "Additional options" (
+		spinner spnScale "Scale" range:[0,1000000,1] align:#left;
+		checkbox chkBakeScale "Bake scale into translation" checked:false
 		checkbox chkExportTex "Convert textures to TEX" checked:true 
 		checkbox chkExportTexOverwrite "Overwrite existing textures" checked:false
 	)
@@ -245,4 +249,6 @@ rollout MtModelExportRollout "Model export"
 	on edtRoot				changed state	do emit #("edtRootChanged", state)
 	on btnRoot				pressed			do emit #("btnRootPressed")
 	on chkExportTexOverwrite changed state 	do emit #("chkExportTexOverwriteChanged", state)
+	on spnScale				changed state	do emit #("spnScaleChanged", state)
+	on chkBakeScale			changed state	do emit #("chkBakeScaleChanged", state)
 )

@@ -2,6 +2,7 @@ import os
 from posixpath import relpath, split
 import sys
 from typing import List, Tuple
+from copy import deepcopy
 
 from pymxs import runtime as rt
 from mtlib import *
@@ -207,8 +208,13 @@ class MtModelExporter(object):
         worldMtx = self._convertMaxMatrix3ToNclMat44( maxNode.transform )
         parentWorldMtx = self._convertMaxMatrix3ToNclMat44( maxNode.parent.transform ) if maxNode.parent != None else nclCreateMat44()
         localMtx = nclMultiply( worldMtx, nclInverse( parentWorldMtx ) )
-        if maxNode.parent == None:
-            localMtx = self._transformMtx * localMtx
+        if mtmaxconfig.exportBakeScale:
+            localMtx[3] *= NclVec4((mtmaxconfig.exportScale, mtmaxconfig.exportScale, mtmaxconfig.exportScale, 1))
+            if maxNode.parent == None:
+                localMtx = self._transformMtxNoScale * localMtx
+        else:
+            if maxNode.parent == None:
+                localMtx = self._transformMtx * localMtx
         
         joint = imJoint(
             name=maxNode.name, 
@@ -597,7 +603,10 @@ class MtModelExporter(object):
             
         if removeEditNormals:
             maxlog.debug('delete temporary edit normals modifier')
-            rt.deleteModifier( maxNode, editNormalsMod )
+            try:
+                rt.deleteModifier( maxNode, editNormalsMod )
+            except:
+                pass
             
         self._processedNodes.add( maxNode )
         
@@ -712,13 +721,15 @@ class MtModelExporter(object):
             except PermissionError as e:
                 maxlog.error( f"unable to save mrl file, make sure you have write permissions to {mrlExportPath}" )
     
-    def _calcTransformMtx( self ):
-        mtx = nclCreateMat44()
+    def _calcMatrices( self ):
+        self._transformMtx = nclCreateMat44()
         if mtmaxconfig.flipUpAxis:
-            mtx *= util.Z_TO_Y_UP_MATRIX
-        if mtmaxconfig.scale != 1:
-            mtx *= nclScale( -mtmaxconfig.scale )
-        return mtx
+            self._transformMtx *= util.Z_TO_Y_UP_MATRIX
+            
+        self._scaleMtx = nclScale( mtmaxconfig.exportScale )
+        self._transformMtxNoScale = deepcopy( self._transformMtx )
+        self._transformMtx *= self._scaleMtx
+        self._transformMtxNormal = nclTranspose( nclInverse( self._transformMtx ) )
     
     def exportModel( self, path ):
         maxlog.info(f'script version: {mtmaxver.version}')
@@ -732,8 +743,7 @@ class MtModelExporter(object):
         
         self.metadata = ModelMetadata()
         self.mrl = None
-        self._transformMtx = self._calcTransformMtx()
-        self._transformMtxNormal = nclTranspose( nclInverse( self._transformMtx ) )
+        self._calcMatrices()
 
         if os.path.exists( mtmaxconfig.exportMetadataPath ):
             maxlog.info(f'loading metadata file from {mtmaxconfig.exportMetadataPath}')
