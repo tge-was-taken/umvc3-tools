@@ -106,13 +106,19 @@ class MtModelImporter:
             textureTEXPath, textureDDSPath = util.resolveTexturePath( self.basePath, texturePath )
             
             if mtmaxconfig.importConvertTexturesToDDS and textureTEXPath != None and os.path.exists( textureTEXPath ):
-                texture = rTextureData()
-                texture.loadBinaryFile( textureTEXPath )
-                textureDDS = texture.toDDS()
+                maxlog.info( f'converting TEX file {textureTEXPath} to DDS {textureDDSPath}' )
+                
                 try:
-                    textureDDS.saveFile( textureDDSPath )
-                except PermissionError:
-                    maxlog.error( f"failed to save TEX file to DDS, make sure you have write permissions to: {textureDDSPath}" )
+                    texture = rTextureData()
+                    texture.loadBinaryFile( textureTEXPath )
+                    textureDDS = texture.toDDS()
+                    try:
+                        textureDDS.saveFile( textureDDSPath )
+                    except PermissionError:
+                        maxlog.error( f"failed to save TEX file to DDS, make sure you have write permissions to: {textureDDSPath}" )
+                except Exception as e:
+                    maxlog.error( 'failed to convert TEX file to DDS' )
+                    maxlog.exception( e )
                         
             return rt.BitmapTexture( filename=textureDDSPath )
        

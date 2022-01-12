@@ -135,7 +135,7 @@ class MtModelExporter(object):
     def _convertMaxPoint3ToNclVec3UV( self, v: rt.Point3 ) -> NclVec3:
         return NclVec3((v[0], 1 - v[1], v[2]))
         
-    def _convertMaxPoint3ToNclVec4( self, v: rt.Point3, w = 1 ) -> NclVec3:
+    def _convertMaxPoint3ToNclVec4( self, v: rt.Point3, w ) -> NclVec3:
         return NclVec4((v[0], v[1], v[2], w))
     
     def _convertMaxMatrix3ToNclMat43( self, v: rt.Matrix3 ) -> NclMat43:
@@ -291,7 +291,7 @@ class MtModelExporter(object):
         try:
             textureutil.convertTexture( inPath, outPath )
         except PermissionError as e:
-            maxlog.error( f"unable to save tex file, make sure you have write permissions to {outPath}" )
+            raise RuntimeError( f"unable to save tex file, make sure you have write permissions to {outPath}" )
             
     def _exportTextureMap( self, textureMap ):
         if textureMap != None and not textureMap in self._textureMapCache:
@@ -357,9 +357,12 @@ class MtModelExporter(object):
                 # make sure to export the default textures whenever they are used
                 defaultMapTexPath = os.path.join( util.getResourceDir(), 'textures', os.path.basename( map ) + ".tex" )
                 
-                # always expected to be at the root
-                defaultMapTexExportPath = os.path.join( mtmaxconfig.exportRoot, map + '.tex' ) if self.outPath.hash == None else \
-                                          os.path.join( mtmaxconfig.exportRoot, map + '.241f5deb.tex' )
+                if map[0] != '\\':
+                    # add separator if it's somehow missing
+                    map = '\\' + map
+                    
+                defaultMapTexExportPath = mtmaxconfig.exportRoot + map + '.tex' if self.outPath.hash == None else \
+                                          mtmaxconfig.exportRoot + map + '.241f5deb.tex'
 
                 shutil.copy( defaultMapTexPath, defaultMapTexExportPath )
     
@@ -519,20 +522,22 @@ class MtModelExporter(object):
                 if material != None:
                     self._processMaterial( material )
                 
-                pos = self._convertMaxPoint3ToNclVec4( rt.getVert( maxMesh, vertIdx ) )
+                pos = self._convertMaxPoint3ToNclVec4( rt.getVert( maxMesh, vertIdx ), 1 )
                 pos = self._transformMtx * pos  # needed with reference model
                 pos = NclVec3( pos[0], pos[1], pos[2] )
                 tempMesh.positions.append( pos )
                 
+                # NOTE w MUST be 0 for normal vectors otherwise the results will be wrong!
                 if editNormalsMod != None:
-                    temp = editNormalsMod.GetNormal( editNormalsMod.GetNormalId( i + 1, j + 1 ) )
+                    normalId = editNormalsMod.GetNormalId( i + 1, j + 1 )
+                    temp = editNormalsMod.GetNormal( normalId )
                     if temp == None:
                         # TODO figure out why this happens
                         # my guess is that it only returns normals that have been explicitly set with the modifier
                         temp = rt.getNormal( maxMesh, vertIdx )
-                    nrm = self._convertMaxPoint3ToNclVec4( temp )
+                    nrm = self._convertMaxPoint3ToNclVec4( temp, 0 )
                 else:
-                    nrm = self._convertMaxPoint3ToNclVec4( rt.getNormal( maxMesh, vertIdx ) )
+                    nrm = self._convertMaxPoint3ToNclVec4( rt.getNormal( maxMesh, vertIdx ), 0 )
                 nrm = nclNormalize( self._transformMtxNormal * nrm )
                 nrm = NclVec3( nrm[0], nrm[1], nrm[2] )
                 tempMesh.normals.append( nrm )
@@ -545,9 +550,16 @@ class MtModelExporter(object):
                     for k in range( 0, weightCount ):
                         boneId = rt.skinops.getVertexWeightBoneId( maxSkin, vertIdx, k + 1, node=maxNode )
                         boneWeight = rt.skinOps.getVertexWeight( maxSkin, vertIdx, k + 1, node=maxNode )
+                        if boneWeight < 0.001:
+                            # ignore empty weights
+                            continue
+                            
                         boneName = rt.skinOps.getBoneName( maxSkin, boneId, 0, node=maxNode )
                         if boneName not in self.jointIdxByName:
-                            raise RuntimeError(f'mesh "{maxNode.name}" references bone "{boneName}" that does not exist in the skeleton' )
+                            raise RuntimeError(
+f'''Mesh "{maxNode.name}" skin modifier references bone "{boneName}" that does not exist in the skeleton.
+Verify that the metadata matches the model you are exporting and, in case you are exporting a custom skeleton,
+don't have an reference/original model specified as it will override the skeleton in the scene.''' )
                             
                         jointIdx = self.jointIdxByName[ boneName ]
                         weight.weights.append( boneWeight )
@@ -697,7 +709,7 @@ class MtModelExporter(object):
         try:
             util.saveByteArrayToFile( self.outPath.fullPath, stream.getBuffer() )
         except PermissionError as e:
-            maxlog.error( f"unable to save mod file, make sure you have write permissions to {self.outPath.fullPath}" )
+            raise RuntimeError( f"Unable to save mod file, make sure you have write permissions to {self.outPath.fullPath}" )
         
         if self.outPath.hash != None:
             mrlExportPath = self.outPath.basePath + '/' + self.outPath.baseName + '.2749c8a8.mrl' 
@@ -711,7 +723,7 @@ class MtModelExporter(object):
             try:
                 self.mrl.saveYamlFile( mrlYmlExportPath )
             except PermissionError as e:
-                maxlog.error( f"unable to save mrl yml file, make sure you have write permissions to {mrlYmlExportPath}" )
+                raise RuntimeError( f"Unable to save mrl yml file, make sure you have write permissions to {mrlYmlExportPath}" )
             
         if mtmaxconfig.exportGenerateMrl or (mtmaxconfig.exportExistingMrlYml and self.mrl != None):
             maxlog.info(f'exporting mrl yml to {mrlExportPath}')
@@ -719,7 +731,7 @@ class MtModelExporter(object):
             try:
                 self.mrl.saveBinaryFile( mrlExportPath )
             except PermissionError as e:
-                maxlog.error( f"unable to save mrl file, make sure you have write permissions to {mrlExportPath}" )
+                raise RuntimeError( f"Unable to save mrl file, make sure you have write permissions to {mrlExportPath}" )
     
     def _calcMatrices( self ):
         self._transformMtx = nclCreateMat44()

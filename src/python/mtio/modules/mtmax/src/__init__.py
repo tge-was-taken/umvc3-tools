@@ -124,7 +124,7 @@ class MtModelImportRollout(MtRollout):
     def btnFilePressed():
         path = mtmaxutil.selectOpenFile( 'UMVC3 model', 'mod' )
         if path == None:
-            path = ''
+            return
         
         MtModelImportRollout.setFilePath( path )
         
@@ -140,7 +140,7 @@ class MtModelImportRollout(MtRollout):
     def btnMetadataPressed():
         path = mtmaxutil.selectOpenFile( 'UMVC3 model metadata', 'yml' )
         if path == None:
-            path = ''
+            return
         
         mtmaxconfig.importMetadataPath = path
         
@@ -214,7 +214,7 @@ class MtModelExportRollout(MtRollout):
     @staticmethod
     def setFilePath( path ):
         mtmaxconfig.exportFilePath = path
-        if not os.path.exists(mtmaxconfig.exportMetadataPath): 
+        if not os.path.exists( mtmaxconfig.exportMetadataPath ): 
             newMetadataPath = ModelMetadata.getDefaultFilePath( os.path.basename( mtmaxconfig.exportFilePath ).split('.')[0] )
             if os.path.exists( newMetadataPath ):
                 mtmaxconfig.exportMetadataPath = newMetadataPath
@@ -223,7 +223,7 @@ class MtModelExportRollout(MtRollout):
     @staticmethod
     def setRefFilePath( path ):
         mtmaxconfig.exportRefPath = path
-        if not os.path.exists(mtmaxconfig.exportMetadataPath):
+        if not os.path.exists( mtmaxconfig.exportMetadataPath ):
             newMetadataPath = ModelMetadata.getDefaultFilePath( os.path.basename( mtmaxconfig.exportRefPath ).split('.')[0] )
             if os.path.exists( newMetadataPath ): 
                 mtmaxconfig.exportMetadataPath = newMetadataPath
@@ -259,7 +259,7 @@ class MtModelExportRollout(MtRollout):
     def btnFilePressed():
         path = mtmaxutil.selectSaveFile( 'UMVC3 model', 'mod' )
         if path == None:
-            path = ''
+            return
         
         MtModelExportRollout.setFilePath( path )
         
@@ -275,7 +275,7 @@ class MtModelExportRollout(MtRollout):
     def btnMetadataPressed():
         path = mtmaxutil.selectOpenFile( 'UMVC3 model metadata', 'yml' )
         if path == None:
-            path = ''
+            return
         
         mtmaxconfig.exportMetadataPath = path
 
@@ -287,7 +287,7 @@ class MtModelExportRollout(MtRollout):
     def btnRefPressed():
         path = mtmaxutil.selectOpenFile( 'UMVC3 model', 'mod' )
         if path == None:
-            path = ''
+            return
         
         MtModelExportRollout.setRefFilePath( path )
         
@@ -299,7 +299,7 @@ class MtModelExportRollout(MtRollout):
     def btnMrlYmlPressed():
         path = mtmaxutil.selectOpenFile( 'UMVC3 MRL YML', 'yml' )
         if path == None:
-            path = ''
+            return
         
         MtModelExportRollout.setMrlYmlFilePath( path )
         
@@ -343,7 +343,7 @@ class MtModelExportRollout(MtRollout):
     def btnTextureRootPressed():
         path = rt.getSavePath( caption="Select a folder", initialDir=os.path.dirname(mtmaxconfig.exportFilePath) )
         if path == None:
-            path = ''
+            return
         
         mtmaxconfig.exportTextureRoot = os.path.abspath( path ).replace( "\\", "/" )
         MtModelExportRollout.loadConfig()
@@ -356,7 +356,7 @@ class MtModelExportRollout(MtRollout):
     def btnRootPressed():
         path = rt.getSavePath( caption="Select a folder", initialDir=os.path.dirname(mtmaxconfig.exportFilePath) )
         if path == None:
-            path = ''
+            return
         
         mtmaxconfig.exportRoot = os.path.abspath( path ).replace( "\\", "/" )
         MtModelExportRollout.loadConfig()
