@@ -153,6 +153,18 @@ class MtModelExporter(object):
     def _shouldExportNode( self, node ):
         '''Returns if the node should be included in the export'''
         return not node.isHidden
+    
+    '''
+    Table of node types
+    Modifier                    classOf                                                 superClassOf
+    Bone                        BoneGeometry                                            GeometryClass
+    Editable Mesh / Edit Mesh   Editable_mesh                                           GeometryClass
+    Editable Poly / Edit Poly   PolyMeshObject, Editable_poly                           GeometryClass
+    Biped Object                Biped_Object                                            GeometryClass
+    Line                        line                                                    shape
+    Dummy (Group)               Dummy                                                   helper
+    Dummy (Bone)                Dummy                                                   helper
+    '''
 
     def _isMeshNode( self, node ):
         '''Returns if the node is a mesh'''
@@ -163,17 +175,34 @@ class MtModelExporter(object):
 
     def _isGroupNode( self, node ):
         '''Returns if the node represents a group'''
+        
+        # Groups have the same types as bones (Dummy), so we must
+        # take extra care to disambiguate
+        
+        # groups should be a dummy node
+        if rt.classOf( node ) not in [rt.Dummy]:
+            return False
+        
+        # definitely not a group if it has joint attributes
+        if hasattr( node, 'mtJointAttributes' ):
+            return False
 
-        # group nodes may have group attrib data
-        if hasattr(node, 'mtModelGroupAttributes'):
+        # definitely a group if it has group attributes
+        if hasattr( node, 'mtModelGroupAttributes' ):
             return True
         
+        # a group should not be parented to anything
+        if node.parent != None:
+            return False
+        
+        # we can't determine the type based on the children if there are none
+        # so assume it's not a group
         if len(node.children) == 0:
             return False
         
-        # group nodes should be parented to meshes
-        # this doesn't allow empty groups, however the previous clause 
-        # should cover that
+        # only meshes should be parented to groups
+        # this doesn't allow empty groups, however the previous clauses 
+        # should cover those
         for child in node.children:
             if not self._isMeshNode( child ):
                 return False
@@ -184,13 +213,18 @@ class MtModelExporter(object):
         '''Returns if the node is a bone'''
 
         # node is considered a bone node of it's bone geometry (helper)
-        # TODO: investigate otehr possible types (Biped, ...?)
-        return rt.classOf( node ) in [rt.BoneGeometry, rt.Dummy]
+        return rt.classOf( node ) in [rt.BoneGeometry, rt.Dummy, rt.Biped_Object]
+    
+    def _isSplineNode( self, node ):
+        '''Return sif the node is spline shape'''
+        
+        return rt.superClassOf( node ) in [rt.shape]
     
     def _getObjects( self ):
         # return a list of scene objects as opposed to enumerating directly to prevent crashes
+        temp = list(rt.objects)
         objects = []
-        for o in rt.objects:
+        for o in temp:
             if not o in self._processedNodes:
                 objects.append( o )
         return objects
@@ -234,7 +268,6 @@ class MtModelExporter(object):
         self.jointToMaxNodeMap[joint] = maxNode
         self.model.joints.append( joint )
         self.jointIdxByName[ joint.name ] = len( self.model.joints ) - 1
-        self._processedNodes.add( maxNode )
     
     def _processBones( self ):
         if not mtmaxconfig.exportSkeleton:
@@ -275,10 +308,12 @@ class MtModelExporter(object):
         else:
             # process all bones in the scene
             for maxNode in self._getObjects():
-                if not self._shouldExportNode( maxNode ) or not self._isBoneNode( maxNode ):
+                if not self._shouldExportNode( maxNode ) or not self._isBoneNode( maxNode ) \
+                    or self._isGroupNode( maxNode ): # handles case where groups aren't exported
                     continue
 
                 self._processBone( maxNode )
+                self._processedNodes.add( maxNode )
 
             # resolve references
             for joint in self.model.joints:
@@ -286,6 +321,11 @@ class MtModelExporter(object):
                 jointMeta = self.metadata.getJointByName( maxNode.name )
                 attribs = MtJointAttribData( maxNode, jointMeta )
                 joint.symmetry = self._processBone( attribs.symmetryNode ) if attribs.symmetryNode != None else None
+                
+            # if we've processed all the bones we could find, and we still don't have any, opt to add a dummy bone
+            # instead to facilitate the export
+            if len( self.model.joints ) == 0 and mtmaxconfig.exportGenerateRootBone:
+                self.model.joints.append(imJoint('root', 0, nclCreateMat44()))
                 
     def _convertTextureToTEX( self, inPath, outPath):
         try:
@@ -497,19 +537,21 @@ class MtModelExporter(object):
         maxlog.debug('collecting vertex data')
         maxMesh = rt.snapshotAsMesh( maxNode )
         faceCount = rt.getNumFaces( maxMesh )
+        hasUVs = rt.getNumTVerts( maxMesh ) > 0
+        
         tempMeshes = dict()
 
         for i in range( 0, faceCount ):
             mtmaxutil.updateUI()
             
             face = rt.getFace( maxMesh, i + 1 )
-            tvFace = rt.getTVFace( maxMesh, i + 1 )
+            tvFace = rt.getTVFace( maxMesh, i + 1 ) if hasUVs else None
             matId = rt.getFaceMatID( maxMesh, i + 1 ) 
             material = maxNode.material[matId-1] if rt.classOf(maxNode.material) == rt.Multimaterial else maxNode.material
             
             for j in range( 0, 3 ):
                 vertIdx = face[j]
-                tvertIdx = tvFace[j]
+                tvertIdx = tvFace[j] if hasUVs else None
 
                 if matId not in tempMeshes:
                     # create temporary mesh for this material
@@ -542,7 +584,11 @@ class MtModelExporter(object):
                 nrm = NclVec3( nrm[0], nrm[1], nrm[2] )
                 tempMesh.normals.append( nrm )
                 
-                tempMesh.uvs.append( self._convertMaxPoint3ToNclVec3UV( rt.getTVert( maxMesh, tvertIdx ) ) )
+                if hasUVs:
+                    tempMesh.uvs.append( self._convertMaxPoint3ToNclVec3UV( rt.getTVert( maxMesh, tvertIdx ) ) )
+                else:
+                    # TODO maybe omit the uvs entirely?
+                    tempMesh.uvs.append( NclVec3( 0, 0, 0 ) )
 
                 if hasSkin:
                     weightCount = rt.skinOps.getVertexWeightCount( maxSkin, vertIdx, node=maxNode )
@@ -620,7 +666,7 @@ don't have an reference/original model specified as it will override the skeleto
             except:
                 pass
             
-        self._processedNodes.add( maxNode )
+        rt.delete( maxMesh )
         
     def _processMeshes( self ):
         if not mtmaxconfig.exportPrimitives:
@@ -630,11 +676,15 @@ don't have an reference/original model specified as it will override the skeleto
         # convert meshes
         maxlog.info('processing meshes')
         for maxNode in self._getObjects():
-            if not self._shouldExportNode( maxNode ) or not self._isMeshNode( maxNode ):
+            if not self._shouldExportNode( maxNode ):
+                continue
+            
+            if not self._isMeshNode( maxNode ) and not self._isSplineNode( maxNode ):
                 continue
             
             mtmaxutil.updateUI()
             self._processMesh( maxNode )
+            self._processedNodes.add( maxNode )
 
     def _processGroups( self ):
         if not mtmaxconfig.exportGroups:
@@ -700,6 +750,7 @@ don't have an reference/original model specified as it will override the skeleto
             maxlog.debug("exporting pml from scene not implemented")
     
     def _writeBinaries( self ):
+        maxlog.info('writing files')
         maxlog.debug('converting intermediate model to binary model format')
         binMod = self.model.toBinaryModel()
         
@@ -793,12 +844,15 @@ don't have an reference/original model specified as it will override the skeleto
             self.model.min = self.ref.header.min
             self.model.radius = self.ref.header.radius
         
+        # groups share types with bones, so we must disambiguate carefully
+        # it's easier to distinguish a group from a bone, so process the groups first
         self._processGroups()
+        
+        # after the groups have been processed, there should be no room for error when finding
+        # the bones in the scene
         self._processBones()
         self._processMeshes()
         self._processPml()
-        
-        maxlog.info('writing files')
         self._writeBinaries()
         
         maxlog.info('export completed successfully')
