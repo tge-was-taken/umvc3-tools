@@ -410,7 +410,7 @@ def writeMat43( self, value ):
     self.writeVec3( value[3] )
 
 def readVec2( self ):
-    return NclVec3( ( self.readFloat(), self.readFloat() ) )
+    return NclVec2( ( self.readFloat(), self.readFloat() ) )
 
 def readVec3( self ):
     return NclVec3( ( self.readFloat(), self.readFloat(), self.readFloat() ) )

@@ -142,6 +142,7 @@ def convertTexture( srcTexturePath: str, dstTexturePath: str = None,
             
             # copy faces from original cubemap if needed
             if refTex != None: 
+                tex.faces.clear()
                 for face in refTex.faces:
                     tex.faces.append( face )
             

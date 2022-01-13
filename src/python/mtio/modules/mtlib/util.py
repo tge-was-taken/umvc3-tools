@@ -26,7 +26,9 @@ def loadIntoByteArray( path ):
 def saveByteArrayToFile( path, buffer ):
     '''Saves the given byte array to the specified file'''
     
-    os.makedirs( os.path.dirname( path ), exist_ok=True )
+    dirName = os.path.dirname( path )
+    if dirName != '':
+        os.makedirs( os.path.dirname( path ), exist_ok=True )
     with open( path, "wb" ) as f:
         f.write( buffer )
 

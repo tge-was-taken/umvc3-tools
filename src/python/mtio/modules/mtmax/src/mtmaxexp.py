@@ -213,7 +213,7 @@ class MtModelExporter(object):
         '''Returns if the node is a bone'''
 
         # node is considered a bone node of it's bone geometry (helper)
-        return rt.classOf( node ) in [rt.BoneGeometry, rt.Dummy, rt.Biped_Object]
+        return rt.classOf( node ) in [rt.BoneGeometry, rt.Dummy, rt.Biped_Object] and not self._isGroupNode( node )
     
     def _isSplineNode( self, node ):
         '''Return sif the node is spline shape'''
@@ -308,8 +308,7 @@ class MtModelExporter(object):
         else:
             # process all bones in the scene
             for maxNode in self._getObjects():
-                if not self._shouldExportNode( maxNode ) or not self._isBoneNode( maxNode ) \
-                    or self._isGroupNode( maxNode ): # handles case where groups aren't exported
+                if not self._shouldExportNode( maxNode ) or not self._isBoneNode( maxNode ):
                     continue
 
                 self._processBone( maxNode )

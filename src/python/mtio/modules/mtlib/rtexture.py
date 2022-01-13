@@ -333,12 +333,16 @@ class rTextureData:
         
     def toDDS( self ):
         hasMips = self.header.dim.mipCount > 1
+        isCubeMap = self.header.fmt.surfaceCount > 1
         
         dds = DDSFile()
         dds.header.dwFlags |= DDSD_LINEARSIZE
         if hasMips:
             dds.header.dwFlags |= DDSD_MIPMAPCOUNT
             dds.header.dwCaps |= DDSCAPS_MIPMAP
+        if isCubeMap:
+            dds.header.dwCaps |= DDSCAPS_COMPLEX
+            dds.header.dwCaps2 |= DDS_CUBEMAP_ALLFACES
                    
         dds.header.dwHeight = self.header.dim.getHeight()
         dds.header.dwWidth = self.header.dim.getWidth()
@@ -370,45 +374,91 @@ class rTextureData:
 
         return dds
     
+    def setDefaultCubeMapFaces( self ):
+        self.faces.clear()
+        
+        face = rTextureFace()
+        face.field00 = 0.4837379
+        face.negative[0] = -0.05054046
+        face.negative[1] = 0.04008521
+        face.negative[2] = 0.01001853
+        face.positive[0] = 0.005333615
+        face.positive[1] = -0.03039154
+        face.positive[2] = 0.1364427
+        face.uv[0] = 0.01015308
+        face.uv[1] = 0.02520043
+        self.faces.append( face )
+        
+        face = rTextureFace()
+        face.field00 = 1.357952
+        face.negative[0] = 0.009200307
+        face.negative[1] = -0.04620323
+        face.negative[2] = 0.02067803
+        face.positive[0] = 0.0100703
+        face.positive[1] = -0.09296682
+        face.positive[2] = 0.2509833
+        face.uv[0] = 0.02939349
+        face.uv[1] = -0.03288069
+        self.faces.append( face )
+        
+        face = rTextureFace()
+        face.field00 = 1.029677
+        face.negative[0] = -0.04863077
+        face.negative[1] = 0.01793304
+        face.negative[2] = 0.02242514
+        face.positive[0] = 0.009546677
+        face.positive[1] = -0.02904901
+        face.positive[2] = 0.221782
+        face.uv[0] = 0.03200468
+        face.uv[1] = -0.06776269
+        self.faces.append( face )
+    
     @staticmethod
-    def fromDDS( dds ):
-        surface = rTextureSurfaceData()
-        fmt = None
-        if dds.header.ddspf.dwFlags & DDPF_FOURCC:
-            blockSize = 8
-            fmt = rTextureSurfaceFmt.BM_OPA
-            if dds.header.ddspf.dwFourCC != DDS_FOURCC_DXT1:
-                fmt = rTextureSurfaceFmt.BM_XLU
-                blockSize = 16
-            
-            width = dds.header.dwWidth 
-            height = dds.header.dwHeight
-            off = 0
-            for i in range( dds.header.dwMipMapCount ):
-                size = ddsCalcLinearSizeBlockCompressed( width, height, blockSize )
-                mip = dds.buffer[off:off+size]
-                assert(len(mip) == size)
-                off += size
-                width //= 2
-                height //= 2
-                surface.mips.append( mip )
-        else:
-            # TODO LIN assumed here
-            fmt = rTextureSurfaceFmt.LIN
-            width = dds.header.dwWidth 
-            height = dds.header.dwHeight
-            off = 0
-            for i in range( dds.header.dwMipMapCount ):
-                size = ddsCalcLinearSizeBpp( width, height, dds.header.ddspf.dwRGBBitCount )
-                mip = dds.buffer[off:off+size]
-                assert(len(mip) == size)
-                off += size
-                width = max( 1, width // 2 )
-                height = max( 1, height // 2 )
-                surface.mips.append( mip )
-
+    def fromDDS( dds: DDSFile ):
         tex = rTextureData()
-        tex.surfaces.append( surface )
+        isCubeMap = dds.header.dwCaps2 & DDSCAPS2_CUBEMAP
+        
+        surfaceCount = 1
+        if isCubeMap:
+            surfaceCount = 6
+        
+        off = 0
+        for i in range( surfaceCount ):
+            surface = rTextureSurfaceData()
+            fmt = None
+            if dds.header.ddspf.dwFlags & DDPF_FOURCC:
+                blockSize = 8
+                fmt = rTextureSurfaceFmt.BM_OPA
+                if dds.header.ddspf.dwFourCC != DDS_FOURCC_DXT1:
+                    fmt = rTextureSurfaceFmt.BM_XLU
+                    blockSize = 16
+                
+                width = dds.header.dwWidth 
+                height = dds.header.dwHeight
+                for i in range( dds.header.dwMipMapCount ):
+                    size = ddsCalcLinearSizeBlockCompressed( width, height, blockSize )
+                    mip = dds.buffer[off:off+size]
+                    assert(len(mip) == size)
+                    off += size
+                    width //= 2
+                    height //= 2
+                    surface.mips.append( mip )
+            else:
+                # TODO LIN assumed here
+                fmt = rTextureSurfaceFmt.LIN
+                width = dds.header.dwWidth 
+                height = dds.header.dwHeight
+                for i in range( dds.header.dwMipMapCount ):
+                    size = ddsCalcLinearSizeBpp( width, height, dds.header.ddspf.dwRGBBitCount )
+                    mip = dds.buffer[off:off+size]
+                    assert(len(mip) == size)
+                    off += size
+                    width = max( 1, width // 2 )
+                    height = max( 1, height // 2 )
+                    surface.mips.append( mip )
+
+            tex.surfaces.append( surface )
+
         tex.header.dim.setMipCount( dds.header.dwMipMapCount )
         tex.header.dim.setHeight( dds.header.dwHeight )
         tex.header.dim.setWidth( dds.header.dwWidth )
@@ -416,6 +466,10 @@ class rTextureData:
         tex.header.fmt.setField3( 1 )
         tex.header.fmt.setField4( 0 )
         tex.header.fmt.setSurfaceCount( len( tex.surfaces ) )
+        if isCubeMap:
+            tex.header.desc.setDimensions( 6 )
+            tex.setDefaultCubeMapFaces()
+        
         return tex
         
 def _test():
