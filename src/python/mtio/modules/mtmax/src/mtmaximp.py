@@ -387,7 +387,7 @@ class MtModelImporter:
         if len( maxJointArray ) > 0 and mtmaxconfig.importWeights:
             self.importWeights( maxMesh, primitive, maxJointArray, maxWeightArray )
         elif len( maxJointArray ) == 0:
-            maxlog.info( 'primitive {maxMesh.name} has no vertex weights' )
+            maxlog.debug( f'primitive {maxMesh.name} has no vertex weights' )
             
         if self.layer != None:
             # add to layer

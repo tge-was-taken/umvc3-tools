@@ -2,6 +2,7 @@
 Intermediate (im) model representation to simplify model conversion from foreign data structures
 '''
 
+from dataclasses import dataclass
 from ncl import *
 from rmodel import *
 import vertexcodec
@@ -55,399 +56,7 @@ class imCacheVertex:
                    
     def __hash__( self ):
         return hash((self.position, self.normal, self.tangent, self.uv, self.weights, self.weightIndices))
-
-# TODO refactor vertex format into its own class
-class imPrimitive:
-    '''
-    Intermediate primitive data container intended to be used for generating optimized data for export
-    '''
     
-    def __init__( self, name, materialName, flags=0xFFFF, group=None, 
-            lodIndex=0xFF, vertexFlags=None, vertexStride=None, renderFlags=67, 
-            vertexShader=None, id=None, field2c=0, 
-            positions=None, tangents=None, normals=None, uvs=None, weights=None, indices=None ):
-        self.name = name
-        self.materialName = materialName
-        self.flags = flags
-        self.group = group
-        self.lodIndex = lodIndex
-        self.renderFlags = renderFlags
-        self.id = id
-        self.field2c = field2c
-        self.positions = positions if positions != None else []
-        self.tangents = tangents if tangents != None else []
-        self.normals = normals if normals != None else []
-        self.uvs = uvs if uvs != None else []
-        self.weights = weights
-        self.indices = indices
-        self.bitangents = []
-
-        #self._vertexFlags = vertexFlags
-        #self._vertexStride = vertexStride
-        #self._vertexShader = vertexShader
-        self._vertexFlags = None
-        self._vertexStride = None
-        self._vertexShader = None
-        self._maxUsedBoneCount = None
-        self._hasOcclusion = None
-        self._hasTangent = None
-        self._hasTexCoord = None
-        self._maxWeightCount = None
-
-    def clearCache( self ):
-        '''
-        Clears cached result values
-        '''
-        self._vertexFlags = None
-        self._vertexStride = None
-        self._vertexShader = None
-        self._maxUsedBoneCount = None
-        self._hasOcclusion = None
-        self._hasTangent = None
-        self._hasTexCoord = None
-        self._maxWeightCount = None
-
-    def getMaxUsedBoneCount( self ):
-        '''
-        Get the max. number of used bones in the primitive
-        '''
-        self._maxUsedBoneCount = 0
-        if self.isSkinned():
-            for w in self.weights:
-                usedBoneCount = 0
-                for j in range( 0, len( w.weights ) ):
-                    weight = w.weights[ j ]
-                    if weight > 0.001:
-                        usedBoneCount += 1            
-                self._maxUsedBoneCount = max( usedBoneCount, self._maxUsedBoneCount )
-        return self._maxUsedBoneCount
-
-    def reduceWeights( self, maxWeightsPerVertex ):
-        '''
-        Reduce the weights in the primitive to be less or equal to the given max weights per vertex.
-        The most influential weights are kept, and the remainder is equally distributed.
-        '''
-        
-        # pick 4 most influential weights and remove the others
-        if self.isSkinned():
-            for k, w in enumerate( self.weights ):
-                weightIndex = []
-                for k in range( 0, len(w.weights) ):
-                    weightIndex.append((w.weights[k], w.indices[k]))
-                weightIndex = sorted(weightIndex, key=lambda x: x[0])
-
-                weightTotal = 0
-                w.weights = []
-                w.indices = []
-                for k in range( 0, min(len(weightIndex), maxWeightsPerVertex) ):
-                    weight, index = weightIndex[k]
-                    weightTotal += weight
-                    w.weights.append( weight )
-                    w.indices.append( index )
-
-                # average out the weights
-                weightRemainder = 1 - weightTotal
-                weightAvgStep = weightRemainder / len(w.weights)
-                for k in range( 0, len(w.weights) ):
-                    w.weights[k] += weightAvgStep
-
-    def getVertexFlags( self ):
-        '''
-        Get the vertex flag according to the vertex format
-        '''
-        if self._vertexFlags == None: self.determineBestVertexFormat()
-        return self._vertexFlags
-
-    def determineBestVertexFormat( self ):
-        '''
-        Determine the best vertex format according to the data contained in the primitive.
-        '''
-        
-        self._hasOcclusion = True
-        self._hasTangent = True
-        self._hasTexCoord = True    
-
-        maxUsedBoneCount = self.getMaxUsedBoneCount()
-
-        if maxUsedBoneCount > 2 and maxUsedBoneCount <= 4:
-            self._vertexShader = 'IASkinTB4wt'
-            self._maxWeightCount = 4
-            self._vertexStride = imVertexIASkinTB4wt.SIZE
-            self._vertexFlags = 0x19
-        elif maxUsedBoneCount == 2:
-            self._vertexShader  = 'IASkinTB2wt'
-            self._maxWeightCount = 2
-            self._vertexStride = imVertexIASkinTB2wt.SIZE
-            self._vertexFlags = 0x11
-        elif maxUsedBoneCount == 1:
-            self._vertexShader  = 'IASkinTB1wt'
-            self._maxWeightCount = 1
-            self._vertexStride = imVertexIASkinTB1wt.SIZE
-            self._vertexFlags = 0x09
-        else:
-            # TODO fixme
-            self._vertexShader  = 'IASkinTB1wt'
-            self._maxWeightCount = 0
-            self._vertexStride = imVertexIASkinTB1wt.SIZE
-            self._vertexFlags = 0x09
-        
-    def hasOcclusion( self ):
-        if self._hasOcclusion == None: self.determineBestVertexFormat()
-        return self._hasOcclusion
-
-    def hasTangent( self ):
-        if self._hasTangent == None: self.determineBestVertexFormat()
-        return self._hasTangent
-
-    def hasTexCoord( self ):
-        if self._hasTexCoord == None: self.determineBestVertexFormat()
-        return self._hasTexCoord
-
-    def getVertexShader( self ):
-        if self._vertexShader == None: self.determineBestVertexFormat()
-        return self._vertexShader
-    
-    def getVertexStride( self ):
-        if self._vertexStride == None: self.determineBestVertexFormat()
-        return self._vertexStride
-
-    def getMaxWeightCount( self ):
-        if self._maxWeightCount == None: self.determineBestVertexFormat()
-        return self._maxWeightCount
-
-    def isIndexed( self ):
-        return self.indices != None
-    
-    def isSkinned( self ):
-        return self.weights != None
-    
-    def makeDirect( self ):
-        '''
-        Removes the need for the index buffer by duplicating all the vertex data according to it.
-        '''
-        if self.indices == None:
-            return
-        else:
-            raise NotImplementedError()
-    
-    def makeIndexed( self, progressCb = None ):
-        '''
-        Makes the model indexed by removing all duplicate vertex data and generating an index buffer that refers to each vertex component by index.
-        '''
-        self.makeDirect()
-        
-        # copy vertex data
-        positions = self.positions
-        normals = self.normals
-        uvs = self.uvs
-        weights = self.weights
-        tangents = self.tangents
-        isSkinned = self.isSkinned()
-        
-        # clear vertex data
-        self.positions = []
-        self.normals = []
-        self.uvs = []
-        self.weights = [] if weights != None else None
-        self.tangents = [] if tangents != None else None
-        self.indices = []
-        
-        # optimize vertex buffer
-        vertexIdxLookup = dict()
-        nextVertexIdx = 0
-        for i in range( 0, len( positions ) ):
-            if progressCb != None: progressCb( i/len(positions) )
-            
-            cv = imCacheVertex()
-            cv.position = (positions[i][0], positions[i][1], positions[i][2])
-            cv.normal = (normals[i][0], normals[i][1], normals[i][2])
-            cv.uv = (uvs[i][0], uvs[i][1])
-            cv.tangent = (tangents[i][0], tangents[i][1], tangents[i][2], tangents[i][3]) if tangents != None else None
-
-            if isSkinned:
-                cv.weights = tuple(weights[i].weights)
-                cv.weightIndices = tuple(weights[i].indices)    
-
-            if cv not in vertexIdxLookup:
-                idx = nextVertexIdx
-                nextVertexIdx += 1
-                vertexIdxLookup[cv] = idx
-
-                self.positions.append( NclVec3( cv.position ) )
-                self.normals.append( NclVec3( cv.normal ) )
-                self.uvs.append( NclVec2( cv.uv ) ) 
-                self.tangents.append( NclVec4( cv.tangent ) )
-
-                vtxWeight = imVertexWeight()
-                vtxWeight.indices = cv.weightIndices
-                vtxWeight.weights = cv.weights
-                self.weights.append( vtxWeight )
-            else:
-                idx = vertexIdxLookup.get(cv)
-
-            self.indices.append(idx)
-            
-    def generateTangents( self, progressCb=None ):
-        tangents = [NclVec3()] * len(self.positions)
-        bitangents = [NclVec3()] * len(self.positions)
-        self.tangents = []
-        count = len( self.indices ) if self.isIndexed() else len( self.positions )
-        
-        for i in range( 0, count, 3 ):
-            if progressCb != None: progressCb( i/count )
-            triangleA = self.indices[i] if self.isIndexed() else i
-            triangleB = self.indices[i+1] if self.isIndexed() else i+1
-            triangleC = self.indices[i+2] if self.isIndexed() else i+2
-            positionA = self.positions[ triangleC ] - self.positions[ triangleA ]
-            positionB = self.positions[ triangleB ] - self.positions[ triangleA ]
-
-            texCoordA = self.uvs[ triangleC ] - self.uvs[ triangleA ]
-            texCoordB = self.uvs[ triangleB ] - self.uvs[ triangleA ]
-
-            direction = texCoordA[0] * texCoordB[1] - texCoordA[1] * (1.0 if texCoordB[0] > 0.0 else -1.0)
-            #EDIT
-            direction *= -1
-
-            tangent = ( positionA * texCoordB[1] - positionB * texCoordA[1] ) * direction
-            bitangent = ( positionB * texCoordA[0] - positionA * texCoordB[0] ) * direction
-
-            tangents[ triangleA ] += tangent
-            tangents[ triangleB ] += tangent
-            tangents[ triangleC ] += tangent
-
-            bitangents[ triangleA ] += bitangent
-            bitangents[ triangleB ] += bitangent
-            bitangents[ triangleC ] += bitangent
-            
-        for i in range( 0, len( tangents ) ):
-            if progressCb != None: progressCb( i/len( tangents ) )
-            normal = self.normals[ i ]
-
-            tangent = nclNormalize( tangents[ i ] )
-            bitangent = nclNormalize( bitangents[ i ] )
-
-            tangent = nclNormalize( tangent - normal * nclDot( tangent, normal ) )
-            bitangent = nclNormalize( bitangent - normal * nclDot( bitangent, normal ) )
-
-            directionCheck = nclDot( nclNormalize( nclCross( normal, tangent ) ), bitangent )
-            self.tangents.append( NclVec4( ( tangent[0], tangent[1], tangent[2], (1.0 if directionCheck > 0.0 else -1.0 ) ) ) )
-
-        # Look for NaNs
-        for i in range( 0, len( self.positions ) ):
-            if progressCb != None: progressCb( i/len( self.positions ) )
-            position = self.positions[ i ]
-            tangent = self.tangents[ i ]
-
-            if not math.isnan( tangent[0] ) and not math.isnan( tangent[1] ) and not math.isnan( tangent[2] ):
-                continue
-
-            nearestVertexIndex = -1
-            currentDistance = float("+inf")
-
-            for j in range( 0, len( self.positions ) ):
-                positionToCompare = self.positions[ j ]
-                tangentToCompare = self.tangents[ j ]
-
-                if i == j or math.isnan( tangentToCompare[0] ) or math.isnan( tangentToCompare[1] ) or math.isnan( tangentToCompare[2] ):
-                    continue
-
-                #distance = nclDistanceSq( position, positionToCompare );
-                temp = position - positionToCompare
-                distance = nclDot(temp, temp)
-
-                if distance > currentDistance: 
-                    continue
-
-                nearestVertexIndex = j
-                currentDistance = distance
-
-            if nearestVertexIndex != -1:
-                self.tangents[ i ] = self.tangents[ nearestVertexIndex ]
-
-class imVertexFormat:
-    def __init__( self ):
-        pass
-        
-class imJoint:
-    def __init__( self, name='', id=None, localMtx=None, worldMtx=None, 
-        invBindMtx=None, parent=None, symmetry=None, field03=0, 
-        field04=0, offset=None, length=None ):
-
-        assert localMtx is None or isinstance(localMtx, NclMat44)
-        assert worldMtx is None or isinstance(worldMtx, NclMat44)
-        assert invBindMtx is None or isinstance(invBindMtx, NclMat44)
-
-        self.name = name
-        self.invBindMtx = deepcopy(invBindMtx)
-        self.id = 0 if id == None else id
-        self.symmetry = symmetry
-        self.field03 = 0 if field03 == None else field03
-        self.field04 = 0 if field04 == None else field04
-
-        self.localMtx = deepcopy(localMtx)
-        self.worldMtx = deepcopy(worldMtx)
-        self.parent = parent
-        if self.localMtx == None:
-            assert self.worldMtx != None
-            self.updateLocalFromWorld()
-        elif self.worldMtx == None:
-            assert self.localMtx != None
-            self.updateWorldFromLocal()
-
-        self.offset = deepcopy(offset)
-        if self.offset == None:
-            self.updateOffsetFromLocal()
-
-        self.length = length
-        if self.length == None:
-            self.updateLength()
-        
-        assert self.worldMtx != None
-        assert self.localMtx != None
-        assert self.id != None
-        assert self.length != None
-        assert self.offset != None
-
-    def getWorldMtx( self ):
-        if self.worldMtx == None:
-            self.updateWorldFromLocal()
-    
-        return self.worldMtx
-
-    def updateWorldFromLocal( self ):
-        self.worldMtx = deepcopy(self.localMtx)
-        if self.parent != None:
-            self.worldMtx = self.parent.getWorldMtx() * self.worldMtx
-
-    def updateLocalFromWorld( self ):
-        # calculate local matrix if only world matrix is given
-        self.localMtx = deepcopy(self.getWorldMtx())
-        parentWorldMtx = nclCreateMat44()
-        if self.parent != None:
-            parentWorldMtx = self.parent.getWorldMtx()
-            # localMtx = worldMtx * nclInverse( parentWorldMtx )
-            self.localMtx = nclInverse( parentWorldMtx ) * self.localMtx
-        return self.localMtx
-
-    def updateOffsetFromLocal( self ):
-        # take translation component of local matrix as offset
-        self.offset = deepcopy(self.localMtx[3])
-
-    def updateLength( self ):
-        # calculate length
-        self.length = nclLength( self.offset ) if not ( self.offset[0] == 0 and  self.offset[1] == 0 and  self.offset[2] == 0) else 0
-
-class imGroup:
-    def __init__( self, name, id, field04 = 0, field08 = 0, field0c = 0, boundingSphere = None ):
-        assert id != None
-        
-        self.name = name
-        self.id = id
-        self.field04 = 0 if field04 == None else field04
-        self.field08 = 0 if field08 == None else field08
-        self.field0c = 0 if field0c == None else field0c
-        self.boundingSphere = deepcopy(boundingSphere) # can be zero, in which case it is calculated later
-        
 '''
 typedef struct {
  local int64 p = FTell();
@@ -595,6 +204,416 @@ class imVertexIASkinTB1wt:
         stream.writeUShort( vertexcodec.encodeF16( self.texCoord[0] ) )
         stream.writeUShort( vertexcodec.encodeF16( self.texCoord[1] ) )
         
+'''
+typedef struct {
+ local int64 p = FTell();
+ FSeek( p + 0 ); f32 Position[3];
+ FSeek( p + 12 ); fu8 Normal[3];
+ FSeek( p + 15 ); fs8 Occlusion[1];
+ FSeek( p + 16 ); fu8 Tangent[4];
+ FSeek( p + 20 ); f16 TexCoord[2];
+ FSeek( p + 20 ); f16 UV_Primary[2];
+ FSeek( p + 20 ); f16 UV_Secondary[2];
+ FSeek( p + 20 ); f16 UV_Unique[2];
+ FSeek( p + 20 ); f16 UV_Extend[2];
+} rVertexShaderInputLayout_IANonSkinTB;
+'''
+class imVertexIANonSkinTB:
+    SIZE = 24
+    
+    def __init__( self ):
+        self.position = NclVec3()
+        self.normal = NclVec3()
+        self.occlusion = 0
+        self.tangent = NclVec4()
+        self.texCoord = NclVec2()
+        
+    def write( self, stream ):
+        stream.writeFloat( vertexcodec.encodeF32( self.position[0] ) )
+        stream.writeFloat( vertexcodec.encodeF32( self.position[1] ) )
+        stream.writeFloat( vertexcodec.encodeF32( self.position[2] ) )
+        stream.writeUByte( vertexcodec.encodeFS8( self.normal[0] ) )
+        stream.writeUByte( vertexcodec.encodeFS8( self.normal[1] ) )
+        stream.writeUByte( vertexcodec.encodeFS8( self.normal[2] ) )
+        stream.writeUByte( vertexcodec.encodeFS8( self.occlusion ) )
+        stream.writeUByte( vertexcodec.encodeFS8( self.tangent[0] ) )
+        stream.writeUByte( vertexcodec.encodeFS8( self.tangent[1] ) )
+        stream.writeUByte( vertexcodec.encodeFS8( self.tangent[2] ) )
+        stream.writeUByte( vertexcodec.encodeFS8( self.tangent[3]) )
+        stream.writeUShort( vertexcodec.encodeF16( self.texCoord[0] ) )
+        stream.writeUShort( vertexcodec.encodeF16( self.texCoord[1] ) )
+        
+@dataclass()
+class imVertexFormat(object):
+    vertexFlags: int = None
+    vertexStride: int = None
+    vertexShader: str = None
+    maxWeightCount: int = None
+    hasOcclusion: bool = None
+    hasTangent: bool = None
+    hasTexCoord: bool = None
+    vertexType: type = None
+    isCompressed: bool = False
+    
+    @staticmethod
+    def determineBestVertexFormat( model, prim ):
+        '''
+        Determine the best vertex format according to the data contained in the primitive.
+        '''
+   
+        fmt = imVertexFormat()
+        fmt.hasOcclusion = True
+        fmt.hasTangent = True
+        fmt.hasTexCoord = True    
+
+        maxUsedBoneCount = prim.getMaxUsedBoneCount()
+
+        if maxUsedBoneCount > 2 and maxUsedBoneCount <= 4:
+            fmt.vertexShader = 'IASkinTB4wt'
+            fmt.maxWeightCount = 4
+            fmt.vertexStride = imVertexIASkinTB4wt.SIZE
+            fmt.vertexFlags = 0x19
+            fmt.vertexType = imVertexIASkinTB4wt
+            fmt.isCompressed = True
+        elif maxUsedBoneCount == 2:
+            fmt.vertexShader  = 'IASkinTB2wt'
+            fmt.maxWeightCount = 2
+            fmt.vertexStride = imVertexIASkinTB2wt.SIZE
+            fmt.vertexFlags = 0x11
+            fmt.vertexType = imVertexIASkinTB2wt
+            fmt.isCompressed = True
+        elif maxUsedBoneCount == 1:
+            fmt.vertexShader  = 'IASkinTB1wt'
+            fmt.maxWeightCount = 1
+            fmt.vertexStride = imVertexIASkinTB1wt.SIZE
+            fmt.vertexFlags = 0x09
+            fmt.vertexType = imVertexIASkinTB1wt
+            fmt.isCompressed = True
+        else:
+            if len( model.joints ) > 0:
+                # assume that when the model has joints, it's a character model
+                # that uses compressed vertices
+                fmt.vertexShader  = 'IASkinTB1wt'
+                fmt.maxWeightCount = 1
+                fmt.vertexStride = imVertexIASkinTB1wt.SIZE
+                fmt.vertexFlags = 0x09
+                fmt.vertexType = imVertexIASkinTB1wt
+                fmt.isCompressed = True
+            else:
+                fmt.vertexShader  = 'IANonSkinTB'
+                fmt.maxWeightCount = 0
+                fmt.vertexStride = imVertexIANonSkinTB.SIZE
+                fmt.vertexFlags = 0x01
+                fmt.vertexType = imVertexIANonSkinTB
+                fmt.isCompressed = False
+             
+        return fmt
+
+# TODO refactor vertex format into its own class
+class imPrimitive:
+    '''
+    Intermediate primitive data container intended to be used for generating optimized data for export
+    '''
+    
+    def __init__( self, name, materialName, flags=0xFFFF, group=None, 
+            lodIndex=0xFF, vertexFlags=None, vertexStride=None, renderFlags=67, 
+            vertexShader=None, id=None, field2c=0, 
+            positions=None, tangents=None, normals=None, uvs=None, weights=None, indices=None ):
+        self.name = name
+        self.materialName = materialName
+        self.flags = flags
+        self.group = group
+        self.lodIndex = lodIndex
+        self.renderFlags = renderFlags
+        self.id = id
+        self.field2c = field2c
+        self.positions = positions if positions != None else []
+        self.tangents = tangents if tangents != None else []
+        self.normals = normals if normals != None else []
+        self.uvs = uvs if uvs != None else []
+        self.weights = weights
+        self.indices = indices
+        self.bitangents = []
+        self.vertexFormat = imVertexFormat( vertexFlags, vertexStride, vertexShader )
+
+    def getMaxUsedBoneCount( self ):
+        '''
+        Get the max. number of used bones in the primitive
+        '''
+        totalMaxUsedBoneCount = 0
+        if self.isSkinned():
+            for w in self.weights:
+                usedBoneCount = 0
+                for j in range( 0, len( w.weights ) ):
+                    weight = w.weights[ j ]
+                    if weight > 0.001:
+                        usedBoneCount += 1            
+                totalMaxUsedBoneCount = max( usedBoneCount, totalMaxUsedBoneCount )
+        return totalMaxUsedBoneCount
+
+    def reduceWeights( self, maxWeightsPerVertex ):
+        '''
+        Reduce the weights in the primitive to be less or equal to the given max weights per vertex.
+        The most influential weights are kept, and the remainder is equally distributed.
+        '''
+        
+        # pick 4 most influential weights and remove the others
+        if self.isSkinned():
+            for k, w in enumerate( self.weights ):
+                weightIndex = []
+                for k in range( 0, len(w.weights) ):
+                    weightIndex.append((w.weights[k], w.indices[k]))
+                weightIndex = sorted(weightIndex, key=lambda x: x[0])
+
+                weightTotal = 0
+                w.weights = []
+                w.indices = []
+                for k in range( 0, min(len(weightIndex), maxWeightsPerVertex) ):
+                    weight, index = weightIndex[k]
+                    weightTotal += weight
+                    w.weights.append( weight )
+                    w.indices.append( index )
+
+                # average out the weights
+                weightRemainder = 1 - weightTotal
+                weightAvgStep = weightRemainder / len(w.weights)
+                for k in range( 0, len(w.weights) ):
+                    w.weights[k] += weightAvgStep
+                    
+    def updateVertexFormat( self, model ):
+        self.vertexFormat = imVertexFormat.determineBestVertexFormat( model, self )
+
+    def isIndexed( self ):
+        return self.indices != None
+    
+    def isSkinned( self ):
+        return self.weights != None
+    
+    def makeDirect( self ):
+        '''
+        Removes the need for the index buffer by duplicating all the vertex data according to it.
+        '''
+        if self.indices == None:
+            return
+        else:
+            raise NotImplementedError()
+    
+    def makeIndexed( self, progressCb = None ):
+        '''
+        Makes the model indexed by removing all duplicate vertex data and generating an index buffer that refers to each vertex component by index.
+        '''
+        self.makeDirect()
+        
+        # copy vertex data
+        positions = self.positions
+        normals = self.normals
+        uvs = self.uvs
+        weights = self.weights
+        tangents = self.tangents
+        isSkinned = self.isSkinned()
+        
+        # clear vertex data
+        self.positions = []
+        self.normals = []
+        self.uvs = []
+        self.weights = [] if weights != None else None
+        self.tangents = [] if tangents != None else None
+        self.indices = []
+        
+        # optimize vertex buffer
+        vertexIdxLookup = dict()
+        nextVertexIdx = 0
+        for i in range( 0, len( positions ) ):
+            if progressCb != None: progressCb( i/len(positions) )
+            
+            cv = imCacheVertex()
+            cv.position = (positions[i][0], positions[i][1], positions[i][2])
+            cv.normal = (normals[i][0], normals[i][1], normals[i][2])
+            cv.uv = (uvs[i][0], uvs[i][1])
+            cv.tangent = (tangents[i][0], tangents[i][1], tangents[i][2], tangents[i][3]) if tangents != None else None
+
+            if isSkinned:
+                cv.weights = tuple(weights[i].weights)
+                cv.weightIndices = tuple(weights[i].indices)    
+
+            if cv not in vertexIdxLookup:
+                idx = nextVertexIdx
+                nextVertexIdx += 1
+                vertexIdxLookup[cv] = idx
+
+                self.positions.append( NclVec3( cv.position ) )
+                self.normals.append( NclVec3( cv.normal ) )
+                self.uvs.append( NclVec2( cv.uv ) ) 
+                self.tangents.append( NclVec4( cv.tangent ) )
+
+                vtxWeight = imVertexWeight()
+                vtxWeight.indices = cv.weightIndices
+                
+                if isSkinned:
+                    vtxWeight.weights = cv.weights
+                    self.weights.append( vtxWeight )
+            else:
+                idx = vertexIdxLookup.get(cv)
+
+            self.indices.append(idx)
+            
+    def generateTangents( self, progressCb=None ):
+        tangents = [NclVec3()] * len(self.positions)
+        bitangents = [NclVec3()] * len(self.positions)
+        self.tangents = []
+        count = len( self.indices ) if self.isIndexed() else len( self.positions )
+        
+        for i in range( 0, count, 3 ):
+            if progressCb != None: progressCb( i/count )
+            triangleA = self.indices[i] if self.isIndexed() else i
+            triangleB = self.indices[i+1] if self.isIndexed() else i+1
+            triangleC = self.indices[i+2] if self.isIndexed() else i+2
+            positionA = self.positions[ triangleC ] - self.positions[ triangleA ]
+            positionB = self.positions[ triangleB ] - self.positions[ triangleA ]
+
+            texCoordA = self.uvs[ triangleC ] - self.uvs[ triangleA ]
+            texCoordB = self.uvs[ triangleB ] - self.uvs[ triangleA ]
+
+            direction = texCoordA[0] * texCoordB[1] - texCoordA[1] * (1.0 if texCoordB[0] > 0.0 else -1.0)
+            #EDIT
+            direction *= -1
+
+            tangent = ( positionA * texCoordB[1] - positionB * texCoordA[1] ) * direction
+            bitangent = ( positionB * texCoordA[0] - positionA * texCoordB[0] ) * direction
+
+            tangents[ triangleA ] += tangent
+            tangents[ triangleB ] += tangent
+            tangents[ triangleC ] += tangent
+
+            bitangents[ triangleA ] += bitangent
+            bitangents[ triangleB ] += bitangent
+            bitangents[ triangleC ] += bitangent
+            
+        for i in range( 0, len( tangents ) ):
+            if progressCb != None: progressCb( i/len( tangents ) )
+            normal = self.normals[ i ]
+
+            tangent = nclNormalize( tangents[ i ] )
+            bitangent = nclNormalize( bitangents[ i ] )
+
+            tangent = nclNormalize( tangent - normal * nclDot( tangent, normal ) )
+            bitangent = nclNormalize( bitangent - normal * nclDot( bitangent, normal ) )
+
+            directionCheck = nclDot( nclNormalize( nclCross( normal, tangent ) ), bitangent )
+            self.tangents.append( NclVec4( ( tangent[0], tangent[1], tangent[2], (1.0 if directionCheck > 0.0 else -1.0 ) ) ) )
+
+        # Look for NaNs
+        for i in range( 0, len( self.positions ) ):
+            if progressCb != None: progressCb( i/len( self.positions ) )
+            position = self.positions[ i ]
+            tangent = self.tangents[ i ]
+
+            if not math.isnan( tangent[0] ) and not math.isnan( tangent[1] ) and not math.isnan( tangent[2] ):
+                continue
+
+            nearestVertexIndex = -1
+            currentDistance = float("+inf")
+
+            for j in range( 0, len( self.positions ) ):
+                positionToCompare = self.positions[ j ]
+                tangentToCompare = self.tangents[ j ]
+
+                if i == j or math.isnan( tangentToCompare[0] ) or math.isnan( tangentToCompare[1] ) or math.isnan( tangentToCompare[2] ):
+                    continue
+
+                #distance = nclDistanceSq( position, positionToCompare );
+                temp = position - positionToCompare
+                distance = nclDot(temp, temp)
+
+                if distance > currentDistance: 
+                    continue
+
+                nearestVertexIndex = j
+                currentDistance = distance
+
+            if nearestVertexIndex != -1:
+                self.tangents[ i ] = self.tangents[ nearestVertexIndex ]
+        
+class imJoint:
+    def __init__( self, name='', id=None, localMtx=None, worldMtx=None, 
+        invBindMtx=None, parent=None, symmetry=None, field03=0, 
+        field04=0, offset=None, length=None ):
+
+        assert localMtx is None or isinstance(localMtx, NclMat44)
+        assert worldMtx is None or isinstance(worldMtx, NclMat44)
+        assert invBindMtx is None or isinstance(invBindMtx, NclMat44)
+
+        self.name = name
+        self.invBindMtx = deepcopy(invBindMtx)
+        self.id = 0 if id == None else id
+        self.symmetry = symmetry
+        self.field03 = 0 if field03 == None else field03
+        self.field04 = 0 if field04 == None else field04
+
+        self.localMtx = deepcopy(localMtx)
+        self.worldMtx = deepcopy(worldMtx)
+        self.parent = parent
+        if self.localMtx == None:
+            assert self.worldMtx != None
+            self.updateLocalFromWorld()
+        elif self.worldMtx == None:
+            assert self.localMtx != None
+            self.updateWorldFromLocal()
+
+        self.offset = deepcopy(offset)
+        if self.offset == None:
+            self.updateOffsetFromLocal()
+
+        self.length = length
+        if self.length == None:
+            self.updateLength()
+        
+        assert self.worldMtx != None
+        assert self.localMtx != None
+        assert self.id != None
+        assert self.length != None
+        assert self.offset != None
+
+    def getWorldMtx( self ):
+        if self.worldMtx == None:
+            self.updateWorldFromLocal()
+    
+        return self.worldMtx
+
+    def updateWorldFromLocal( self ):
+        self.worldMtx = deepcopy(self.localMtx)
+        if self.parent != None:
+            self.worldMtx = self.parent.getWorldMtx() * self.worldMtx
+
+    def updateLocalFromWorld( self ):
+        # calculate local matrix if only world matrix is given
+        self.localMtx = deepcopy(self.getWorldMtx())
+        parentWorldMtx = nclCreateMat44()
+        if self.parent != None:
+            parentWorldMtx = self.parent.getWorldMtx()
+            # localMtx = worldMtx * nclInverse( parentWorldMtx )
+            self.localMtx = nclInverse( parentWorldMtx ) * self.localMtx
+        return self.localMtx
+
+    def updateOffsetFromLocal( self ):
+        # take translation component of local matrix as offset
+        self.offset = deepcopy(self.localMtx[3])
+
+    def updateLength( self ):
+        # calculate length
+        self.length = nclLength( self.offset ) if not ( self.offset[0] == 0 and  self.offset[1] == 0 and  self.offset[2] == 0) else 0
+
+class imGroup:
+    def __init__( self, name, id, field04 = 0, field08 = 0, field0c = 0, boundingSphere = None ):
+        assert id != None
+        
+        self.name = name
+        self.id = id
+        self.field04 = 0 if field04 == None else field04
+        self.field08 = 0 if field08 == None else field08
+        self.field0c = 0 if field0c == None else field0c
+        self.boundingSphere = deepcopy(boundingSphere) # can be zero, in which case it is calculated later
+        
 class imTag:
     PATTERN = re.compile(r"""@(.+?)(?!=\()\((.+?(?!=\)))\)""")
     
@@ -701,6 +720,8 @@ class imModel:
         indices = []
         
         for meshIndex, mesh in enumerate( self.primitives ):
+            mesh: imPrimitive
+            
             # find material
             meshMatIndex = -1
             for matIndex, mat in enumerate( mod.materials ):
@@ -713,51 +734,44 @@ class imModel:
                 meshMatIndex = len( mod.materials )
                 mod.materials.append( mesh.materialName )
                 
-            # calculate statistics used for determining best vertex format
             if mesh.getMaxUsedBoneCount() > 4:
                 mesh.reduceWeights( 4 )
 
             # determine vertex format 
-            mesh.determineBestVertexFormat()
+            mesh.updateVertexFormat( self )
             
             # convert vertices
             for i in range(0, len(mesh.positions)):
                 t = mesh.tangents[i]
-                
-                if mesh.getVertexShader() == 'IASkinTB4wt':            
-                    vtx = imVertexIASkinTB4wt()
-                elif mesh.getVertexShader() == 'IASkinTB2wt':            
-                    vtx = imVertexIASkinTB2wt()
-                elif mesh.getVertexShader() == 'IASkinTB1wt':            
-                    vtx = imVertexIASkinTB1wt()
-                else:
-                    raise NotImplementedError()
-                
+                vtx = mesh.vertexFormat.vertexType()                
                 vtx.position = mesh.positions[i]
                 vtx.normal = mesh.normals[i]
                 
-                if mesh.hasOcclusion():    
+                if mesh.vertexFormat.hasOcclusion:    
                     vtx.occlusion = 1
                 
-                if mesh.hasTangent():
+                if mesh.vertexFormat.hasTangent:
                     vtx.tangent = NclVec4( ( t[0], t[1], t[2], t[3] ) )
                 
-                if mesh.hasTexCoord():    
+                if mesh.vertexFormat.hasTexCoord:    
                     vtx.texCoord = mesh.uvs[i]
                 
-                if mesh.getMaxWeightCount() == 0:
-                    # TODO fixme
-                    jointIndex = 0
-                    vtx.jointId = jointIndex
-                elif mesh.getMaxWeightCount() == 1:
-                    assert ( len(mesh.weights[ i ].indices) > 0 ), 'mesh {} has unrigged vertex at index {}'.format(mesh.name, i)
-                    jointIndex = mesh.weights[ i ].indices[ 0 ]
+                if mesh.vertexFormat.maxWeightCount == 0:
+                    pass
+                elif mesh.vertexFormat.maxWeightCount == 1:
+                    # HACK assume that when the vertex has no indices but is assigned a vertex format with 1 weight, that it's an unrigged mesh
+                    # for a skeleton mesh model
+                    if mesh.weights == None or len( mesh.weights[i].indices ) == 0:
+                        jointIndex = 0
+                    else:
+                        jointIndex = mesh.weights[ i ].indices[ 0 ]
+
                     vtx.jointId = jointIndex
                 else:            
                     lastJointId = 0
                     weightSum = 0
                     usedBoneCount = 0
-                    for j in range( 0, mesh.getMaxWeightCount() ):
+                    for j in range( 0, mesh.vertexFormat.maxWeightCount ):
                         if j >= len( mesh.weights[ i ].weights ):
                             # vanilla models repeat the last joint id with a weight of 0
                             vtx.jointIds[ j ] = lastJointId
@@ -805,12 +819,12 @@ class imModel:
             prim.indices.setMaterialIndex( meshMatIndex )
 
             # set vertex flags based on bone count
-            prim.vertexFlags = mesh.getVertexFlags()
-            prim.vertexStride = mesh.getVertexStride()
+            prim.vertexFlags = mesh.vertexFormat.vertexFlags
+            prim.vertexStride = mesh.vertexFormat.vertexStride
             prim.renderFlags = mesh.renderFlags
             prim.vertexStartIndex = 0
             prim.vertexBufferOffset = nextVertexOffset
-            prim.vertexShader = util.getShaderObjectIdFromName( mesh.getVertexShader() )
+            prim.vertexShader = util.getShaderObjectIdFromName( mesh.vertexFormat.vertexShader )
             prim.indexBufferOffset = nextTriangleIndex
             prim.indexCount = len( mesh.indices )
             prim.indexStartIndex = 0
@@ -828,35 +842,37 @@ class imModel:
         
         bounds = modelutil.calcBounds( vertices )
 
-        if len(mod.jointInvBindMtx) == 0:
-            # calculate distance between 2 furthest points
-            # will be used as the vertex scale
-            vscale = -bounds.vminpoint + bounds.vmaxpoint
-            vbias = bounds.vmin * -1
+        if len( self.joints ) > 0:
+            # compress vertices
             
-            # set up model matrix
-            modelMtx = nclCreateMat43()
-            modelMtx[3] = vbias
-            modelMtx *= (1/vscale)
-            modelMtx = nclCreateMat44(modelMtx)
+            if len(mod.jointInvBindMtx) == 0:
+                # calculate distance between 2 furthest points
+                # will be used as the vertex scale
+                vscale = -bounds.vminpoint + bounds.vmaxpoint
+                vbias = bounds.vmin * -1
+                
+                # set up model matrix
+                modelMtx = nclCreateMat43()
+                modelMtx[3] = vbias
+                modelMtx *= (1/vscale)
+                modelMtx = nclCreateMat44(modelMtx)
+                
+                # calculate joint inverse bind matrices
+                for i, joint in enumerate( self.joints ):   
+                    # apply model matrix to world transform of each joint
+                    invBindMtx = nclInverse( nclMultiply( joint.getWorldMtx(), modelMtx ) )
+                    finalInvBindMtx = nclCreateMat44( invBindMtx )
+                    mod.jointInvBindMtx.append( finalInvBindMtx )
+            else:
+                # extract the model matrix from the inverse bind matrix of the root bone
+                modelMtx = nclInverse( mod.jointInvBindMtx[0] )
             
-            # calculate joint inverse bind matrices
-            for i, joint in enumerate( self.joints ):   
-                # apply model matrix to world transform of each joint
-                invBindMtx = nclInverse( nclMultiply( joint.getWorldMtx(), modelMtx ) )
-                finalInvBindMtx = nclCreateMat44( invBindMtx )
-                mod.jointInvBindMtx.append( finalInvBindMtx )
-        else:
-            # extract the model matrix from the inverse bind matrix of the root bone
-            modelMtx = nclInverse( mod.jointInvBindMtx[0] )
-        
-        # normalize vertices
-        modelMtxNormal = nclTranspose( nclInverse( modelMtx ) )
-        
-        for v in vertices:
-            v.position = nclTransform( v.position, modelMtx )
-
-            v.normal = nclNormalize( nclTransform( v.normal, modelMtxNormal ) )
+            # normalize vertices
+            modelMtxNormal = nclTranspose( nclInverse( modelMtx ) )
+            
+            for v in vertices:
+                v.position = nclTransform( v.position, modelMtx )
+                v.normal = nclNormalize( nclTransform( v.normal, modelMtxNormal ) )
         
         # create buffers
         vertexBufferStream = NclBitStream()

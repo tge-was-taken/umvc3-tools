@@ -47,7 +47,6 @@ exportRoot = ''
 exportOverwriteTextures = False
 exportScale = 1
 exportBakeScale = False
-exportGenerateRootBone = True
 
 # debug settings
 debugForcePhysicalMaterial = False

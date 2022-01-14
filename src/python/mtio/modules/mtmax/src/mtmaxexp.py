@@ -321,11 +321,6 @@ class MtModelExporter(object):
                 attribs = MtJointAttribData( maxNode, jointMeta )
                 joint.symmetry = self._processBone( attribs.symmetryNode ) if attribs.symmetryNode != None else None
                 
-            # if we've processed all the bones we could find, and we still don't have any, opt to add a dummy bone
-            # instead to facilitate the export
-            if len( self.model.joints ) == 0 and mtmaxconfig.exportGenerateRootBone:
-                self.model.joints.append(imJoint('root', 0, nclCreateMat44()))
-                
     def _convertTextureToTEX( self, inPath, outPath):
         try:
             textureutil.convertTexture( inPath, outPath )
@@ -613,20 +608,21 @@ don't have an reference/original model specified as it will override the skeleto
                         tempMesh.weights = []
                     tempMesh.weights.append( weight )
                 else:
-                    # TODO fix this hack
-                    weight = imVertexWeight()
-                    if len(self.model.joints) < 3:
-                        # assume stage model
-                        rootIndex = 0
-                    else:
-                        # works better for characters
-                        rootIndex = 2
+                    if len( self.model.joints ) > 0:
+                        # assume character model, which need weights for every vertex
+                        if len(self.model.joints) < 3:
+                            rootIndex = 0
+                        else:
+                            # works better for characters
+                            rootIndex = 2
                     
-                    weight.weights.append( 1 )
-                    weight.indices.append( rootIndex )
-                    if tempMesh.weights == None:
-                        tempMesh.weights = []
-                    tempMesh.weights.append( weight )
+                        # TODO fix this hack
+                        weight = imVertexWeight()
+                        weight.weights.append( 1 )
+                        weight.indices.append( rootIndex )
+                        if tempMesh.weights == None:
+                            tempMesh.weights = []
+                        tempMesh.weights.append( weight )
 
         # create optimized primitives
         for tempMesh in tempMeshes.values():

@@ -29,8 +29,7 @@ else:
         return float( struct.unpack( 'e', struct.pack( 'H', float16 ) )[0] )
     
 def isNormalizedFloat( v ):
-    return True
-    #return v >= -1 and v <= 1
+    return (v >= -1 and v <= 1) or v == float('nan')
 
 def isNormalized( v ):
     if isinstance( v, float ): 
@@ -114,7 +113,7 @@ def encodeU16( val ):
         
 # type 5
 def encodeFS16( val ):
-    assert( isNormalizedFloat( val ) )
+    #assert( isNormalizedFloat( val ) )
     if val < 0:
         return int( ~int( abs( val ) * -0x8000 ) + 1 ) & 0xFFFF
     else:
@@ -130,13 +129,13 @@ def encodeU8( val ):
 
 # type 9
 def encodeFU8( val ):
-    assert( isNormalizedFloat( val ) )
+    #assert( isNormalizedFloat( val ) )
     return int( val * 0xFF ) & 0xFF
 
 # type 10
 def encodeFS8( val ):
-    assert( isNormalizedFloat( val ) )
     val = 0 if math.isnan( val ) else val
+    #assert( isNormalizedFloat( val ) )
     return int( ( val * 127 ) + 127 ) & 0xFF
 
 # type 11
