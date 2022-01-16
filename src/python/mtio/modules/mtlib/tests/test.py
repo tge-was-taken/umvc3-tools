@@ -10,7 +10,7 @@ from ncl import *
 from immaterial import *
 from rmaterial import *
 from rmodel import * 
-import mvc3materialdb
+import mvc3materialnamedb
 import mvc3shaderdb
 import util
 from rtexture import *
@@ -34,11 +34,11 @@ def testMrlYaml( mrlBuffer, modPath ):
     # read model for material names
     mod = rModelData()
     mod.read( NclBitStream( util.loadIntoByteArray( modPath ) ) )
-    mvc3materialdb.registerMaterialNames( mod.materials )
+    mvc3materialnamedb.registerMaterialNames( mod.materials )
     
     # read mtl into intermediate 
     imMrl = imMaterialLib()
-    imMrl.loadBinary( NclBitStream( mrlBuffer ) )
+    imMrl.loadBinaryStream( NclBitStream( mrlBuffer ) )
     
     # write to binary and compare
     stream = NclBitStream()
@@ -121,11 +121,10 @@ def testMrl( inputName, ignoreAnim ):
     testMrlYaml( mrlBuffer, modPath )
     print( "passed: {}".format( inputName ) )
     
-def processMrlBatch( func, *args ):
-    with os.scandir('X:\\work\\umvc3_model\\samples\\test') as it:
-        for entry in it:
-            if entry.name.endswith(".mrl") and entry.is_file():
-                func( entry.path, *args )
+def processMrlBatch( func, *args, path='X:\\work\\umvc3_model\\samples\\test' ):
+    for entry in scantree(path):
+        if entry.name.endswith(".mrl") and entry.is_file():
+            func( entry.path, *args )
 
 def testMod( inputName ):
     basePath, baseName, exts = util.splitPath( inputName )
@@ -403,10 +402,109 @@ def dumpPjl():
     processModBatch( _dump, stats, path=r'X:\game\platform\pc\Ultimate Marvel vs. Capcom 3\nativePCx64\stg' )
     for key, value in stats.items():
         print(key, value)
+        
+def dumpUniqueMaterials():
+    texTypeHist = set()
+    
+    def _dump( inputName: str, stats: Dict[tuple, imMaterialInfo] ):
+        basePath, baseName, exts = util.splitPath( inputName )
+        modPath = os.path.join( basePath, baseName + '.58a15856.mod' )
+        mrlPath = os.path.join( basePath, baseName + '.2749c8a8.mrl' )
+        ymlPath = os.path.join( basePath, baseName + '.2749c8a8.mrl.yml' )
+        
+        # read mod
+        try:
+            modBuffer = util.loadIntoByteArray( modPath )
+            mod = rModelData()
+            mod.read( NclBitStream( modBuffer ) )
+            mvc3materialnamedb.registerMaterialNames( mod.materials )
+        except:
+            pass
+        
+        try:
+            log.setLogger(None)
+            mrl = imMaterialLib()
+            mrl.loadBinaryStream( NclBitStream( util.loadIntoByteArray( mrlPath ) ) )
+            for mat in mrl.materials:
+                values = []
+                for x in [mat.type, mat.blendState, mat.depthStencilState, mat.depthStencilState, mat.rasterizerState, mat.cmdListFlags, mat.matFlags]:
+                    values.append( x ) 
+                hasAlbedoMap = False
+                hasToonRevMap = False
+                hasNormalMap = False
+                hasSpecularMap = False
+                hasSphereMap = False
+                hasDetailNormalMap = False
+                hasAlbedoBlendMap = False 
+                hasTransparencyMap = False
+                hasEnvMap = False
+                hasLightMap = False
+                hasOcclusionMap = False
+                hasIndirectMapSpecularUser = False
+                
+                for cmd in sorted(mat.cmds, key=lambda x: x.name):
+                    data = cmd.data
+                    if cmd.type == 'texture':
+                        if not cmd.name in texTypeHist:
+                            texTypeHist.add(cmd.name)
+                            print(cmd.name)
+                        
+                        if cmd.data.startswith('chr') or cmd.data.startswith('stg') \
+                            or cmd.data.startswith("ui\\game\\") or cmd.data.startswith("ui\\res\\"):
+                            placeholder = str(cmd.name[1:]).upper()
+                            data = f'$({placeholder})'
+                        elif cmd.data.startswith('UserShader\\'):
+                            pass
+                        elif cmd.data == '':
+                            pass
+                        elif cmd.data.startswith('eft\\cmn'):
+                            pass
+                        elif cmd.data.startswith('system\\texture\\'):
+                            pass
+                        else:
+                            raise NotImplementedError()
+                    values.append( ( cmd.name, cmd.type, tuple( data ) ) )
+                values = tuple(values)
+                if not values in stats:
+                    stats[values] = mat
+                    type = mat.type.replace("nDraw::", "")
+                    subtype = ''
+                    assignedTextures = sorted([x.name[1:].replace("Map", "") for x in mat.cmds if x.type == 'texture'])
+                    for i, tex in enumerate(assignedTextures):
+                        if i == 0:
+                            subtype += tex
+                        else:
+                            subtype += "_" + tex
+                        
+                    subtype2 = ''
+                    if mat.getCommandByName('CBHalfLambert') is not None:
+                        subtype2 += '_HalfLambert'
+                    
+                    for cmd in sorted(mat.cmds, key=lambda x: x.name):
+                        if cmd.type == 'texture':
+                            if cmd.data.startswith('chr') or cmd.data.startswith('stg') \
+                                    or cmd.data.startswith("ui\\game\\") or cmd.data.startswith("ui\\res\\"):
+                                cmd.data = "__PLACEHOLDER__"
+                    
+                    temp = imMaterialLib()
+                    temp.materials.append(mat)    
+                    
+                    temp.saveYamlFile(f"X:\\project\\umvc3_model\\repo\\src\\python\\mtio\\modules\\mtlib\\res\\material_templates\\{type}\\{subtype}\\{subtype2}\\{baseName}_{mat.name}_{hex(hash(values)&0xFFFFFF)}.mrl.yml")
+                else:
+                    pass
+                    #print('duplicate')
+        except Exception as e:
+            pass
+    
+    stats = dict()
+    processMrlBatch( _dump, stats, path=r'X:\game\platform\pc\Ultimate Marvel vs. Capcom 3\nativePCx64' )
+    for key, value in stats.values():
+        print(key, value)
     
 def main():
     #dumpVertexFlags()
-    dumpPjl()
+    #dumpPjl()
+    dumpUniqueMaterials()
     
     # inputName = "X:/work/umvc3_model/samples/UMVC3ModelSamples/Ryu/Ryu.58a15856.mod"
     # baseName = os.path.basename(inputName).split('.')[0]

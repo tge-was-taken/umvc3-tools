@@ -1,5 +1,6 @@
 import os
 import sys
+from typing import Iterable
 from pymxs import runtime as rt
 import mtmaxver
 
@@ -13,6 +14,8 @@ def updateUI():
         print('UI update triggered')
         rt.windows.processPostedMessages()
         lastWindowUpdateTime = rt.timestamp()
+        return True
+    return False
 
 def isDebugEnv():
     return os.path.exists( os.path.join( os.path.dirname( __file__ ), '.debug' ) )
@@ -85,3 +88,9 @@ def openListener():
     
 def openLogFile():
     os.system( getLogFilePath() )
+
+def toMaxArray( it: Iterable, converter=lambda x: x ):
+    arr = rt.Array()
+    for i in it:
+        rt.append( arr, converter( i ) )
+    return arr

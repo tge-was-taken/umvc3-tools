@@ -17,7 +17,7 @@ from shaderinfo import *
 import libtarget
 import util
 import vertexcodec
-import mvc3materialdb
+import mvc3materialnamedb
 import mvc3shaderdb
 import mvc3types
 #import texconv

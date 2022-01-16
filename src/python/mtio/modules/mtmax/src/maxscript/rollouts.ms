@@ -54,7 +54,7 @@ fn mtCallPythonFunc module func args =
 rollout MtInfoRollout "MT Framework Importer/Exporter"
 (
 	label lblTitle2 "Ultimate Marvel vs Capcom 3"
-	label lblVersion "Version 1.0.25 Beta" align:#center
+	label lblVersion "Version 1.0.26 Beta" align:#center
 	label lblAuthor "© 2021-2022 TGE" align:#center
 )
 
@@ -145,6 +145,10 @@ rollout MtModelImportRollout "Model import"
 		checkbox chkCreateLayer "Create layer" checked:true
 	)
 	
+	label lblImportProgressCategory;
+	progressBar pbImport;
+	label lblImportProgressSubCategory;
+	progressBar pbImportSub;
 	
 	button btnImport "Import" align:#center across:1;
 	
@@ -204,6 +208,7 @@ rollout MtModelExportRollout "Model export"
 	)
 	group "Generate MRL" (
 		checkbox chkExportGenerateMrl "Enable" checked:true
+		combobox cbxExportMaterialPreset "Material preset" --items:#("nDraw::MaterialChar", "nDraw::MaterialStgSimple")
 	)
 
 	group "Use existing MRL YML" (
@@ -221,6 +226,11 @@ rollout MtModelExportRollout "Model export"
 		checkbox chkExportGroupPerMesh "Export group per mesh" checked:false
 		checkbox chkExportGeneratePjl "Generate PJL" checked:true
 	)
+
+	label lblExportProgressCategory;
+	progressBar pbExport;
+	label lblExportProgressSubCategory;
+	progressBar pbExportSub;
 	
 	button btnExport "Export" align:#center across:1;
 
@@ -255,11 +265,13 @@ rollout MtModelExportRollout "Model export"
 	on chkBakeScale			changed state	do emit #("chkBakeScaleChanged", state)
 	on chkExportGroupPerMesh changed state do emit #("chkExportGroupPerMeshChanged", state)
 	on chkExportGeneratePjl changed state do emit #("chkExportGeneratePjlChanged", state)
+	on cbxExportMaterialPreset selected i do emit #("cbxExportMaterialPresetSelected", cbxExportMaterialPreset.items[i])
 )
 
 rollout MtDebugRollout "Debug"
 (
 	checkbox chkDisableLog "Disable logging"
+	edittext edtExportForceShader "Force shader on export"
 
 	fn emit args = 
 	(
@@ -267,4 +279,5 @@ rollout MtDebugRollout "Debug"
 	)
 
 	on chkDisableLog changed state do emit #("chkDisableLogChanged", state)
+	on edtExportForceShader changed state do emit #("edtExportForceShaderChanged", state)
 )

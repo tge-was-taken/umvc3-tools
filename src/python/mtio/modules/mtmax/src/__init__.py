@@ -190,6 +190,7 @@ class MtModelExportRollout(MtRollout):
         self.btnMrlYml.enabled = not mtmaxconfig.exportGenerateMrl and mtmaxconfig.exportExistingMrlYml
         self.chkExportMrl.enabled = not mtmaxconfig.exportGenerateMrl
         self.chkExportGenerateMrl.enabled = not mtmaxconfig.exportExistingMrlYml
+        self.cbxExportMaterialPreset.enabled = mtmaxconfig.exportGenerateMrl
     
     @staticmethod
     def loadConfig():
@@ -212,6 +213,8 @@ class MtModelExportRollout(MtRollout):
         self.chkExportNormals.checked = mtmaxconfig.exportNormals
         self.chkExportGroupPerMesh.checked = mtmaxconfig.exportGroupPerMesh
         self.chkExportGeneratePjl.checked = mtmaxconfig.exportGeneratePjl
+        self.cbxExportMaterialPreset.items = mtmaxutil.toMaxArray( imMaterialInfo.TEMPLATE_MATERIALS )
+        self.cbxExportMaterialPreset.selection = rt.findItem(self.cbxExportMaterialPreset.items, mtmaxconfig.exportMaterialPreset)
         MtModelExportRollout.updateVisibility()
         
     @staticmethod
@@ -339,19 +342,6 @@ class MtModelExportRollout(MtRollout):
         mtmaxconfig.exportGenerateMrl = state
         
     @staticmethod
-    def edtTextureRootChanged( state ):
-        mtmaxconfig.exportTextureRoot = state
-        
-    @staticmethod
-    def btnTextureRootPressed():
-        path = rt.getSavePath( caption="Select a folder", initialDir=os.path.dirname(mtmaxconfig.exportFilePath) )
-        if path == None:
-            return
-        
-        mtmaxconfig.exportTextureRoot = os.path.abspath( path ).replace( "\\", "/" )
-        MtModelExportRollout.loadConfig()
-        
-    @staticmethod
     def edtRootChanged( state ):
         mtmaxconfig.exportRoot = state
         
@@ -383,6 +373,10 @@ class MtModelExportRollout(MtRollout):
     @staticmethod
     def chkExportGeneratePjlChanged( state ):
         mtmaxconfig.exportGeneratePjl = state
+        
+    @staticmethod
+    def cbxExportMaterialPresetSelected( state ):
+        mtmaxconfig.exportMaterialPreset = state
 
 class MtUtilitiesRollout(MtRollout):
     @staticmethod
@@ -450,6 +444,10 @@ class MtDebugRollout(MtRollout):
     @staticmethod
     def chkDisableLogChanged( state ):
         mtmaxconfig.debugDisableLog = state
+        
+    @staticmethod
+    def edtExportForceShaderChanged( state ):
+        mtmaxconfig.debugExportForceShader = state
     
     
 def getMainWindow():
@@ -476,7 +474,7 @@ def createMainWindow():
     rollouts = [MtInfoRollout, MtSettingsRollout, MtModelImportRollout, MtModelExportRollout, MtUtilitiesRollout]
     if mtmaxutil.isDebugEnv():
         rollouts.insert(0, MtDebugRollout)
-    
+        
     for rollout in rollouts:
         rollout.getMxsVar().width = w
         rollout.getMxsVar().height = h
@@ -499,6 +497,15 @@ class MaxLogger():
 def main():
     maxlog.info(f'script version: {mtmaxver.version}')
     
+    # increase heap size to improve stability
+    heapSize = 512
+    while rt.heapSize < heapSize: 
+        try:
+            rt.heapSize = 1024 * 1024 * heapSize
+        except:
+            heapSize /= 2
+    
+    # force garbage colleciton
     rt.gc()
     rt.gc()
 

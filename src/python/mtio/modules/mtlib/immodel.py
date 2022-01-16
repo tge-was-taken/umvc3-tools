@@ -544,7 +544,7 @@ class imPrimitive:
         vertexIdxLookup = dict()
         nextVertexIdx = 0
         for i in range( 0, len( positions ) ):
-            if progressCb != None: progressCb( i/len(positions) )
+            if progressCb != None: progressCb( 'Optimizing vertices', i, len(positions) )
             
             cv = imCacheVertex()
             cv.position = (positions[i][0], positions[i][1], positions[i][2])
@@ -598,7 +598,7 @@ class imPrimitive:
         count = len( self.indices ) if self.isIndexed() else len( self.positions )
         
         for i in range( 0, count, 3 ):
-            if progressCb != None: progressCb( i/count )
+            if progressCb != None: progressCb( 'Calculating tangent and binormal', i, count )
             triangleA = self.indices[i] if self.isIndexed() else i
             triangleB = self.indices[i+1] if self.isIndexed() else i+1
             triangleC = self.indices[i+2] if self.isIndexed() else i+2
@@ -624,7 +624,7 @@ class imPrimitive:
             bitangents[ triangleC ] += bitangent
             
         for i in range( 0, len( tangents ) ):
-            if progressCb != None: progressCb( i/len( tangents ) )
+            if progressCb != None: progressCb( 'Averaging tangents', i, len( tangents ) )
             normal = self.normals[ i ]
 
             tangent = nclNormalize( tangents[ i ] )
@@ -638,7 +638,7 @@ class imPrimitive:
 
         # Look for NaNs
         for i in range( 0, len( self.positions ) ):
-            if progressCb != None: progressCb( i/len( self.positions ) )
+            if progressCb != None: progressCb( 'Resolving NaNs', i, len( self.positions ) )
             position = self.positions[ i ]
             tangent = self.tangents[ i ]
 
@@ -793,7 +793,7 @@ class imModel:
     def fromBinaryModel( self, mod ):
         pass
         
-    def toBinaryModel( self ):
+    def toBinaryModel( self, progressCb=None ):
         mod = rModelData()
         
         for i in range(0, 256):
@@ -809,7 +809,9 @@ class imModel:
             mod.boneMap[ joint.id ] = i
         
         # convert joints
-        for i, joint in enumerate( self.joints ):                   
+        for i, joint in enumerate( self.joints ): 
+            if progressCb != None: progressCb( 'Converting joints', i, len( self.joints ) )
+                              
             modJoint = rModelJoint()
             modJoint.id = joint.id
             modJoint.parentIndex = self.joints.index( joint.parent ) if joint.parent != None else -1
@@ -833,6 +835,8 @@ class imModel:
         # order groups by index, or at the end of not specified
         self.groups = sorted( self.groups, key=lambda x: x.index )
         for i, group in enumerate( self.groups ):
+            if progressCb != None: progressCb( 'Converting groups', i, len( self.groups ) )
+            
             modGroup = rModelGroup()
             
             if _isValidBoundingSphere(group.boundingSphere):
@@ -861,6 +865,8 @@ class imModel:
         # sort by index to keep order
         self.primitives = sorted( self.primitives, key=lambda x: x.index )
         for meshIndex, mesh in enumerate( self.primitives ):
+            if progressCb != None: progressCb( 'Converting primitives', meshIndex, len( self.primitives ) )
+            
             mesh: imPrimitive
             
             # convert pjl
@@ -919,6 +925,8 @@ class imModel:
             
             # convert vertices
             for i in range(0, len(mesh.positions)):
+                if progressCb != None: progressCb( 'Converting vertices', i, len( mesh.positions ) )
+                
                 t = mesh.tangents[i]
                 vtx: imVertex = mesh.vertexFormat.vertexType()                
                 vtx.position = mesh.positions[i]
@@ -984,6 +992,7 @@ class imModel:
                 
             # convert indices
             for i in range(0, len( mesh.indices ) ):
+                if progressCb != None: progressCb( 'Converting face indices', i, len( mesh.indices ) )
                 indices.append( mesh.indices[ i ] )
                 
             # create primitive
@@ -1034,7 +1043,8 @@ class imModel:
                 modelMtx = nclCreateMat44(modelMtx)
                 
                 # calculate joint inverse bind matrices
-                for i, joint in enumerate( self.joints ):   
+                for i, joint in enumerate( self.joints ):
+                    if progressCb != None: progressCb( 'Calculating inverse bind matrices', i, len( self.joints ) )   
                     # apply model matrix to world transform of each joint
                     invBindMtx = nclInverse( nclMultiply( joint.getWorldMtx(), modelMtx ) )
                     finalInvBindMtx = nclCreateMat44( invBindMtx )
@@ -1046,18 +1056,21 @@ class imModel:
             # normalize vertices
             modelMtxNormal = nclTranspose( nclInverse( modelMtx ) )
             
-            for v in vertices:
+            for i, v in enumerate( vertices ):
+                if progressCb != None: progressCb( 'Compressing vertices', i, len( vertices ) )
                 v.position = nclTransform( v.position, modelMtx )
                 v.normal = nclNormalize( nclTransform( v.normal, modelMtxNormal ) )
         
         # create buffers
         vertexBufferStream = NclBitStream()
-        for v in vertices:
+        for i, v in enumerate( vertices ):
+            if progressCb != None: progressCb( 'Writing vertices', i, len( vertices ) )
             v.write( vertexBufferStream )
         mod.vertexBuffer = vertexBufferStream.getBuffer()
             
         indexBufferStream = NclBitStream()
         for i in indices:
+            if progressCb != None: progressCb( 'Writing indices', i, len( indices ) )
             indexBufferStream.writeUShort( i )
         mod.indexBuffer = indexBufferStream.getBuffer()
             

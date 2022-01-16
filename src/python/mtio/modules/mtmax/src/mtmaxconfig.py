@@ -20,9 +20,9 @@ importGroups = True
 importSkeleton = True
 importPrimitives = True
 importSaveMrlYml = True
-importCreateLayer = False
+importCreateLayer = True
 importScale = 1
-importBakeScale = False
+importBakeScale = True
 
 # export settings
 exportWeights = True
@@ -42,18 +42,19 @@ exportUseRefPjl = True
 exportUseRefBounds = True
 exportUseRefGroups = True
 exportGenerateMrl = True
-exportTextureRoot = ''
 exportRoot = ''
 exportOverwriteTextures = False
 exportScale = 1
-exportBakeScale = False
+exportBakeScale = True
 exportGroupPerMesh = False
 exportGeneratePjl = True
+exportMaterialPreset = 'nDraw::MaterialChar'
 
 # debug settings
 debugForcePhysicalMaterial = False
 debugImportPrimitiveIdFilter = []
 debugDisableLog = False
+debugExportForceShader = ''
 
 def _getModule():
     if not __name__ in sys.modules:

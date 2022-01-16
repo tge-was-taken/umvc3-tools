@@ -2,10 +2,15 @@
 Intermediate material library representation for easier editing
 '''
        
+from argparse import ArgumentError
+from dataclasses import dataclass
+from email.policy import default
 import os
+from typing import List, Tuple
+from venv import create
 import yaml
 from rmaterial import *
-import mvc3materialdb
+import mvc3materialnamedb
 import mvc3shaderdb
 from ncl import *
 import log
@@ -21,34 +26,44 @@ class imMaterialTextureInfo:
         self.path = ""
         
 class imMaterialCmd:
-    Types = ['flag', 'cbuffer', 'samplerstate', 'texture']
+    TYPES = ['flag', 'cbuffer', 'samplerstate', 'texture']
     
     def __init__( self, type="", name="", data=None ):
         self.type = type
         self.name = name
         self.data = data
         
-class imMaterialInfo:
-    DEFAULT_NORMAL_MAP = "default_NM"
-    DEFAULT_ALBEDO_MAP = "default_BM"
-    DEFAULT_SPECULAR_MAP = "default_MM"
+@dataclass
+class imMaterialInfo(object):
+    DEFAULT_NORMAL_MAP: str = "default_NM"
+    DEFAULT_ALBEDO_MAP: str = "default_BM"
+    DEFAULT_SPECULAR_MAP: str = "default_MM"
+    TEMPLATE_MATERIALS: Tuple[str] = (
+        "nDraw::MaterialChar",
+        "nDraw::MaterialCharAlpha",
+        'nDraw::MaterialStgSimple',
+        'nDraw::MaterialStdEst'
+    )
     
-    def __init__( self ):
-        self.type = ""
-        self.name = ""
-        self.blendState = ""
-        self.depthStencilState = ""
-        self.rasterizerState = ""
-        self.cmdListFlags = 0
-        self.matFlags = 0
-        self.cmds = []
+    type: str = ''
+    name: str = ''
+    blendState: str = ''
+    depthStencilState: str = ''
+    rasterizerState: str = ''
+    cmdListFlags: int = 0
+    matFlags: int = 0
+    cmds: List[imMaterialCmd] = None
+    
+    def __post_init__( self ):
+        if self.cmds is None: self.cmds = []
         
     @staticmethod
     def isDefaultTextureMap( map ):
+        imMaterialInfo()
         return os.path.basename( map ) in [imMaterialInfo.DEFAULT_NORMAL_MAP, imMaterialInfo.DEFAULT_ALBEDO_MAP, imMaterialInfo.DEFAULT_SPECULAR_MAP]
         
     @staticmethod
-    def createDefault( name = "default_material", normalMap=DEFAULT_NORMAL_MAP, albedoMap=DEFAULT_ALBEDO_MAP, specularMap=DEFAULT_SPECULAR_MAP ):
+    def _createFromTemplate_MaterialChar( name = "default_material", normalMap=DEFAULT_NORMAL_MAP, albedoMap=DEFAULT_ALBEDO_MAP, specularMap=DEFAULT_SPECULAR_MAP ):
         mat = imMaterialInfo()
         mat.type = 'nDraw::MaterialChar'
         mat.name = name
@@ -122,29 +137,203 @@ class imMaterialInfo:
         ]
         return mat
     
+    @staticmethod
+    def _createFromTemplate_MaterialCharAlpha( name = "default_material", normalMap=DEFAULT_NORMAL_MAP, albedoMap=DEFAULT_ALBEDO_MAP, specularMap=DEFAULT_SPECULAR_MAP ):
+        mat = imMaterialInfo(
+            name=name,
+            type="nDraw::MaterialCharAlpha",
+            blendState="BSBlendAlpha",
+            depthStencilState="DSZTestWriteStencilWrite",
+            rasterizerState="RSMesh",
+            cmdListFlags=0x0,
+            matFlags=0x91900003,
+            cmds=[
+                imMaterialCmd("flag", "FVertexDisplacement", "FVertexDisplacement"),
+                imMaterialCmd("flag", "FUVTransformPrimary", "FUVTransformPrimary"),
+                imMaterialCmd("flag", "FUVTransformSecondary", "FUVTransformSecondary"),
+                imMaterialCmd("flag", "FUVTransformUnique", "FUVTransformUnique"),
+                imMaterialCmd("flag", "FUVTransformExtend", "FUVTransformExtend"),
+                imMaterialCmd("flag", "FBump", "FBumpNormalMap"),
+                imMaterialCmd("texture", "tNormalMap", normalMap ),
+                imMaterialCmd("samplerstate", "SSNormalMap", "SSNormalMap"),
+                imMaterialCmd("flag", "FUVNormalMap", "FUVPrimary"),
+                imMaterialCmd("flag", "FAlbedo", "FAlbedoMap"),
+                imMaterialCmd("cbuffer", "$Globals", [0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.6000000238418579, 0.009999999776482582, 1.0, 4.0, 64.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 0.10000000149011612, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.05000000074505806, 0.05000000074505806, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 25.0, 0.5, 0.5, 0.5, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.32899999618530273, 0.4746600091457367, 0.382999986410141, 0.0, 1.0, 0.0, 1.0, 0.33329999446868896, 1.0, 1.0, 0.20000000298023224, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0]),
+                imMaterialCmd("texture", "tAlbedoMap", albedoMap ),
+                imMaterialCmd("samplerstate", "SSAlbedoMap", "SSAlbedoMap"),
+                imMaterialCmd("flag", "FUVAlbedoMap", "FUVPrimary"),
+                imMaterialCmd("flag", "FTransparency", "FTransparencyAlpha"),
+                imMaterialCmd("cbuffer", "CBMaterial", [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 10.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0]),
+                imMaterialCmd("flag", "FShininess", "FShininess"),
+                imMaterialCmd("flag", "FLighting", "FLighting"),
+                imMaterialCmd("flag", "FBRDF", "FToonShader"),
+                imMaterialCmd("flag", "FToonLightCalc", "FToonLightCalc"),
+                imMaterialCmd("texture", "tToonMap", "UserShader\\toon_BM_HQ"),
+                imMaterialCmd("flag", "FCalcRimLight", "FCalcRimLight"),
+                imMaterialCmd("flag", "FToonLightRevCalc", "FToonLightRevCalc"),
+                imMaterialCmd("texture", "tToonRevMap", "UserShader\\toonRev_BM_HQ"),
+                imMaterialCmd("flag", "FDiffuse", "FDiffuseColorCorect"),
+                imMaterialCmd("cbuffer", "CBDiffuseColorCorect", [1.2200000286102295, 0.0, 0.0, 0.0]),
+                imMaterialCmd("flag", "FSpecular", "FSpecularMaskToon"),
+                imMaterialCmd("texture", "tSpecularMap", specularMap ),
+                imMaterialCmd("samplerstate", "SSSpecularMap", "SSSpecularMap"),
+                imMaterialCmd("flag", "FUVSpecularMap", "FUVPrimary"),
+                imMaterialCmd("flag", "FReflect", "FReflect"),
+                imMaterialCmd("flag", "FFresnel", "FFresnel"),
+                imMaterialCmd("flag", "FDistortion", "FDistortion"),
+            ]
+        )
+        return mat
+    
+    @staticmethod
+    def _createFromTemplate_MaterialStgSimple( name = "default_material", normalMap=DEFAULT_NORMAL_MAP, albedoMap=DEFAULT_ALBEDO_MAP, specularMap=DEFAULT_SPECULAR_MAP ):
+        mat = imMaterialInfo()
+        mat.type = 'nDraw::MaterialStgSimple'
+        mat.name = name
+        mat.blendState = 'BSSolid'
+        mat.depthStencilState = 'DSZTestWrite'
+        mat.rasterizerState = 'RSMesh'
+        mat.cmdListFlags = 0x20000
+        mat.matFlags = 0x8c800000
+        mat.cmds = [
+            imMaterialCmd( 'flag', 'FVertexDisplacement', 'FVertexDisplacement' ),
+            imMaterialCmd( 'flag', 'FUVTransformPrimary', 'FUVTransformOffset' ),
+            imMaterialCmd( 'cbuffer', 'CBMaterial', [
+                1.0, 1.0, 1.0, 1.0, 
+                1.0, 1.0, 1.0, 10.0, 
+                1.0, -0.0, 0.0, 0.0, 
+                0.0, 1.0, 0.0, 0.0, 
+                1.0, 0.0, 0.0, 0.0, 
+                0.0, 1.0, 0.0, 0.0, 
+                1.0, 0.0, 0.0, 0.0, 
+                0.0, 1.0, 0.0, 0.0,                 
+            ]),
+            imMaterialCmd( 'flag', 'FUVTransformSecondary', 'FUVTransformSecondary' ),
+            imMaterialCmd( 'flag', 'FUVTransformUnique', 'FUVTransformUnique' ),
+            imMaterialCmd( 'flag', 'FUVTransformExtend', 'FUVTransformExtend' ),
+            imMaterialCmd( 'flag', 'FOcclusion', 'FOcclusion' ),
+            imMaterialCmd( 'flag', 'FAlbedo', 'FAlbedo' ),      
+            imMaterialCmd( 'cbuffer', '$Globals', [
+                0.0, 1.0, 1.0, 1.0, 
+                1.0, 1.0, 1.0, 1.0, 
+                1.0, 1.0, 1.0, 1.0, 
+                0.0, 0.6000000238418579, 0.009999999776482582, 1.0, 
+                4.0, 64.0, 0.0, 0.0, 
+                1.0, 1.0, 1.0, 0.0, 
+                1.0, 1.0, 1.0, 0.10000000149011612, 
+                1.0, 1.0, 0.0, 0.0, 
+                0.0, 0.0, 0.05000000074505806, 0.05000000074505806, 
+                1.0, 1.0, 1.0, 1.0, 
+                1.0, 1.0, 1.0, 16.0, 
+                0.5, 0.5, 0.5, 0.0, 
+                1.0, 1.0, 1.0, 1.0, 
+                1.0, 0.32899999618530273, 0.4746600091457367, 0.382999986410141, 
+                0.0, 1.0, 0.0, 1.0, 
+                0.33329999446868896, 1.0, 1.0, 0.20000000298023224, 
+                1.0, 1.0, 1.0, 0.0, 
+                1.0, 1.0, 1.0, 1.0, 
+                1.0, 0.0, 0.0, 0.0,                
+            ]),   
+            imMaterialCmd( 'texture', 'tAlbedoMap', albedoMap ),
+            imMaterialCmd( 'samplerstate', 'SSAlbedoMap', 'SSAlbedoMap' ),
+            imMaterialCmd( 'flag', 'FUVAlbedoMap', 'FUVPrimary' ),
+            imMaterialCmd( 'flag', 'FTransparency', 'FTransparency' ),
+            imMaterialCmd( 'flag', 'FDiffuse', 'FDiffuseConstant' ),
+            imMaterialCmd( 'flag', 'FBump', 'FBump' ),
+            imMaterialCmd( 'flag', 'FShininess', 'FShininess' ),
+        ]
+        return mat
+    
+    @staticmethod
+    def _createFromTemplate_MaterialStdEst( name = "default_material", normalMap=DEFAULT_NORMAL_MAP, albedoMap=DEFAULT_ALBEDO_MAP, specularMap=DEFAULT_SPECULAR_MAP ):
+        mat = imMaterialInfo(
+            name=name,
+            type="nDraw::MaterialStdEst",
+            blendState="BSBlendAlpha",
+            depthStencilState="DSZTestWrite",
+            rasterizerState="RSMesh",
+            cmdListFlags=0x0,
+            matFlags=0x91900000,
+            cmds=[
+                imMaterialCmd("flag", "FVertexDisplacement", "FVertexDisplacement"),
+                imMaterialCmd("flag", "FUVTransformPrimary", "FUVTransformOffset"),
+                imMaterialCmd("cbuffer", "CBMaterial", [1.0, 1.0, 1.0, 1.0, 0.2479339987039566, 0.2479339987039566, 0.2479339987039566, 10.0, 1.0, -0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, -0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0]),
+                imMaterialCmd("flag", "FUVTransformSecondary", "FUVTransformOffset2"),
+                imMaterialCmd("flag", "FUVTransformUnique", "FUVTransformUnique"),
+                imMaterialCmd("flag", "FUVTransformExtend", "FUVTransformExtend"),
+                imMaterialCmd("flag", "FOcclusion", "FOcclusion"),
+                imMaterialCmd("flag", "FBump", "FBumpNormalMap"),
+                imMaterialCmd("texture", "tNormalMap", normalMap ),
+                imMaterialCmd("samplerstate", "SSNormalMap", "SSNormalMap"),
+                imMaterialCmd("flag", "FUVNormalMap", "FUVPrimary"),
+                imMaterialCmd("flag", "FAlbedo", "FAlbedoMap"),
+                imMaterialCmd("cbuffer", "$Globals", [0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.6000000238418579, 0.009999999776482582, 1.0, 4.0, 64.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 0.10000000149011612, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.05000000074505806, 0.05000000074505806, 1.0, 1.0, 1.0, 1.0, 0.40229499340057373, 0.2695620059967041, 0.22580400109291077, 16.0, 0.5, 0.5, 0.5, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.32899999618530273, 0.4746600091457367, 0.382999986410141, 0.0, 1.0, 0.0, 1.0, 0.33329999446868896, 1.0, 1.0, 0.20000000298023224, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
+                imMaterialCmd("texture", "tAlbedoMap", albedoMap ),
+                imMaterialCmd("samplerstate", "SSAlbedoMap", "SSAlbedoMap"),
+                imMaterialCmd("flag", "FUVAlbedoMap", "FUVPrimary"),
+                imMaterialCmd("flag", "FTransparency", "FTransparencyAlpha"),
+                imMaterialCmd("flag", "FShininess", "FShininess"),
+                imMaterialCmd("flag", "FLighting", "FLighting"),
+                imMaterialCmd("flag", "FBRDF", "FBRDF"),
+                imMaterialCmd("flag", "FDiffuse", "FDiffuse"),
+                imMaterialCmd("flag", "FAmbient", "FAmbient"),
+                imMaterialCmd("flag", "FSpecular", "FSpecularMap"),
+                imMaterialCmd("flag", "FReflect", "FReflectGlobalCubeMap"),
+                imMaterialCmd("samplerstate", "SSEnvMap", "SSEnvMap"),
+                imMaterialCmd("texture", "tSpecularMap", specularMap ),
+                imMaterialCmd("samplerstate", "SSSpecularMap", "SSSpecularMap"),
+                imMaterialCmd("flag", "FUVSpecularMap", "FUVPrimary"),
+                imMaterialCmd("flag", "FChannelSpecularMap", "FChannelSpecularMap"),
+                imMaterialCmd("flag", "FFresnel", "FFresnelLegacy"),
+                imMaterialCmd("flag", "FEmission", "FEmission"),
+                imMaterialCmd("flag", "FDistortion", "FDistortion"),
+            ]
+        )
+        return mat
+    
+    @staticmethod
+    def createFromTemplate( type: str, name: str = "default_material", normalMap: str=DEFAULT_NORMAL_MAP, albedoMap: str=DEFAULT_ALBEDO_MAP, specularMap:str =DEFAULT_SPECULAR_MAP ):
+        createFunc = getattr( imMaterialInfo, '_createFromTemplate_' + type.replace( "nDraw::", "" ), None )
+        if createFunc == None:
+            raise ArgumentError( message=type )
+        
+        return createFunc( name, 
+                          normalMap=normalMap, 
+                          albedoMap=albedoMap, 
+                          specularMap=specularMap )
+    
     def fixTextureMapPath( self, basePath, path ):
         return basePath + '/' + os.path.basename(path) + ".241f5deb.dds"
+
+    def getCommandByName( self, cmdName ):
+        for cmd in self.cmds:
+            if cmd.name == cmdName:
+                return cmd
+        return None
 
     def getTextureAssignedToSlot( self, cmdName ):
         for cmd in self.cmds:
             if cmd.type == 'texture':
                 if cmd.name == cmdName:
                     return cmd.data
-        return ""
+        return None
     
     def iterTextures( self ):
         for cmd in self.cmds:
             if cmd.type == 'texture':
                 yield cmd.data
-        
+                        
 class imMaterialLib:
     VERSION = 1
     
     def __init__( self ):
-        self.textures = []
-        self.materials = []
+        self.textures: List[imMaterialTextureInfo] = []
+        self.materials: List[imMaterialInfo] = []
+     
+    def loadBinaryFile( self, path ):
+        self.loadBinaryStream( NclBitStream( util.loadIntoByteArray( path ) ) )
         
-    def loadBinary( self, stream ):
+    def loadBinaryStream( self, stream ):
         reader = rMaterialStreamReader( stream )
         header = reader.getHeader()
         assert( util.u32( header.hash ) == util.u32( 0xE588940A ) )
@@ -174,7 +363,7 @@ class imMaterialLib:
             matInfo.type = mvc3types.getTypeName( binMatInfo.typeHash )
 
             try:
-                matInfo.name = mvc3materialdb.getMaterialName( binMatInfo.nameHash )
+                matInfo.name = mvc3materialnamedb.getMaterialName( binMatInfo.nameHash )
             except Exception as e:
                 log.error("unknown material name hash: {}".format( hex( binMatInfo.nameHash ) ) )
                 matInfo.name = '_' + hex( binMatInfo.nameHash )
@@ -187,7 +376,7 @@ class imMaterialLib:
 
             for binMatCmd in reader.iterMaterialCmd( binMatInfo ):
                 matCmd = imMaterialCmd()
-                matCmd.type = imMaterialCmd.Types[ binMatCmd.info.getType() ]
+                matCmd.type = imMaterialCmd.TYPES[ binMatCmd.info.getType() ]
                 matCmd.name = mvc3shaderdb.shaderObjectsByHash[ binMatCmd.shaderObjectId.getHash() ].name
                 matCmd.data = reader.getMaterialCmdData( binMatInfo, binMatCmd )
                 assert( matCmd.data != None )
@@ -222,7 +411,7 @@ class imMaterialLib:
             needsTextureList = True
             
         return needsTextureList
-                    
+             
     def saveYamlIO( self, f ):
         def sanitize( s ):
             return s
@@ -254,13 +443,15 @@ class imMaterialLib:
                 else:
                     f.write( "            - [ {}, {}, {} ]\n".format( cmd.type, sanitize( cmd.name ), sanitize( cmd.data ) ) )
     
-    def saveYamlFile( self, path ):        
+    def saveYamlFile( self, path ):   
+        if os.path.dirname( path ) != '':
+            os.makedirs( os.path.dirname( path ), exist_ok=True )     
         with open( path, "w" ) as f:
             self.saveYamlIO( f )
 
     def loadYamlString( self, yamlText ):
-        self.textures = []
-        self.materials = []
+        self.textures: List[imMaterialTextureInfo] = []
+        self.materials: List[imMaterialInfo] = []
         
         yamlObj = yaml.load( yamlText, Loader=yaml.FullLoader )
         if yamlObj['version'] > imMaterialLib.VERSION:
@@ -289,22 +480,23 @@ class imMaterialLib:
                     mat.cmdListFlags = yamlMat[ "cmdListFlags" ]
                     mat.matFlags = yamlMat[ "matFlags" ]
                     mat.cmds = []
-                    for yamlCmd in yamlMat[ "cmds" ]:
-                        cmd = imMaterialCmd()
-                        cmd.type = yamlCmd[0]
-                        cmd.name = yamlCmd[1]
-                        cmd.data = None
-                        if len( yamlCmd ) > 2:
-                            cmd.data = yamlCmd[2]
-                            
-                        if cmd.type == 'texture' and cmd.data != None and len( cmd.data ) > 0 and not cmd.data in texturePathSet:
-                            tex = imMaterialTextureInfo()
-                            tex.path = cmd.data
-                            tex.type = 'rTexture'
-                            texturePathSet.add( tex.path )
-                            self.textures.append( tex )
-                            
-                        mat.cmds.append( cmd )
+                    if yamlMat["cmds"] is not None:
+                        for yamlCmd in yamlMat[ "cmds" ]:
+                            cmd = imMaterialCmd()
+                            cmd.type = yamlCmd[0]
+                            cmd.name = yamlCmd[1]
+                            cmd.data = None
+                            if len( yamlCmd ) > 2:
+                                cmd.data = yamlCmd[2]
+                                
+                            if cmd.type == 'texture' and cmd.data != None and len( cmd.data ) > 0 and not cmd.data in texturePathSet:
+                                tex = imMaterialTextureInfo()
+                                tex.path = cmd.data
+                                tex.type = 'rTexture'
+                                texturePathSet.add( tex.path )
+                                self.textures.append( tex )
+                                
+                            mat.cmds.append( cmd )
                     self.materials.append( mat )
 
     def loadYamlIO( self, f ):
@@ -356,7 +548,7 @@ class imMaterialLib:
             for cmd in matInfo.cmds:
                 binCmd = rMaterialCmd()
                 binCmd.shaderObjectId = util.getShaderObjectIdFromName( cmd.name )
-                binCmd.info.setType( imMaterialCmd.Types.index( cmd.type ) )
+                binCmd.info.setType( imMaterialCmd.TYPES.index( cmd.type ) )
                 binCmd.info.setShaderObjectIndex( binCmd.shaderObjectId.getIndex() )
                 
                 binCmdData = None

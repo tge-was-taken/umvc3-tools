@@ -14,6 +14,7 @@ import shutil
 from mtlib import textureutil
 from mtlib import util
 import mtmaxver
+from mtmax.src import MtModelExportRollout
 
 def _tryParseInt(input, base=10, default=None):
     try:
@@ -26,6 +27,21 @@ def _tryParseFloat(input, default=None):
         return float(str(input).strip())
     except Exception:
         return default
+    
+def _updateProgress( what, value, count = 0 ):
+    rollout = MtModelExportRollout.getMxsVar()
+    rollout.pbExport.value = value if count == 0 else (value/count) * 100
+    rollout.lblExportProgressCategory.text = what
+    
+def _updateSubProgress( what, value, count = 0 ):
+    rollout = MtModelExportRollout.getMxsVar()
+    rollout.pbExportSub.value = value if count == 0 else (value/count) * 100
+    rollout.lblExportProgressSubCategory.text = what
+    
+def _progressCallback( what, i, count ):
+    if mtmaxutil.updateUI():
+        maxlog.info( what + f' {i}/{count}' )
+        _updateSubProgress( what, i, count )
 
 class MtGroupAttribData(object):
     '''Wrapper for group custom attribute data'''
@@ -292,6 +308,14 @@ class MtModelExporter(object):
         self.jointToMaxNodeMap[joint] = maxNode
         self.model.joints.append( joint )
         self.jointIdxByName[ joint.name ] = len( self.model.joints ) - 1
+        
+    def _iterBoneNodes( self ):
+        # process all bones in the scene
+        for maxNode in self._getObjects():
+            if not self._shouldExportNode( maxNode ) or not self._isBoneNode( maxNode ):
+                continue
+
+            yield maxNode
     
     def _processBones( self ):
         if not mtmaxconfig.exportSkeleton:
@@ -331,10 +355,9 @@ class MtModelExporter(object):
                 joint.symmetry = self.model.joints[refJoint.symmetryIndex] if refJoint.symmetryIndex != 255 else None
         else:
             # process all bones in the scene
-            for maxNode in self._getObjects():
-                if not self._shouldExportNode( maxNode ) or not self._isBoneNode( maxNode ):
-                    continue
-
+            boneNodes = list(self._iterBoneNodes())
+            for i, maxNode in enumerate( boneNodes ):
+                _updateProgress( 'Processing bones', i, len(boneNodes) )
                 self._processBone( maxNode )
                 self._processedNodes.add( maxNode )
 
@@ -433,7 +456,9 @@ class MtModelExporter(object):
             normalMap = self._getTextureMapResourcePathOrDefaultSafe( material, 'norm_map', imMaterialInfo.DEFAULT_NORMAL_MAP )
             albedoMap = self._getTextureMapResourcePathOrDefaultSafe( material, 'base_color_map', imMaterialInfo.DEFAULT_ALBEDO_MAP )
             specularMap = self._getTextureMapResourcePathOrDefaultSafe( material, 'specular_map', imMaterialInfo.DEFAULT_SPECULAR_MAP )
-            materialInstance = imMaterialInfo.createDefault( material.name, 
+            materialInstance = imMaterialInfo.createFromTemplate( 
+                mtmaxconfig.exportMaterialPreset,
+                material.name, 
                 normalMap=normalMap,
                 albedoMap=albedoMap,
                 specularMap=specularMap,
@@ -466,7 +491,9 @@ class MtModelExporter(object):
             albedoMap = self._getTextureMapResourcePathOrDefaultSafe( material, 'base_color_map', imMaterialInfo.DEFAULT_ALBEDO_MAP )
             # TODO is metalness correct for specular?
             specularMap = self._getTextureMapResourcePathOrDefaultSafe( material, 'metalness_map', imMaterialInfo.DEFAULT_SPECULAR_MAP )
-            materialInstance = imMaterialInfo.createDefault( material.name, 
+            materialInstance = imMaterialInfo.createFromTemplate( 
+                mtmaxconfig.exportMaterialPreset,
+                material.name, 
                 normalMap=normalMap,
                 albedoMap=albedoMap,
                 specularMap=specularMap,
@@ -682,12 +709,16 @@ don't have an reference/original model specified as it will override the skeleto
                 prim.primitiveJointLinks.append(imPrimitiveJointLink())
             if attribs.index != None: prim.index = attribs.index
             if attribs.vertexShader != None: prim.vertexFormat = imVertexFormat.createFromShader( attribs.vertexShader )
+            
+            if mtmaxconfig.debugExportForceShader != '':
+                # force shader on export if specified
+                prim.vertexFormat = imVertexFormat.createFromShader( mtmaxconfig.debugExportForceShader )
                             
             maxlog.debug("generating tangents")
-            prim.generateTangents(lambda pct: mtmaxutil.updateUI())
+            prim.generateTangents( _progressCallback )
             
             maxlog.debug("optimizing mesh")
-            prim.makeIndexed(lambda pct: mtmaxutil.updateUI())
+            prim.makeIndexed( _progressCallback )
             
             self.model.primitives.append( prim )
             
@@ -700,13 +731,7 @@ don't have an reference/original model specified as it will override the skeleto
             
         rt.delete( maxMesh )
         
-    def _processMeshes( self ):
-        if not mtmaxconfig.exportPrimitives:
-            maxlog.info('exporting meshes skipped because it has been disabled through the config')
-            return
-        
-        # convert meshes
-        maxlog.info('processing meshes')
+    def _iterMeshNodes( self ):
         for maxNode in self._getObjects():
             if not self._shouldExportNode( maxNode ):
                 continue
@@ -714,9 +739,27 @@ don't have an reference/original model specified as it will override the skeleto
             if not self._isMeshNode( maxNode ) and not self._isSplineNode( maxNode ):
                 continue
             
-            mtmaxutil.updateUI()
+            yield maxNode
+        
+    def _processMeshes( self ):
+        if not mtmaxconfig.exportPrimitives:
+            maxlog.info('exporting meshes skipped because it has been disabled through the config')
+            return
+        
+        # convert meshes
+        maxlog.info('processing meshes')
+        meshNodes = list(self._iterMeshNodes())
+        for i, maxNode in enumerate( meshNodes ):
+            _updateProgress('Processing meshes', i, len( meshNodes ) )
             self._processMesh( maxNode )
             self._processedNodes.add( maxNode )
+            
+    def _iterGroupNodes( self ):
+        # process all groups in the scene
+        for maxNode in self._getObjects():
+            if not self._shouldExportNode( maxNode ) or not self._isGroupNode( maxNode ):
+                continue
+            yield maxNode
 
     def _processGroups( self ):
         if not mtmaxconfig.exportGroups:
@@ -739,9 +782,10 @@ don't have an reference/original model specified as it will override the skeleto
                 self.model.groups.append(group)
         else:
             # process all groups in the scene
-            for maxNode in self._getObjects():
-                if not self._shouldExportNode( maxNode ) or not self._isGroupNode( maxNode ):
-                    continue
+            groupNodes = list(self._iterGroupNodes())
+            for i in range( 0, len( groupNodes ) ):
+                _updateProgress( 'Processing groups', i, len( groupNodes ) )
+                maxNode = groupNodes[i]
                 
                 maxlog.info(f'processing group node {maxNode}')
                 attribs = MtGroupAttribData(maxNode)
@@ -756,7 +800,7 @@ don't have an reference/original model specified as it will override the skeleto
                 )
                 self.model.groups.append(group)
                 self._processedNodes.add( maxNode )
-
+                
     def _processPjl( self ):
         if not mtmaxconfig.exportPjl:
             maxlog.info('exporting pjl skipped because it has been disabled through the config')
@@ -787,7 +831,9 @@ don't have an reference/original model specified as it will override the skeleto
     def _writeBinaries( self ):
         maxlog.info('writing files')
         maxlog.debug('converting intermediate model to binary model format')
-        binMod = self.model.toBinaryModel()
+        _updateProgress( 'Writing files', 0 )
+        binMod = self.model.toBinaryModel( _progressCallback )
+        _updateProgress( 'Writing files', 25 )
         
         maxlog.debug('writing binary model')
         stream = NclBitStream()
@@ -802,6 +848,7 @@ don't have an reference/original model specified as it will override the skeleto
         else:
             mrlExportPath = self.outPath.basePath + '/' + self.outPath.baseName + '.mrl'
             
+        _updateProgress( 'Writing files', 50 )
         if mtmaxconfig.exportGenerateMrl:
             mrlYmlExportPath = mrlExportPath + ".yml"
             maxlog.info(f"writing generated mrl yml to {mrlYmlExportPath}")
@@ -810,7 +857,8 @@ don't have an reference/original model specified as it will override the skeleto
                 self.mrl.saveYamlFile( mrlYmlExportPath )
             except PermissionError as e:
                 raise RuntimeError( f"Unable to save mrl yml file, make sure you have write permissions to {mrlYmlExportPath}" )
-            
+          
+        _updateProgress( 'Writing files', 75 )  
         if mtmaxconfig.exportGenerateMrl or (mtmaxconfig.exportExistingMrlYml and self.mrl != None):
             maxlog.info(f'exporting mrl yml to {mrlExportPath}')
             
@@ -818,6 +866,8 @@ don't have an reference/original model specified as it will override the skeleto
                 self.mrl.saveBinaryFile( mrlExportPath )
             except PermissionError as e:
                 raise RuntimeError( f"Unable to save mrl file, make sure you have write permissions to {mrlExportPath}" )
+            
+        _updateProgress( 'Writing files', 100 )
     
     def _calcMatrices( self ):
         self._transformMtx = nclCreateMat44()
@@ -890,4 +940,6 @@ don't have an reference/original model specified as it will override the skeleto
         self._processMeshes()
         self._writeBinaries()
         
+        _updateProgress( 'Done', 0 )
+        _updateSubProgress( '', 0 )
         maxlog.info('export completed successfully')

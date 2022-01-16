@@ -112,12 +112,12 @@ def modLoadModel(data, mdlList):
     
     model = rModelData()
     model.read(NoeBitStream(data))
-    mvc3materialdb.registerMaterialNames( model.materials )
+    mvc3materialnamedb.registerMaterialNames( model.materials )
     
     mtl = imMaterialLib()
     mrlName, _ = util.getExtractedResourceFilePath( basePath + '/' + baseName, '2749c8a8', 'mrl' )
     if mrlName != None and os.path.exists( mrlName ):
-        mtl.loadBinary(NoeBitStream(rapi.loadIntoByteArray(mrlName)))
+        mtl.loadBinaryStream(NoeBitStream(rapi.loadIntoByteArray(mrlName)))
         mtl.saveYamlFile( mrlName + '.yml' )
     
     #scale = NoeVec3( ( 1, 1, 1 ) )

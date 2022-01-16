@@ -7,6 +7,18 @@ import maxlog
 import mtmaxver
 import copy
 
+def _updateProgress( what, value, count = 0 ):
+    from mtmax.src import MtModelImportRollout
+    rollout = MtModelImportRollout.getMxsVar()
+    rollout.pbImport.value = value if count == 0 else (value/count) * 100
+    rollout.lblImportProgressCategory.text = what
+    
+def _updateSubProgress( what, value, count = 0 ):
+    from mtmax.src import MtModelImportRollout
+    rollout = MtModelImportRollout.getMxsVar()
+    rollout.pbImportSub.value = value if count == 0 else (value/count) * 100
+    rollout.lblImportProgressSubCategory.text = what
+
 class MtModelImporter:
     def __init__( self ):
         self.filePath = ''
@@ -100,7 +112,7 @@ class MtModelImporter:
             
     def loadTextureSlot( self, material, slot ):
         texturePath = material.getTextureAssignedToSlot( slot )
-        if texturePath == '':
+        if texturePath in [None, '']:
             return None
         else:
             textureTEXPath, textureDDSPath = util.resolveTexturePath( self.basePath, texturePath )
@@ -141,7 +153,7 @@ class MtModelImporter:
         model = rModelData()
         maxlog.info(f'loading model from {path}')
         model.read( NclBitStream( util.loadIntoByteArray( path ) ) )
-        mvc3materialdb.registerMaterialNames( model.materials )
+        mvc3materialnamedb.registerMaterialNames( model.materials )
         return model
 
     def _addPrimitiveAttribs( self, primitive, shaderInfo, maxMesh, primitiveJointLinkIndex ):
@@ -201,6 +213,8 @@ class MtModelImporter:
         self.maxGroupArray = []
         self.maxGroupLookup = dict()
         for i, group in enumerate( self.model.groups ):
+            _updateProgress( 'Importing groups', i, len( self.model.groups ) )
+            
             maxGroup = rt.dummy()
             #maxGroup.pos = rt.Point3( group.boundingSphere[0], group.boundingSphere[1], group.boundingSphere[2] )
             maxGroup.name = self.metadata.getGroupName( group.id )
@@ -412,6 +426,8 @@ class MtModelImporter:
         vertexStream = NclBitStream( self.model.vertexBuffer )
         primitiveJointLinkIndex = 0
         for i in range( len( self.model.primitives ) ):
+            _updateProgress( 'Importing primitives', i, len( self.model.primitives ) )
+            
             primitive = self.model.primitives[i]
             
             if len(mtmaxconfig.debugImportPrimitiveIdFilter) > 0 and primitive.id not in mtmaxconfig.debugImportPrimitiveIdFilter:
@@ -430,6 +446,8 @@ class MtModelImporter:
         self.maxBoneArray = []
         self.maxBoneLookup = dict()
         for i, joint in enumerate( self.model.joints ):
+            _updateProgress( 'Importing skeleton', i, len( self.model.joints ) )
+            
             localMtx = self.model.jointLocalMtx[i]
             
             if mtmaxconfig.importBakeScale:
@@ -495,7 +513,7 @@ class MtModelImporter:
         mrlName, _ = util.getExtractedResourceFilePath( self.basePath + '/' + self.baseName, '2749c8a8', 'mrl' )
         if mrlName != None and os.path.exists( mrlName ):
             maxlog.info(f'loading mrl file from {mrlName}')
-            mtl.loadBinary(NclBitStream(util.loadIntoByteArray(mrlName)))
+            mtl.loadBinaryStream(NclBitStream(util.loadIntoByteArray(mrlName)))
             if mtmaxconfig.importSaveMrlYml:
                 mrlYmlPath =  mrlName + '.yml'
                 maxlog.info(f'saving mrl yml to {mrlYmlPath}')
@@ -509,6 +527,8 @@ class MtModelImporter:
         self.maxMaterialArray = []
         for i, materialName in enumerate( self.model.materials ):
             maxlog.info(f'importing material {materialName}')
+            _updateProgress( 'Importing materials', i, len( self.model.materials ) )
+            
             material = mtl.getMaterialByName( materialName )
             if material == None:
                 maxlog.warn( "model references material {} that does not exist in the mrl".format( materialName ) )
@@ -589,6 +609,8 @@ class MtModelImporter:
             rt.enableSceneRedraw()
             
         endTime = rt.timeStamp()
+        _updateProgress( 'Done', 0 )
+        _updateSubProgress( '', 0 )
         maxlog.info( 'Import done in ' + str( endTime - startTime ) + ' ms' )
         
     def selectImportModel( self ):
