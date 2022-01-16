@@ -17,13 +17,13 @@ import mtmaxver
 
 def _tryParseInt(input, base=10, default=None):
     try:
-        return int(str(input), base=base)
+        return int(str(input).strip(), base=base)
     except Exception:
         return default
     
 def _tryParseFloat(input, default=None):
     try:
-        return float(str(input))
+        return float(str(input).strip())
     except Exception:
         return default
 
@@ -37,19 +37,21 @@ class MtGroupAttribData(object):
             self.field08 = _tryParseInt(attribs.field08)
             self.field0c = _tryParseInt(attribs.field0c)
             self.bsphere = NclVec4(attribs.bsphere[0], attribs.bsphere[1], attribs.bsphere[2], attribs.bsphere[3])
+            self.index = _tryParseInt(getattr(attribs, 'index', None))
         else:
             self.id = None
             self.field04 = None
             self.field08 = None
             self.field0c = None
             self.bsphere = None
+            self.index = None
 
 class MtPrimitiveAttribData(object):
     '''Wrapper for primitive custom attribute data'''
     def __init__( self, maxNode ):
         attribs = maxNode.mtPrimitiveAttributes if hasattr(maxNode, 'mtPrimitiveAttributes') else None
         if attribs != None:
-            self.flags = _tryParseInt(attribs.flags.strip(), base=0)
+            self.flags = _tryParseInt(attribs.flags, base=0)
             if attribs.groupId == "inherit":
                 if maxNode.parent != None:
                     self.groupId = MtGroupAttribData(maxNode.parent).id
@@ -57,11 +59,15 @@ class MtPrimitiveAttribData(object):
                     # invalid
                     self.groupId = None
             else:
-                self.groupId = _tryParseInt(attribs.groupId.strip(), base=0)
+                self.groupId = _tryParseInt(attribs.groupId, base=0)
             self.lodIndex = _tryParseInt(attribs.lodIndex)
             self.renderFlags = _tryParseInt(attribs.renderFlags, base=0)
             self.id = _tryParseInt(attribs.id)
             self.field2c = _tryParseInt(attribs.field2c)
+            self.primitiveJointLinkCount = _tryParseInt(getattr(attribs, 'primitiveJointLinkCount', None))
+            self.primitiveJointLinkIndex = _tryParseInt(getattr(attribs, 'primitiveJointLinkIndex', None))
+            self.index = _tryParseInt(getattr(attribs, 'index', None))
+            self.vertexShader = attribs.shaderName
         else:
             self.flags = None
             self.groupId = None
@@ -69,6 +75,10 @@ class MtPrimitiveAttribData(object):
             self.renderFlags = None
             self.id = None
             self.field2c = None
+            self.primitiveJointLinkCount = None
+            self.primitiveJointLinkIndex = None
+            self.index = None
+            self.vertexShader = None
             
             if maxNode.parent != None:
                 # even if no attribs are set, we should still inherit the group id if the mesh is parented to a group
@@ -92,6 +102,7 @@ class MtJointAttribData(object):
             self.offsetX = _tryParseFloat(attribs.offsetX)
             self.offsetY = _tryParseFloat(attribs.offsetY)
             self.offsetZ = _tryParseFloat(attribs.offsetZ)
+            self.index = _tryParseInt(getattr(attribs, 'index', None))
         else:
             if jointMeta != None:
                 self.id = jointMeta.id
@@ -105,6 +116,7 @@ class MtJointAttribData(object):
             self.offsetX = None
             self.offsetY = None
             self.offsetZ = None
+            self.index = None
             
     def _detectSymmetryNode( self, name: str ):
         return rt.getNodeByName( util.replaceSuffix( name, "_l", "_r" ) ) if name.endswith("_l") else \
@@ -128,6 +140,7 @@ class MtModelExporter(object):
         self._materialCache = dict()
         self._transformMtx = None
         self._processedNodes = set()
+        self._refPrimitiveJointLinks = []
         
     def _convertMaxPoint3ToNclVec3( self, v: rt.Point3 ) -> NclVec3:
         return NclVec3((v[0], v[1], v[2]))
@@ -228,6 +241,25 @@ class MtModelExporter(object):
             if not o in self._processedNodes:
                 objects.append( o )
         return objects
+    
+    def _getNodeWorldMtx( self, maxNode ):
+        worldMtx = self._convertMaxMatrix3ToNclMat44( maxNode.transform )
+        if mtmaxconfig.exportBakeScale:
+            worldMtx[3] *= NclVec4((mtmaxconfig.exportScale, mtmaxconfig.exportScale, mtmaxconfig.exportScale, 1))
+        return worldMtx
+    
+    def _getNodeLocalMtx( self, maxNode ):
+        worldMtx = self._convertMaxMatrix3ToNclMat44( maxNode.transform )
+        parentWorldMtx = self._convertMaxMatrix3ToNclMat44( maxNode.parent.transform ) if maxNode.parent != None else nclCreateMat44()
+        localMtx = nclMultiply( worldMtx, nclInverse( parentWorldMtx ) )
+        if mtmaxconfig.exportBakeScale:
+            localMtx[3] *= NclVec4((mtmaxconfig.exportScale, mtmaxconfig.exportScale, mtmaxconfig.exportScale, 1))
+            if maxNode.parent == None:
+                localMtx = self._transformMtxNoScale * localMtx
+        else:
+            if maxNode.parent == None:
+                localMtx = self._transformMtx * localMtx
+        return localMtx
 
     def _processBone( self, maxNode ): 
         assert( self._isBoneNode( maxNode ) )
@@ -239,16 +271,7 @@ class MtModelExporter(object):
         maxlog.info(f'processing bone: {maxNode.name}')
         jointMeta = self.metadata.getJointByName( maxNode.name )
         attribs = MtJointAttribData( maxNode, jointMeta )
-        worldMtx = self._convertMaxMatrix3ToNclMat44( maxNode.transform )
-        parentWorldMtx = self._convertMaxMatrix3ToNclMat44( maxNode.parent.transform ) if maxNode.parent != None else nclCreateMat44()
-        localMtx = nclMultiply( worldMtx, nclInverse( parentWorldMtx ) )
-        if mtmaxconfig.exportBakeScale:
-            localMtx[3] *= NclVec4((mtmaxconfig.exportScale, mtmaxconfig.exportScale, mtmaxconfig.exportScale, 1))
-            if maxNode.parent == None:
-                localMtx = self._transformMtxNoScale * localMtx
-        else:
-            if maxNode.parent == None:
-                localMtx = self._transformMtx * localMtx
+        localMtx = self._getNodeLocalMtx( maxNode )
         
         joint = imJoint(
             name=maxNode.name, 
@@ -261,6 +284,7 @@ class MtModelExporter(object):
             invBindMtx=None,    # TODO copy from attribs (?)
             offset=None,        # TODO copy from attribs (?)
             symmetry=None,      # need to create current joint first to resolve self and forward references
+            index=attribs.index,
         )
         
 
@@ -578,11 +602,12 @@ class MtModelExporter(object):
                 nrm = NclVec3( nrm[0], nrm[1], nrm[2] )
                 tempMesh.normals.append( nrm )
                 
+                # TODO other uv channels
                 if hasUVs:
-                    tempMesh.uvs.append( self._convertMaxPoint3ToNclVec3UV( rt.getTVert( maxMesh, tvertIdx ) ) )
+                    tempMesh.uvPrimary.append( self._convertMaxPoint3ToNclVec3UV( rt.getTVert( maxMesh, tvertIdx ) ) )
                 else:
                     # TODO maybe omit the uvs entirely?
-                    tempMesh.uvs.append( NclVec3( 0, 0, 0 ) )
+                    tempMesh.uvPrimary.append( NclVec3( 0, 0, 0 ) )
 
                 if hasSkin:
                     weightCount = rt.skinOps.getVertexWeightCount( maxSkin, vertIdx, node=maxNode )
@@ -625,7 +650,7 @@ don't have an reference/original model specified as it will override the skeleto
                         tempMesh.weights.append( weight )
 
         # create optimized primitives
-        for tempMesh in tempMeshes.values():
+        for i, tempMesh in enumerate(tempMeshes.values()):
             mtmaxutil.updateUI()
             
             prim: imPrimitive = tempMesh
@@ -637,15 +662,27 @@ don't have an reference/original model specified as it will override the skeleto
                 group = self.model.getGroupById(attribs.groupId)
                 if group == None:
                     # add group
-                    group = imGroup(self.metadata.getGroupName(attribs.groupId), attribs.groupId, 0, 0, 0, boundingSphere=NclVec4())
+                    group = imGroup(self.metadata.getGroupName(attribs.groupId), attribs.groupId)
                     self.model.groups.append(group)
                 prim.group = group
+            elif mtmaxconfig.exportGroupPerMesh:
+                prim.group = imGroup(maxNode.name + '_' + str(i), len(self.model.groups)+1)
+                self.model.groups.append(prim.group)
                     
             if attribs.lodIndex != None: prim.lodIndex = attribs.lodIndex
             if attribs.renderFlags != None: prim.renderFlags = attribs.renderFlags
             if attribs.id != None: prim.id = attribs.id
             if attribs.field2c != None: prim.field2c = attribs.field2c
-
+            if attribs.primitiveJointLinkCount != None and attribs.primitiveJointLinkIndex != None and len( self._refPrimitiveJointLinks ) > 0: 
+                # add primitive joint links from ref to the primitive
+                for i in range(attribs.primitiveJointLinkIndex, attribs.primitiveJointLinkIndex+attribs.primitiveJointLinkCount):
+                    prim.primitiveJointLinks.append(self._refPrimitiveJointLinks[i])
+            elif mtmaxconfig.exportGeneratePjl:
+                # TODO local transform/pivot, link to joint(s)
+                prim.primitiveJointLinks.append(imPrimitiveJointLink())
+            if attribs.index != None: prim.index = attribs.index
+            if attribs.vertexShader != None: prim.vertexFormat = imVertexFormat.createFromShader( attribs.vertexShader )
+                            
             maxlog.debug("generating tangents")
             prim.generateTangents(lambda pct: mtmaxutil.updateUI())
             
@@ -697,6 +734,7 @@ don't have an reference/original model specified as it will override the skeleto
                     field08=refGroup.field08,
                     field0c=refGroup.field0c,
                     boundingSphere=refGroup.boundingSphere,
+                    index=i,
                 )
                 self.model.groups.append(group)
         else:
@@ -714,35 +752,37 @@ don't have an reference/original model specified as it will override the skeleto
                     field08=attribs.field08 if attribs.field08 != None else 0,
                     field0c=attribs.field0c if attribs.field0c != None else 0,
                     boundingSphere=attribs.bsphere if attribs.bsphere != None else None,
+                    index=attribs.index,
                 )
                 self.model.groups.append(group)
                 self._processedNodes.add( maxNode )
 
-    def _processPml( self ):
-        if not mtmaxconfig.exportPml:
-            maxlog.info('exporting pml skipped because it has been disabled through the config')
+    def _processPjl( self ):
+        if not mtmaxconfig.exportPjl:
+            maxlog.info('exporting pjl skipped because it has been disabled through the config')
             return
         
-        maxlog.info('processing pml')
-        if self.ref != None and mtmaxconfig.exportUseRefPml:
-            maxlog.info('copying pml from reference model')
-            for i, refPml in enumerate(self.ref.primitiveJointLinks):
-                pml = imPrimitiveJointLink(
-                    name='pml_'+str(i),
-                    joint=self.model.joints[refPml.jointIndex],
-                    field04=refPml.field04,
-                    field08=refPml.field08,
-                    field0c=refPml.field0c,
-                    boundingSphere=refPml.boundingSphere,
-                    min=refPml.min,
-                    max=refPml.max,
-                    localMtx=refPml.localMtx,
-                    field80=refPml.field80
+        maxlog.info('processing pjl')
+        if self.ref != None and mtmaxconfig.exportUseRefPjl:
+            maxlog.info('copying pjl from reference model')
+            for i, refPjl in enumerate(self.ref.primitiveJointLinks):
+                pjl = imPrimitiveJointLink(
+                    name='pjl_'+str(i),
+                    joint=self.model.joints[refPjl.jointIndex] if refPjl.jointIndex != 255 else None,
+                    field04=refPjl.field04,
+                    field08=refPjl.field08,
+                    field0c=refPjl.field0c,
+                    boundingSphere=refPjl.boundingSphere,
+                    min=refPjl.min,
+                    max=refPjl.max,
+                    localMtx=refPjl.localMtx,
+                    field80=refPjl.field80,
+                    index=i,
                 )
-                self.model.primitiveJointLinks.append(pml)
+                self._refPrimitiveJointLinks.append( pjl )
         else:
             # TODO: represent these in the scene
-            maxlog.debug("exporting pml from scene not implemented")
+            maxlog.debug("exporting pjl from scene not implemented")
     
     def _writeBinaries( self ):
         maxlog.info('writing files')
@@ -846,8 +886,8 @@ don't have an reference/original model specified as it will override the skeleto
         # after the groups have been processed, there should be no room for error when finding
         # the bones in the scene
         self._processBones()
+        self._processPjl()
         self._processMeshes()
-        self._processPml()
         self._writeBinaries()
         
         maxlog.info('export completed successfully')

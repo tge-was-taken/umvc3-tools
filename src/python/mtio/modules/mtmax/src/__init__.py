@@ -209,6 +209,9 @@ class MtModelExportRollout(MtRollout):
         self.chkExportTexOverwrite.checked = mtmaxconfig.exportOverwriteTextures
         self.spnScale.value = mtmaxconfig.exportScale
         self.chkBakeScale.checked = mtmaxconfig.exportBakeScale
+        self.chkExportNormals.checked = mtmaxconfig.exportNormals
+        self.chkExportGroupPerMesh.checked = mtmaxconfig.exportGroupPerMesh
+        self.chkExportGeneratePjl.checked = mtmaxconfig.exportGeneratePjl
         MtModelExportRollout.updateVisibility()
         
     @staticmethod
@@ -372,6 +375,14 @@ class MtModelExportRollout(MtRollout):
     @staticmethod
     def chkBakeScaleChanged( state ):
         mtmaxconfig.exportBakeScale = state
+        
+    @staticmethod
+    def chkExportGroupPerMeshChanged( state ):
+        mtmaxconfig.exportGroupPerMesh = state
+        
+    @staticmethod
+    def chkExportGeneratePjlChanged( state ):
+        mtmaxconfig.exportGeneratePjl = state
 
 class MtUtilitiesRollout(MtRollout):
     @staticmethod
@@ -424,6 +435,21 @@ class MtUtilitiesRollout(MtRollout):
         group.name = "New group"
         rt.custAttributes.add( group, rt.mtModelGroupAttributesInstance )
         rt.select( group )
+        
+class MtDebugRollout(MtRollout):
+    @staticmethod
+    def updateVisibility():
+        self = MtDebugRollout.getMxsVar()
+    
+    @staticmethod
+    def loadConfig():
+        self = MtDebugRollout.getMxsVar()
+        self.chkDisableLog.checked = mtmaxconfig.debugDisableLog
+        MtDebugRollout.updateVisibility()
+        
+    @staticmethod
+    def chkDisableLogChanged( state ):
+        mtmaxconfig.debugDisableLog = state
     
     
 def getMainWindow():
@@ -448,6 +474,8 @@ def createMainWindow():
     # create plugin window
     rt.g_mtWindow = rt.newRolloutFloater( "MT Framework Max IO Plugin", w, h, x, y )
     rollouts = [MtInfoRollout, MtSettingsRollout, MtModelImportRollout, MtModelExportRollout, MtUtilitiesRollout]
+    if mtmaxutil.isDebugEnv():
+        rollouts.insert(0, MtDebugRollout)
     
     for rollout in rollouts:
         rollout.getMxsVar().width = w

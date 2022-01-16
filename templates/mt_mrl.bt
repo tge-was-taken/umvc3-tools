@@ -78,6 +78,7 @@ typedef struct( u32 baseOffset )
             case SHADER_CBDiffuseColorCorect: float Data[4]; break;
             case SHADER_CBHalfLambert: float Data[4]; break;
             case SHADER_CBToon2: float Data[4]; break;
+            case SHADER_CBIndirectUser: float Data[12]; break;
             default: Assert( false );
         }       
 

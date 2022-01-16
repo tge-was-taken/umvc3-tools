@@ -64,7 +64,7 @@ class MtModelImporter:
     def decodeInputToMaxPoint3( self, inputInfo, vertexStream ):
         if inputInfo.type == 11:
             # special case for compressed normals
-            x, y, z = vertexcodec.decodeVertexComponent( inputInfo.type, vertexStream )
+            x, y, z, w = vertexcodec.decodeVertexComponent( inputInfo.type, vertexStream )
             return self.createMaxPoint3( x, y, z )
         else:
             assert( inputInfo.componentCount >= 3 )
@@ -144,7 +144,7 @@ class MtModelImporter:
         mvc3materialdb.registerMaterialNames( model.materials )
         return model
 
-    def _addPrimitiveAttribs( self, primitive, shaderInfo, maxMesh ):
+    def _addPrimitiveAttribs( self, primitive, shaderInfo, maxMesh, primitiveJointLinkIndex ):
         rt.custAttributes.add( maxMesh.baseObject, rt.mtPrimitiveAttributesInstance )
         attribs = maxMesh.mtPrimitiveAttributes
         attribs.flags = hex( primitive.flags )
@@ -162,11 +162,13 @@ class MtModelImporter:
         attribs.indexStartIndex = str( primitive.indexStartIndex )
         attribs.boneMapStartIndex = str( primitive.boneIdStart )
         attribs.primitiveJointLinkCount = str( primitive.primitiveJointLinkCount )
+        attribs.primitiveJointLinkIndex = str( primitiveJointLinkIndex )
         attribs.id = primitive.id
         attribs.minVertexIndex = str( primitive.minVertexIndex )
         attribs.maxVertexIndex = str( primitive.maxVertexIndex )
         attribs.field2c = primitive.field2c
         attribs.primitiveJointLinkPtr = str( primitive.primitiveJointLinkPtr )
+        attribs.index = str( self.model.primitives.index( primitive ) )
 
     def _addGroupAttribs( self, group, maxGroup ):
         rt.custAttributes.add( maxGroup, rt.mtModelGroupAttributesInstance )
@@ -176,6 +178,7 @@ class MtModelImporter:
         attribs.field08 = group.field08
         attribs.field0c = group.field0c
         attribs.bsphere = group.boundingSphere
+        attribs.index = str( self.model.groups.index( group ) )
 
     def _addJointAttribs( self, joint, maxBone ):
         rt.custAttributes.add( maxBone.baseObject, rt.mtJointAttributesInstance )
@@ -190,6 +193,7 @@ class MtModelImporter:
         attribs.offsetX = str(joint.offset[0])
         attribs.offsetY = str(joint.offset[1])
         attribs.offsetZ = str(joint.offset[2])
+        attribs.index = str( self.model.joints.index( joint ) )
             
     def importGroups( self ):
         maxlog.info('importing groups')
@@ -306,8 +310,10 @@ class MtModelImporter:
         # read vertices
         maxVertexArray = rt.Array()
         maxNormalArray = rt.Array()
-        maxUV1Array = rt.Array()
-        maxUV2Array = rt.Array()
+        maxUVPrimaryArray = rt.Array()
+        maxUVSecondaryArray = rt.Array()
+        maxUVUniqueArray = rt.Array()
+        maxUVExtendArray = rt.Array()
         maxWeightArray = rt.Array()
         maxJointArray = rt.Array()
 
@@ -336,9 +342,13 @@ class MtModelImporter:
                             maxVtxWeightArray = rt.Array()
                         self.decodeInputToMaxArray( inputInfo, vertexStream, maxVtxWeightArray, rt.Float )
                     elif key == 'UV_Primary':
-                        rt.append( maxUV1Array, self.decodeInputToMaxPoint3UV( inputInfo, vertexStream ) )
+                        rt.append( maxUVPrimaryArray, self.decodeInputToMaxPoint3UV( inputInfo, vertexStream ) )
                     elif key == 'UV_Secondary':
-                        rt.append( maxUV2Array, self.decodeInputToMaxPoint3UV( inputInfo, vertexStream ) )
+                        rt.append( maxUVSecondaryArray, self.decodeInputToMaxPoint3UV( inputInfo, vertexStream ) )
+                    elif key == 'UV_Unique':
+                        rt.append( maxUVUniqueArray, self.decodeInputToMaxPoint3UV( inputInfo, vertexStream ) )
+                    elif key == 'UV_Extend':
+                        rt.append( maxUVExtendArray, self.decodeInputToMaxPoint3UV( inputInfo, vertexStream ) )
                         
             if maxVtxWeightArray != None:
                 rt.append( maxWeightArray, maxVtxWeightArray ) 
@@ -361,25 +371,27 @@ class MtModelImporter:
         maxlog.debug( 'creating mesh' )
         meshName = self.metadata.getPrimitiveName( primitive.id )
         maxMesh = rt.Mesh(vertices=maxVertexArray, faces=maxFaceArray, normals=maxNormalArray)
+        maxMesh.backfacecull = True
         maxMesh.name = meshName
         maxMesh.numTVerts = len( maxVertexArray )
         rt.buildTVFaces( maxMesh )
         for j in range( 0, len( maxFaceArray ) ):
             rt.setTVFace( maxMesh, j + 1, maxFaceArray[j] )
-        for j in range( 0, len( maxUV1Array ) ):
-            rt.setTVert( maxMesh, j + 1, maxUV1Array[j] )
+        for j in range( 0, len( maxUVPrimaryArray ) ):
+            rt.setTVert( maxMesh, j + 1, maxUVPrimaryArray[j] )
+        # TODO other uv maps
         for j in range( 0, len( maxNormalArray ) ):
            rt.setNormal( maxMesh, j + 1, maxNormalArray[j] )
             
         maxMesh.material = self.maxMaterialArray[ primitive.indices.getMaterialIndex() ]
-        self._addPrimitiveAttribs( primitive, shaderInfo, maxMesh )
+        self._addPrimitiveAttribs( primitive, shaderInfo, maxMesh, primitiveJointLinkIndex )
 
         # parent to group
         if primitive.indices.getGroupId() in self.maxGroupLookup:
             maxMesh.parent = self.maxGroupLookup[ primitive.indices.getGroupId() ]
 
         # parent pjl to mesh
-        # TODO PML
+        # TODO PJL
         #for j in range( 0, primitive.primitiveJointLinkCount ):
         #    self.maxPrimitiveJointLinks[ primitiveJointLinkIndex + j ].parent = maxMesh
 
@@ -518,7 +530,7 @@ class MtModelImporter:
             self.maxMaterialArray.append( maxMaterial )
             
     def importPrimitiveJointLinks( self ):
-        maxlog.warn('importing pml skipped')
+        maxlog.warn('importing pjl skipped')
         
         # build primitive joint links
         #~ maxPrimitiveJointLinks = []

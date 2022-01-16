@@ -2,22 +2,25 @@
 Intermediate shader object info database utility module for easier access to shader info for parsing vertex buffers.
 '''
 
+from typing import Dict
+
+
 class ShaderInputInfo:
     '''Describes a shader input variable'''
     def __init__(self, off, typeVal, name, componentCount):
-        self.offset = off
-        self.type = typeVal
-        self.name = name
-        self.componentCount = componentCount
+        self.offset: int = off
+        self.type: int = typeVal
+        self.name: str = name
+        self.componentCount: int = componentCount
 
 class ShaderObjectInfo:
     '''Describes a shader object'''
-    def __init__(self, index, name, hashValue, inputs=[]):
-        self.index = index
-        self.name = name
-        self.hash = hashValue
-        self.inputs = []
-        self.inputsByName = {}
+    def __init__(self, index, name, hashValue, inputs=None):
+        self.index: int = index
+        self.name: str = name
+        self.hash: int = hashValue
+        self.inputs: list[ShaderInputInfo] = []
+        self.inputsByName: Dict[str, ShaderInputInfo] = {}
         if len(inputs) > 0:
             for inputInfo in inputs:
                 self.addInput( inputInfo )

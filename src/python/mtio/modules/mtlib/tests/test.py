@@ -1,6 +1,7 @@
 import os
 import sys
 import io
+from typing import Dict, TypedDict
 
 sys.path.append( os.path.dirname( sys.path[0] ) )
 sys.path.append( os.path.dirname( os.path.dirname( sys.path[0] ) ) )
@@ -13,6 +14,14 @@ import mvc3materialdb
 import mvc3shaderdb
 import util
 from rtexture import *
+
+def scantree(path):
+    """Recursively yield DirEntry objects for given directory."""
+    for entry in os.scandir(path):
+        if entry.is_dir(follow_symlinks=False):
+            yield from scantree(entry.path)  # see below for Python 2.x
+        else:
+            yield entry
 
 def areBuffersEqual( a, b ):
     if len( a ) != len( b ): return False
@@ -232,14 +241,13 @@ def genMetadata( inputName, ref ):
         if os.path.exists( filePath ):
             metadata.loadFile( filePath )  
     
-def processModBatch( func, *args ):
-    with os.scandir('X:\\work\\umvc3_model\\samples\\test') as it:
-        for entry in it:
-            if entry.name.endswith(".mod") and entry.is_file():
-                func( entry.path, *args )
+def processModBatch( func, *args, path='X:\\project\\umvc3_model\\samples\\test' ):
+    for entry in scantree(path):
+        if entry.name.endswith(".mod") and entry.is_file():
+            func( entry.path, *args )
                 
 def processTexBatch( func, *args ):
-    with os.scandir('X:\\work\\umvc3_model\\samples\\test') as it:
+    with os.scandir('X:\\project\\umvc3_model\\samples\\test') as it:
         for entry in it:
             if entry.name.endswith(".tex") and entry.is_file():
                 func( entry.path, *args )
@@ -305,8 +313,6 @@ def findSimilarJoints( inputName, stats ):
                 
             if not found:
                 stats.append( JointStats( modJoint.id, parentId, symmetryId, 1, [ baseName ] ) )
-                    
-    
     
 def testTex( inputPath ):
     try:
@@ -353,13 +359,59 @@ def dumpJointInfo():
     
     processModBatch( genJointInfoCsv, jointInfoDb )
     
-def main():
-    inputName = "X:/work/umvc3_model/samples/UMVC3ModelSamples/Ryu/Ryu.58a15856.mod"
-    baseName = os.path.basename(inputName).split('.')[0]
-    basePath = os.path.dirname(inputName)
-    data = util.loadIntoByteArray( inputName )
+def dumpVertexFlags():
+    def _dumpVertexFlags( inputName: str, stats: Dict[str, Dict[int]] ):
+        basePath, baseName, exts = util.splitPath( inputName )
+        modPath = os.path.join( basePath, baseName + '.58a15856.mod' )
+        mrlPath = os.path.join( basePath, baseName + '.2749c8a8.mrl' )
+        ymlPath = os.path.join( basePath, baseName + '.2749c8a8.mrl.yml' )
+        print( baseName )
+        
+        # read mod
+        modBuffer = util.loadIntoByteArray( modPath )
+        mod = rModelData()
+        mod.read( NclBitStream( modBuffer ) )
+        
+        for prim in mod.primitives:
+            shaderName = mvc3shaderdb.shaderObjectsByHash[prim.vertexShader.getHash()].name
+            if not shaderName in stats:
+                stats[shaderName] = []
+            if not prim.vertexFlags in stats[shaderName]:
+                stats[shaderName].append(prim.vertexFlags)
     
-    processModBatch( testMod )
+    stats = dict()
+    processModBatch( _dumpVertexFlags, stats, path=r'X:\game\platform\pc\Ultimate Marvel vs. Capcom 3\nativePCx64\stg' )
+    for key, value in stats.items():
+        print(key, value)
+    
+def dumpPjl():
+    def _dump( inputName: str, stats: Dict[str, Dict[str, int]] ):
+        basePath, baseName, exts = util.splitPath( inputName )
+        modPath = os.path.join( basePath, baseName + '.58a15856.mod' )
+        mrlPath = os.path.join( basePath, baseName + '.2749c8a8.mrl' )
+        ymlPath = os.path.join( basePath, baseName + '.2749c8a8.mrl.yml' )
+        
+        # read mod
+        modBuffer = util.loadIntoByteArray( modPath )
+        mod = rModelData()
+        mod.read( NclBitStream( modBuffer ) )
+        
+        if len( mod.primitiveJointLinks ) == 1:
+            print( modPath )
+    
+    stats = dict()
+    processModBatch( _dump, stats, path=r'X:\game\platform\pc\Ultimate Marvel vs. Capcom 3\nativePCx64\stg' )
+    for key, value in stats.items():
+        print(key, value)
+    
+def main():
+    #dumpVertexFlags()
+    dumpPjl()
+    
+    # inputName = "X:/work/umvc3_model/samples/UMVC3ModelSamples/Ryu/Ryu.58a15856.mod"
+    # baseName = os.path.basename(inputName).split('.')[0]
+    # basePath = os.path.dirname(inputName)
+    # data = util.loadIntoByteArray( inputName )
     
     # if not os.path.exists("dump/mrl_with_anims.txt"):
     #     with open("dump/mrl_with_anims.txt", "w") as f:
@@ -391,7 +443,7 @@ def main():
     #processModBatch( dumpModStats, stats )
     #print(stats)
     
-    dumpJointInfo()
+    #dumpJointInfo()
 
 
 if __name__ == '__main__':

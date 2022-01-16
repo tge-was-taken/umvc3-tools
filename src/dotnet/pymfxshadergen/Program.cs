@@ -25,6 +25,7 @@ namespace pymfxshadergen
             public int Offset { get; set; }
             public int Type { get; set; }
             public string Name { get; set; }
+            public string CodeName { get; set; }
             public int ComponentCount { get; set; }
             public ShaderInputInfo AliasOf { get; set; }
         }
@@ -33,16 +34,41 @@ namespace pymfxshadergen
         {
             F32 = 1, // 32 bit single precision float
             F16 = 2, // 16 bit half precision float
-            IU16 = 3, // guess, 16 bit integer (joint index)
-            IS16 = 4, // guess, 16 bit integer (joint index)
+            S16 = 3, // guess, 16 bit integer (joint index)
+            U16 = 4, // guess, 16 bit integer (joint index)
             FS16 = 5, // guess, 16 bit normalized compressed float, divisor = 1 << 15 - 1
-            IS8 = 7, // guess
-            IU8 = 8, // guess, 8 bit unsigned joint index
-            FU8 = 9, // guess, 8 bit normalized compressed float, divisor = 255
-            FS8 = 10, // guess,  8 bit normalized compressed float, divisor = 127
-            _11_11_11_10 = 11, // guess, 4 bytes, used for normals
+            FU16 = 6, // guess, 16 bit normalized compressed float
+            S8 = 7, // guess
+            U8 = 8, // guess, 8 bit unsigned joint index
+            FS8 = 9, // guess, 8 bit normalized compressed float, divisor = 127
+            FU8 = 10, // guess,  8 bit normalized compressed float, divisor = 255
+            X11Y11Z11W10 = 11, // guess, 4 bytes, used for normals
+            _12 = 12,
             RGB = 13, // guess, 1 byte, used for colors without alpha
             RGBA = 14, // guess
+        }
+
+        public static int CalcInputSize( ShaderInputInfo input )
+        {
+            var elementSize = ( ShaderInputLayoutElementType )input.Type switch
+            {
+                ShaderInputLayoutElementType.F32 => 4,
+                ShaderInputLayoutElementType.F16 => 2,
+                ShaderInputLayoutElementType.S16 => 2,
+                ShaderInputLayoutElementType.U16 => 2,
+                ShaderInputLayoutElementType.FS16 => 2,
+                ShaderInputLayoutElementType.FU16 => 2,
+                ShaderInputLayoutElementType.S8 => 1,
+                ShaderInputLayoutElementType.U8 => 1,
+                ShaderInputLayoutElementType.FS8 => 1,
+                ShaderInputLayoutElementType.FU8 => 1,
+                ShaderInputLayoutElementType.X11Y11Z11W10 => 4,
+                ShaderInputLayoutElementType.RGB => 1,
+                ShaderInputLayoutElementType.RGBA => 4,
+                _ => throw new NotImplementedException(),
+            };
+
+            return elementSize * input.ComponentCount;
         }
 
         static void Main( string[] args )
@@ -78,11 +104,11 @@ namespace pymfxshadergen
                     // Multidimensional array
                     var idx = shader.Inputs.Count( x => x.Name.Contains( name ) );
 
-                    input = new ShaderInputInfo() { Offset = offset, Type = type, Name = name, ComponentCount = compcnt };
+                    input = new ShaderInputInfo() { Offset = offset, Type = type, Name = name, CodeName = name, ComponentCount = compcnt };
                 }
                 else
                 {
-                    input = new ShaderInputInfo() { Offset = offset, Type = type, Name = name, ComponentCount = compcnt };
+                    input = new ShaderInputInfo() { Offset = offset, Type = type, Name = name, CodeName = name, ComponentCount = compcnt };
                 }
 
                 var aliasOf = shader.Inputs.Find( x => x.Offset == input.Offset );
@@ -97,43 +123,34 @@ namespace pymfxshadergen
 
             using var writer = File.CreateText( "mt_shared.generated.bt" );
             writer.WriteLine( @"
-#ifndef MT_MOD_GENERATED_BT
-#define MT_MOD_GENERATED_BT
+#ifndef MT_SHARED_GENERATED_BT
+#define MT_SHARED_GENERATED_BT
 #include ""mt_shared.bt""" );
 
             writer.WriteLine( "typedef enum<uint> {" );
             foreach ( var shader in shaders )
             {
-                writer.WriteLine( $" SO_{FixName(shader.Name)} = 0x{shader.Hash:X8}," );
+                writer.WriteLine( $" SHADER_{FixName(shader.Name)} = 0x{(shader.Hash & 0x000FFFFF):X8}, // 0x{shader.Hash:X8}" );
             }
-            writer.WriteLine( "} rShaderObjectHash;" );
+            writer.WriteLine( "} rShaderObjectHash <read=rShaderObjectHashToString>;" );
             writer.WriteLine();
 
             foreach ( var shader in shaders )
             {
                 if ( shader.Inputs.Count == 0 ) continue;
 
+                var lastInput = shader.Inputs.MaxBy( x => x.Offset );
+                var endOffset = lastInput.Offset + CalcInputSize( lastInput );
+                while ( (endOffset % 4) > 0 )
+                    endOffset += 1;
+
+                writer.WriteLine( $"/* size = {endOffset} */" );
                 writer.WriteLine( "typedef struct {" );
                 writer.WriteLine( " local int64 p = FTell();" );
                 var nameHistory = new HashSet<string>();
 
                 foreach ( var input in shader.Inputs )
                 {
-                    /*
-                     *                 case rShaderInputLayoutElementType_F32: type = "f32"; break;
-                case rShaderInputLayoutElementType_F16: type = "f16"; break;
-                case rShaderInputLayoutElementType_IU16: type = "u16"; break;
-                case rShaderInputLayoutElementType_IS16: type = "s16"; break;
-                case rShaderInputLayoutElementType_FS16: type = "fs16"; break;
-                case rShaderInputLayoutElementType_IS8: type = "s8"; break;
-                case rShaderInputLayoutElementType_IU8: type = "u8"; break;
-                case rShaderInputLayoutElementType_FU8: type = "fu8"; break;
-                case rShaderInputLayoutElementType_FS8: type = "fs8"; break;
-                case rShaderInputLayoutElementType_11_11_11_10: type = "vec432"; break;
-                case rShaderInputLayoutElementType_RGB: type = "color8"; break;
-                case rShaderInputLayoutElementType_RGBA: type = "color32"; break;
-                     */
-
                     var type = $"type({input.Type})";
                     switch ( (ShaderInputLayoutElementType)input.Type )
                     {
@@ -143,28 +160,31 @@ namespace pymfxshadergen
                         case ShaderInputLayoutElementType.F16:
                             type = "f16";
                             break;
-                        case ShaderInputLayoutElementType.IU16:
-                            type = "u16";
-                            break;
-                        case ShaderInputLayoutElementType.IS16:
+                        case ShaderInputLayoutElementType.S16:
                             type = "s16";
+                            break;
+                        case ShaderInputLayoutElementType.U16:
+                            type = "u16";
                             break;
                         case ShaderInputLayoutElementType.FS16:
                             type = "fs16";
                             break;
-                        case ShaderInputLayoutElementType.IS8:
+                        case ShaderInputLayoutElementType.FU16:
+                            type = "fu16";
+                            break;
+                        case ShaderInputLayoutElementType.S8:
                             type = "s8";
                             break;
-                        case ShaderInputLayoutElementType.IU8:
+                        case ShaderInputLayoutElementType.U8:
                             type = "u8";
-                            break;
-                        case ShaderInputLayoutElementType.FU8:
-                            type = "fu8";
                             break;
                         case ShaderInputLayoutElementType.FS8:
                             type = "fs8";
                             break;
-                        case ShaderInputLayoutElementType._11_11_11_10:
+                        case ShaderInputLayoutElementType.FU8:
+                            type = "fu8";
+                            break;
+                        case ShaderInputLayoutElementType.X11Y11Z11W10:
                             type = "vec432";
                             break;
                         case ShaderInputLayoutElementType.RGB:
@@ -174,28 +194,39 @@ namespace pymfxshadergen
                             type = "color32";
                             break;
                         default:
-                            break;
+                            throw new NotImplementedException();
                     }
 
                     var name = input.Name;
                     var nameIdx = 2;
                     while ( !nameHistory.Add( name ) )
-                        name = name + "_" + nameIdx++;
+                        name = input.Name + "_" + nameIdx++;
+                    input.CodeName = name;
 
-                    writer.WriteLine( $" FSeek( p + {input.Offset} ); {type} {name}[{input.ComponentCount}];" );
+                    if ( input.AliasOf != null )
+                    {
+                        writer.WriteLine( $" FSeek( p + {input.Offset} ); /* {(int)input.Type} */ {type} {input.CodeName}[{input.ComponentCount}]; /* alias of {input.AliasOf.CodeName} */ " );
+                    }
+                    else
+                    {
+                        writer.WriteLine( $" FSeek( p + {input.Offset} ); /* {(int)input.Type} */ {type} {input.CodeName}[{input.ComponentCount}];" );
+                    }
+                    
                 }
+
+                writer.WriteLine( $" FSeek( p + {endOffset} );" );
 
                 writer.WriteLine( $"}} rVertexShaderInputLayout_{FixName(shader.Name)};" );
                 writer.WriteLine();
             }
             writer.WriteLine();
 
-            writer.WriteLine( "void ReadVertexBuffer( rShaderHash shader, int vertexCount ) {" );
+            writer.WriteLine( "void ReadVertexBuffer( rShaderObjectHash shader, int vertexCount ) {" );
             writer.WriteLine( " switch ( shader ) {" );
             foreach ( var shader in shaders )
             {
-                if ( shader.Inputs.Count == 0 ) continue;
-                writer.WriteLine( $"  case SHADER_{FixName(shader.Name)}: rVertexShaderInputLayout_{FixName(shader.Name)} VertexBuffer[ vertexCount ]; break;" );
+                if ( shader.Inputs.Count != 0 )
+                    writer.WriteLine( $"  case SHADER_{FixName(shader.Name)}: rVertexShaderInputLayout_{FixName(shader.Name)} VertexBuffer[ vertexCount ] <optimize=false>; break;" );
             }
             writer.WriteLine( " }" );
             writer.WriteLine( "}" );

@@ -54,7 +54,7 @@ fn mtCallPythonFunc module func args =
 rollout MtInfoRollout "MT Framework Importer/Exporter"
 (
 	label lblTitle2 "Ultimate Marvel vs Capcom 3"
-	label lblVersion "Version 1.0.24 Beta" align:#center
+	label lblVersion "Version 1.0.25 Beta" align:#center
 	label lblAuthor "© 2021-2022 TGE" align:#center
 )
 
@@ -75,7 +75,7 @@ rollout MtUtilitiesRollout "Utilities"
 	group "Add MT attributes to selected object" (
 		button btnAddJointAttribs "Joint" across:8
 		button btnAddGroupAttribs "Group"
-		button btnAddPmlAttribs "PML"
+		button btnAddPjlAttribs "PJL"
 		button btnAddPrimAttribs "Primitive"
 		label pad1;
 		label pad2;
@@ -86,7 +86,7 @@ rollout MtUtilitiesRollout "Utilities"
 	group "Remove MT attributes from selected object" (
 		button btnRemJointAttribs "Joint" across:8
 		button btnRemGroupAttribs "Group"
-		button btnRemPmlAttribs "PML"
+		button btnRemPjlAttribs "PJL"
 		button btnRemPrimAttribs "Primitive"
 		label pad5;
 		label pad6;
@@ -105,11 +105,11 @@ rollout MtUtilitiesRollout "Utilities"
 
 	on btnAddJointAttribs	pressed do emit #("btnAddJointAttribsPressed")
 	on btnAddGroupAttribs	pressed do emit #("btnAddGroupAttribsPressed")
-	on btnAddPmlAttribs		pressed do emit #("btnAddPmlAttribsPressed")
+	on btnAddPjlAttribs		pressed do emit #("btnAddPjlAttribsPressed")
 	on btnAddPrimAttribs	pressed do emit #("btnAddPrimAttribsPressed")
 	on btnRemJointAttribs	pressed do emit #("btnRemJointAttribsPressed")
 	on btnRemGroupAttribs	pressed do emit #("btnRemGroupAttribsPressed")
-	on btnRemPmlAttribs		pressed do emit #("btnRemPmlAttribsPressed")
+	on btnRemPjlAttribs		pressed do emit #("btnRemPjlAttribsPressed")
 	on btnRemPrimAttribs	pressed do emit #("btnRemPrimAttribsPressed")
 	on btnCreateGroup 		pressed do emit #("btnCreateGroupPressed")
 )
@@ -218,6 +218,8 @@ rollout MtModelExportRollout "Model export"
 		checkbox chkBakeScale "Bake scale into translation" checked:false
 		checkbox chkExportTex "Convert textures to TEX" checked:true 
 		checkbox chkExportTexOverwrite "Overwrite existing textures" checked:false
+		checkbox chkExportGroupPerMesh "Export group per mesh" checked:false
+		checkbox chkExportGeneratePjl "Generate PJL" checked:true
 	)
 	
 	button btnExport "Export" align:#center across:1;
@@ -251,4 +253,18 @@ rollout MtModelExportRollout "Model export"
 	on chkExportTexOverwrite changed state 	do emit #("chkExportTexOverwriteChanged", state)
 	on spnScale				changed state	do emit #("spnScaleChanged", state)
 	on chkBakeScale			changed state	do emit #("chkBakeScaleChanged", state)
+	on chkExportGroupPerMesh changed state do emit #("chkExportGroupPerMeshChanged", state)
+	on chkExportGeneratePjl changed state do emit #("chkExportGeneratePjlChanged", state)
+)
+
+rollout MtDebugRollout "Debug"
+(
+	checkbox chkDisableLog "Disable logging"
+
+	fn emit args = 
+	(
+		mtCallPythonFunc "MtDebugRollout" "onEvent" args
+	)
+
+	on chkDisableLog changed state do emit #("chkDisableLogChanged", state)
 )

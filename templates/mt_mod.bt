@@ -31,10 +31,9 @@ typedef struct
     /* 04 */ u32 Field04;
     /* 08 */ u32 Field08;
     /* 0C */ u32 Field0C;
-    /* 10 */ SVec4 Vec10;
-    /* 20 */ SVec4 Vec20;
-    /* 30 */ SVec4 Vec30;
-    /* 40 */ SMtx44 Mtx40;
+    /* 10 */ SSphere BoundingSphere;
+    /* 20 */ SBoundingBox BoundingBox;
+    /* 40 */ SMtx44 Pivot; // guess, translation part is in the middle
     /* 80 */ SVec4 Vec80;
     //Printf( "jointIdx: %d\n", JointIdx );
 } rModelPrimitiveJointLink <bgcolor=0xbcdd3f, optimize=true>;
@@ -64,7 +63,9 @@ typedef struct( u32& primitiveJointLinkIndex )
 
     local u64 p = FTell();
     FSeek( File.Header.VertexBufferOffset.Value + VertexBufferOffset );
-    ReadVertexBuffer( (rShaderObjectHash)Shader.Hash, VertexCount );
+    struct {
+        ReadVertexBuffer( (rShaderObjectHash)Shader.Hash, VertexCount );
+    } VertexBuffer;
 
     local u64 relIndexBufferOffset = IndexBufferOffset + IndexStartIndex;
     FSeek( File.Header.IndexBufferOffset.Value + ( relIndexBufferOffset * 2 ) );
@@ -96,24 +97,50 @@ typedef struct
     //Printf( "Field10: %d\n", Field10 );
 } rModelGroup <bgcolor=0x254cae, optimize=true>;
 
-void ListPrimitiveJointLinksByIndex( u8 index )
+u64 _GetPrimitiveJointLinkOffset( u32 i )
 {
-    struct( u8 index )
+    return File.Header.PrimitiveOffset.Value + ( Header.PrimitiveCount * 56 ) + ( i * 144 );
+}
+
+u64 _GetNextPrimitiveJointLinkIndex( u32 jointIndex, u32 startIndex )
+{
+    local u64 p = FTell();
+    local u32 i;
+    local u32 curJointIndex;
+    local u32 offset;
+    for ( i = startIndex; i < File.Header.PrimitiveJointLinkCount; ++i )
     {
-        local u64 p = FTell();
-        local u32 i = 0;
-        local u32 curJointIndex;
-        for ( i = 0; i < File.Header.PrimitiveJointLinkCount; ++i )
+        FSeek( _GetPrimitiveJointLinkOffset( i ) );
+        curJointIndex = ReadInt( FTell() );
+        if ( curJointIndex == jointIndex )
         {
-            FSeek( File.Header.PrimitiveOffset.Value + ( Header.PrimitiveCount * 56 ) + ( i * 144 )  );
-            curJointIndex = ReadInt( FTell() );
-            if ( curJointIndex == index )
-            {
-                rModelPrimitiveJointLink PrimitiveJointLinks;
-            }
+            FSeek( p );
+            return i;
         }
-        FSeek( p );
-    } PrimitiveJointLinks( index );
+    }
+
+    FSeek( p );
+    return -1;
+}
+
+void ListPrimitiveJointLinksByIndex( u8 jointIndex )
+{
+    local u64 p = FTell();
+    local u32 pjlIndex = _GetNextPrimitiveJointLinkIndex( jointIndex, 0 );
+    if ( pjlIndex != -1 )
+    {
+        struct( u8 jointIndex )
+        {
+            local u64 pjlIndex = 0;
+            while ( ( pjlIndex = _GetNextPrimitiveJointLinkIndex( jointIndex, pjlIndex ) ) != -1 )
+            {
+                FSeek( _GetPrimitiveJointLinkOffset( pjlIndex ) );
+                rModelPrimitiveJointLink PrimitiveJointLink;
+                pjlIndex += 1;
+            }
+        } PrimitiveJointLinks( jointIndex );
+    }
+    FSeek( p );
 }
 
 // size = 0x18

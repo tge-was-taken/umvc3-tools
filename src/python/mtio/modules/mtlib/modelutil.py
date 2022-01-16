@@ -22,10 +22,11 @@ def calcWorldMtx( boneList, bone ):
     return ( mtx, parentWorldMtx )
 
 def calcDistance( a, b ):
-    return ((b[0] - a[0]) * 2 + (b[1] - a[1]) * 2 + (b[2] - a[2]) * 2 ) / 2  
+    #(a-b).magnitude
+    return nclLength( a - b )
 
-def calcBounds( vertices ):
-    # calculate bounds
+def calcBounds( vertices ) -> imModelBounds:
+    # calculate boundsa
     vmin = NclVec3()
     vmin[0] = 99999999
     vmin[1] = 99999999
@@ -37,13 +38,13 @@ def calcBounds( vertices ):
     vmax[2] = -99999999
     for v in vertices:
         #print(v.position)
-        if v.position[0] < vmin[0]: vmin[0] = v.position[0]
-        if v.position[1] < vmin[1]: vmin[1] = v.position[1]
-        if v.position[2] < vmin[2]: vmin[2] = v.position[2]
+        if v[0] < vmin[0]: vmin[0] = v[0]
+        if v[1] < vmin[1]: vmin[1] = v[1]
+        if v[2] < vmin[2]: vmin[2] = v[2]
         
-        if v.position[0] > vmax[0]: vmax[0] = v.position[0]
-        if v.position[1] > vmax[1]: vmax[1] = v.position[1]
-        if v.position[2] > vmax[2]: vmax[2] = v.position[2]
+        if v[0] > vmax[0]: vmax[0] = v[0]
+        if v[1] > vmax[1]: vmax[1] = v[1]
+        if v[2] > vmax[2]: vmax[2] = v[2]
     
     center = NclVec3()
     center[0] = ( vmin[0] + vmax[0] ) / 2

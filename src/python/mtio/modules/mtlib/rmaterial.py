@@ -886,6 +886,8 @@ class rMaterialStreamReader:
                 data = util.readFloatBuffer( self.stream, 4 )
             elif ( shaderObjectHash == mvc3shaderdb.CBToon2.hash ):
                 data = util.readFloatBuffer( self.stream, 4 )
+            elif ( shaderObjectHash == mvc3shaderdb.CBIndirectUser.hash ):
+                data = util.readFloatBuffer( self.stream, 12 )
             else:
                 raise Exception( "Unhandled constant buffer: {}".format( hex( shaderObjectHash ) ) )
                 

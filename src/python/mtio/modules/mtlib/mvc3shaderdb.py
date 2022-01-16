@@ -1,8 +1,9 @@
 # Generated file. Any changes made will be lost.
+from typing import Dict
 from shaderinfo import *
 shaderObjects = []
-shaderObjectsByName = {}
-shaderObjectsByHash = {}
+shaderObjectsByName : Dict[str, ShaderObjectInfo] = {}
+shaderObjectsByHash : Dict[int, ShaderObjectInfo] = {}
 def _add( shaderObject ):
 	shaderObjects.append( shaderObject )
 	shaderObjectsByName[ shaderObject.name ] = shaderObject

@@ -2,6 +2,7 @@
 .MOD serialization related classes and functions used to read and write binary model files.
 '''
 
+from typing import List
 from rshader import rShaderObjectId
 from ncl import *
 import util
@@ -712,18 +713,18 @@ class rModelData:
         
     def __init__( self ):
         self.header = rModelHeader()
-        self.joints = []
-        self.jointLocalMtx = []
-        self.jointInvBindMtx = []
-        self.boneMap = []
-        self.groups = []
-        self.materials = []
-        self.primitives = []
-        self.primitiveJointLinks = []
-        self.vertexBuffer = []
-        self.vertexBuffer2 = None
-        self.indexBuffer = []
-        self.exData = None
+        self.joints: List[rModelJoint] = []
+        self.jointLocalMtx: List[NclMat44] = []
+        self.jointInvBindMtx: List[NclMat44] = []
+        self.boneMap: list[int] = []
+        self.groups: list[rModelGroup] = []
+        self.materials: list[str] = []
+        self.primitives: List[rModelPrimitive] = []
+        self.primitiveJointLinks: List[rModelPrimitiveJointLink] = []
+        self.vertexBuffer: bytes = []
+        self.vertexBuffer2: bytes = None
+        self.indexBuffer: bytes = []
+        self.exData: rModelExData = None
         
     def read( self, stream ):
         reader = rModelStreamReader( stream )

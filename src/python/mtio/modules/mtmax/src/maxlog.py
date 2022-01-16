@@ -18,6 +18,10 @@ if os.path.exists( _logFilePath ):
     os.remove( _logFilePath )
 
 def _log( level, msg, *args, logToFileOnly=False ):
+    import mtmaxconfig
+    if mtmaxconfig.debugDisableLog:
+        return
+    
     global _indentLevel
     formattedMsg = datetime.datetime.today().strftime('%Y-%m-%d %H:%M:%S:%f') + ' [' + level + ']: ' + (_indentLevel * ' ') + str(msg)
     if not logToFileOnly:

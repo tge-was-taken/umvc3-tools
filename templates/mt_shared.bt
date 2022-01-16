@@ -14,7 +14,7 @@
 #ifndef MT_SHARED_BT
 #define MT_SHARED_BT
 
-
+// Basic types
 typedef ubyte bool;
 typedef ubyte u8;
 typedef byte s8;
@@ -24,11 +24,102 @@ typedef int s32;
 typedef uint u32;
 typedef int64 s64;
 typedef uint64 u64;
+typedef hfloat f16;
 typedef float f32;
 
-// globals
+// Globals
 local bool gIs64Bit = true;
 
+// Vertex types
+/* 1 f32 */
+/* 2 f16 */
+/* 3 s16 */
+/* 4 u16 */
+/* 5 fs16 */
+typedef struct 
+{
+    u16 Value;
+} fs16 <read=fs16ToString>;
+
+string fs16ToString( fs16& value ) {
+    string s;
+    SPrintf( s, "%f", (float)value.Value / 32767.0f );
+    return s;
+}
+
+/* 6 fu16 */
+typedef struct 
+{
+    u16 Value;
+} fu16 <read=fu16ToString>;
+
+string fu16ToString( fu16& value ) {
+    string s;
+    SPrintf( s, "%f", (float)value.Value / 65535.0f );
+    return s;
+}
+
+/* 7 s8 */
+/* 8 u8 */
+/* 9 fs8 */
+typedef struct 
+{
+    u8 Value;
+} fs8 <read=fs8ToString>;
+
+string fs8ToString( fs8& value ) {
+    string s;
+    SPrintf( s, "%f", ( (float)value.Value - 127.0f ) / 127.0f );
+    return s;
+}
+
+/* 10 fu8 */
+typedef struct 
+{
+    u8 Value;
+} fu8 <read=fu8ToString>;
+
+string fu8ToString( fu8& value ) {
+    string s;
+    SPrintf( s, "%f", (float)value.Value / 255.0f );
+    return s;
+}
+
+/* 11 vec432 */
+// TODO
+typedef struct 
+{
+    //u32 Value;
+    u8 X, Y, Z, W;
+} vec432 <read=vec432ToString>;
+
+string vec432ToString( vec432& value ) {
+    string s;
+    SPrintf( s, "%f,%f,%f,%f", 
+        (float)value.X / 255.0f,
+        (float)value.Y / 255.0f,
+        (float)value.Z / 255.0f,
+        (float)value.W / 255.0f );
+    return s;
+}
+
+/* 12 TODO */
+/* 13 color8 */
+typedef u8 color8;
+
+/* 14 color32 */
+typedef struct
+{
+    u8 R, G, B, A;
+} color32 <read=color32ToString>;
+
+string color32ToString( color32& value ) {
+    string s;
+    SPrintf( s, "%d,%d,%d,%d", value.R, value.G, value.B, value.A );
+    return s;
+}
+
+// Common types
 typedef struct
 {
     f32 X;
@@ -80,77 +171,6 @@ typedef struct
     SVec4 Max;
 } SBoundingBox;
 
-typedef struct
-{
-    s8 Value;
-} rModelCmpFloatS8 <read=rModelCmpFloatS8ToString>;
-
-string rModelCmpFloatS8ToString(rModelCmpFloatS8& v)
-{
-    string s = "";
-    SPrintf( s, "%f", (float)v.Value / 128.0f );
-    return s;
-}
-
-typedef struct
-{
-    s16 Value;
-} rModelCmpFloatS16 <read=rModelCmpFloatS16ToString>;
-
-string rModelCmpFloatS16ToString(rModelCmpFloatS16& v)
-{
-    string s = "";
-    SPrintf( s, "%f", (float)v.Value / 32767.0f );
-    return s;
-}
-
-typedef struct
-{
-    hfloat Value;
-} rModelCmpFloatF16 <read=rModelCmpFloatF16ToString>;
-
-string rModelCmpFloatF16ToString(rModelCmpFloatF16& v)
-{
-    string s = "";
-    SPrintf( s, "%f", (float)v.Value );
-    return s;
-}
-
-typedef u8 color8;
-
-typedef struct
-{
-    u8 R, G, B, A;
-} color32;
-
-typedef struct
-{
-    s16 Value;
-} fs16 <read=fs16ToString>;
-
-string fs16ToString( fs16& v )
-{
-    string s = "";
-    SPrintf( s, "%f", (float)v.Value / 32767 );
-    return s;
-}
-
-typedef struct
-{
-    s8 Value;
-} fs8;
-
-typedef hfloat f16;
-
-typedef struct
-{
-    u32 Value;
-} vec432;
-
-typedef struct
-{
-    u8 Value;
-} fu8;
 
 #include "mt_shared.generated.bt"
 

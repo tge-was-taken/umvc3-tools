@@ -13,6 +13,7 @@ mtPrimitiveAttributesInstance = attributes mtPrimitiveAttributes attribID: #(0x1
 (
 	parameters main rollout:params
 	(
+		index type:#string ui:index default:""
 		flags type:#string ui:flags default:""
 		groupId type:#string ui:groupId default:"inherit"
 		lodIndex type:#integer ui:lodIndex default:-1
@@ -28,6 +29,7 @@ mtPrimitiveAttributesInstance = attributes mtPrimitiveAttributes attribID: #(0x1
 		indexStartIndex type:#string ui:indexStartIndex default:""
 		boneMapStartIndex type:#string ui:boneMapStartIndex default:""
 		primitiveJointLinkCount type:#string ui:primitiveJointLinkCount default:""
+		primitiveJointLinkIndex type:#string ui:primitiveJointLinkIndex default:""
 		id type:#integer ui:id default:-1
 		minVertexIndex type:#string ui:minVertexIndex default:""
 		maxVertexIndex type:#string ui:maxVertexIndex default:""
@@ -56,6 +58,9 @@ mtPrimitiveAttributesInstance = attributes mtPrimitiveAttributes attribID: #(0x1
 		spinner field2C	"" type:#integer across:2 width:64 offset:[-15,0] range:[-1, 999999, 1]
 
 		group "Read only" (
+			label indexLabel "Index" across:2 align:#left
+			edittext index		"" type:#string across:2
+
 			label matIndexLabel "Material index" across:1 align:#left
 			edittext matIndex 	"" type:#integer across:1 readonly:true
 
@@ -89,6 +94,9 @@ mtPrimitiveAttributesInstance = attributes mtPrimitiveAttributes attribID: #(0x1
 			label primitiveJointLinkCountLabel "Primitive joint link count" across:1 align:#left
 			edittext primitiveJointLinkCount	"" type:#string across:1 readonly:true
 
+			label primitiveJointLinkIndexLabel "Primitive joint link index" across:1 align:#left
+			edittext primitiveJointLinkIndex	"" type:#string across:1 readonly:true
+
 			label minVertexIndexLabel "Min vertex index" across:1 align:#left
 			edittext minVertexIndex	"" type:#string across:1 readonly:true
 
@@ -105,6 +113,7 @@ mtJointAttributesInstance = attributes mtJointAttributes attribID: #(0x14e24dd0,
 (
 	parameters main rollout:params
 	(
+		index type:#string ui:index default:""
 		id type:#integer ui:id default:-1
 		parentIndex type:#string ui:parentIndex default:""
 		symmetryIndex type:#string ui:symmetryIndex default:""
@@ -132,6 +141,9 @@ mtJointAttributesInstance = attributes mtJointAttributes attribID: #(0x14e24dd0,
 		spinner field04 "" type:#float across:2 width:64 offset:[-15,0] range:[-999999, 999999, 0.001]
 
 		group "Read only" (
+			label indexLabel "Index" across:1 align:#left
+			edittext index 	"" type:#string across:1 readonly:true
+
 			label parentIndexLabel "Parent index" across:1 align:#left
 			edittext parentIndex 	"" type:#string across:1 readonly:true
 
@@ -157,6 +169,7 @@ mtMaterialAttributesInstance = attributes mtMaterialAttributes attribID: #(0x425
 (
 	parameters main rollout:params
 	(
+		index type:#string ui:index default:""
 		type type:#string ui:type default:"nDraw::MaterialChar"
 		blendState type:#string ui:blendState default:"BSSolid"
 		depthStencilState type:#string ui:depthStencilState default:"DSZTestWriteStencilWrite"
@@ -184,6 +197,11 @@ mtMaterialAttributesInstance = attributes mtMaterialAttributes attribID: #(0x425
 		
 		label matFlagsLabel "Material flags" across:1 align:#left
 		edittext matFlags "" type:#string across:1
+
+		group "Read only" (
+			label indexLabel "Index" across:1 align:#left
+			edittext index 	"" type:#string across:1 readonly:true
+		)
 	)
 )
 
@@ -191,6 +209,7 @@ mtModelGroupAttributesInstance = attributes mtModelGroupAttributes attribID: #(0
 (
 	parameters main rollout:params
 	(
+		index type:#string ui:index default:""
 		id type:#integer ui:id default:1
 		field04 type:#integer ui:field04 default:0
 		field08 type:#integer ui:field08 default:0
@@ -211,6 +230,11 @@ mtModelGroupAttributesInstance = attributes mtModelGroupAttributes attribID: #(0
 		
 		label field0cLabel "Field 0C" across:2 align:#left
 		spinner field0c "" type:#integer across:2 width:64 offset:[-15,0] range:[0, 999999, 1]
+
+		group "Read only" (
+			label indexLabel "Index" across:1 align:#left
+			edittext index 	"" type:#string across:1 readonly:true
+		)
 	)
 )
 

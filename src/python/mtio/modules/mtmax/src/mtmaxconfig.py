@@ -33,12 +33,12 @@ exportNormals = True
 exportGroups = True
 exportSkeleton = True
 exportPrimitives = True
-exportPml = True
+exportPjl = True
 exportExistingMrlYml = False
 exportRefPath = ''
 exportMrlYmlPath = ''
 exportUseRefJoints = True
-exportUseRefPml = True
+exportUseRefPjl = True
 exportUseRefBounds = True
 exportUseRefGroups = True
 exportGenerateMrl = True
@@ -47,10 +47,13 @@ exportRoot = ''
 exportOverwriteTextures = False
 exportScale = 1
 exportBakeScale = False
+exportGroupPerMesh = False
+exportGeneratePjl = True
 
 # debug settings
 debugForcePhysicalMaterial = False
 debugImportPrimitiveIdFilter = []
+debugDisableLog = False
 
 def _getModule():
     if not __name__ in sys.modules:
