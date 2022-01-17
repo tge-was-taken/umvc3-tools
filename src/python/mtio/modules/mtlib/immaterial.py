@@ -4,10 +4,8 @@ Intermediate material library representation for easier editing
        
 from argparse import ArgumentError
 from dataclasses import dataclass
-from email.policy import default
 import os
 from typing import List, Tuple
-from venv import create
 import yaml
 from rmaterial import *
 import mvc3materialnamedb
