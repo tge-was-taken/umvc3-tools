@@ -1,15 +1,4 @@
-
-global testCustomAttributes = False
-if ( testCustomAttributes ) then
-(
-	clearListener()
-	custAttributes.delete $ mtPrimitiveAttributesInstance
-	custAttributes.delete $ mtJointAttributesInstance
-	custAttributes.delete $ mtMaterialAttributesInstance
-	custAttributes.delete $ mtModelGroupAttributesInstance
-)
-
-mtPrimitiveAttributesInstance = attributes mtPrimitiveAttributes attribID: #(0x1ffff7f5, 0x14cc7432)
+MtMaxPrimitiveAttributesInstance = attributes MtPrimitiveAttributes attribID: #(0x1ffff7f5, 0x14cc7432)
 (
 	parameters main rollout:params
 	(
@@ -109,7 +98,7 @@ mtPrimitiveAttributesInstance = attributes mtPrimitiveAttributes attribID: #(0x1
 	)
 )
 
-mtJointAttributesInstance = attributes mtJointAttributes attribID: #(0x14e24dd0, 0xafeac75)
+MtMaxJointAttributesInstance = attributes MtMaxJointAttributes attribID: #(0x14e24dd0, 0xafeac75)
 (
 	parameters main rollout:params
 	(
@@ -165,7 +154,7 @@ mtJointAttributesInstance = attributes mtJointAttributes attribID: #(0x14e24dd0,
 	)
 )
 
-mtMaterialAttributesInstance = attributes mtMaterialAttributes attribID: #(0x4256de97, 0x7fbd90)
+MtMaxMaterialAttributesInstance = attributes MtMaxMaterialAttributes attribID: #(0x4256de97, 0x7fbd90)
 (
 	parameters main rollout:params
 	(
@@ -205,7 +194,7 @@ mtMaterialAttributesInstance = attributes mtMaterialAttributes attribID: #(0x425
 	)
 )
 
-mtModelGroupAttributesInstance = attributes mtModelGroupAttributes attribID: #(0x23f7b5ab, 0x6c9d680b)
+MtMaxGroupAttributesInstance = attributes MtMaxGroupAttributes attribID: #(0x23f7b5ab, 0x6c9d680b)
 (
 	parameters main rollout:params
 	(
@@ -237,16 +226,3 @@ mtModelGroupAttributesInstance = attributes mtModelGroupAttributes attribID: #(0
 		)
 	)
 )
-
-fn doTestCustomAttributes =
-(
-	if ( testCustomAttributes ) then
-	(
-		custAttributes.add $ mtPrimitiveAttributesInstance
-		custAttributes.add $ mtJointAttributesInstance
-		custAttributes.add $ mtMaterialAttributesInstance
-		custAttributes.add $ mtModelGroupAttributesInstance
-	)
-)
-
-doTestCustomAttributes()

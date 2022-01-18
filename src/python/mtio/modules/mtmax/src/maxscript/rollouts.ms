@@ -51,26 +51,28 @@ fn mtCallPythonFunc module func args =
 	)
 )
 
-rollout MtInfoRollout "MT Framework Importer/Exporter"
+MtMaxVersionFull = "Version " + MtMaxVersion
+
+rollout MtMaxInfoRollout "MT Framework Importer/Exporter"
 (
 	label lblTitle2 "Ultimate Marvel vs Capcom 3"
-	label lblVersion "Version 1.0.26 Beta" align:#center
+	label lblVersion MtMaxVersionFull align:#center
 	label lblAuthor "© 2021-2022 TGE" align:#center
 )
 
-rollout MtSettingsRollout "Global settings"
+rollout MtMaxSettingsRollout "Global settings"
 (
 	checkbox chkFlipUpAxis "Flip up axis" checked:true align:#left;
 
 	fn emit args = 
 	(
-		mtCallPythonFunc "MtSettingsRollout" "onEvent" args
+		mtCallPythonFunc "MtMaxSettingsRollout" "onEvent" args
 	)
 	
 	on chkFlipUpAxis 	changed state do emit #("chkFlipUpAxisChanged", state)
 )
 
-rollout MtUtilitiesRollout "Utilities"
+rollout MtMaxUtilitiesRollout "Utilities"
 (
 	group "Add MT attributes to selected object" (
 		button btnAddJointAttribs "Joint" across:8
@@ -100,7 +102,7 @@ rollout MtUtilitiesRollout "Utilities"
 
 	fn emit args = 
 	(
-		mtCallPythonFunc "MtUtilitiesRollout" "onEvent" args
+		mtCallPythonFunc "MtMaxUtilitiesRollout" "onEvent" args
 	)
 
 	on btnAddJointAttribs	pressed do emit #("btnAddJointAttribsPressed")
@@ -114,10 +116,10 @@ rollout MtUtilitiesRollout "Utilities"
 	on btnCreateGroup 		pressed do emit #("btnCreateGroupPressed")
 )
 
-rollout MtModelImportRollout "Model import"
+rollout MtMaxModelImportRollout "Model import"
 (	
-	fn _width = ( MtModelImportRollout.width )
-	fn _height = ( MtModelImportRollout.height )
+	fn _width = ( MtMaxModelImportRollout.width )
+	fn _height = ( MtMaxModelImportRollout.height )
 
 	label lblFile "Input model file" across:1 align:#left
 	edittext edtFile across:2 width:(_width() - 60) offset:[0,0]
@@ -156,7 +158,7 @@ rollout MtModelImportRollout "Model import"
 	
 	fn emit args = 
 	(
-		mtCallPythonFunc "MtModelImportRollout" "onEvent" args
+		mtCallPythonFunc "MtMaxModelImportRollout" "onEvent" args
 	)
 	
 	on chkImportWeights 	changed state 	do emit #("chkImportWeightsChanged", state)
@@ -176,10 +178,10 @@ rollout MtModelImportRollout "Model import"
 	on chkBakeScale			changed state	do emit #("chkBakeScale", state)
 )
 
-rollout MtModelExportRollout "Model export"
+rollout MtMaxModelExportRollout "Model export"
 (
-	fn _width = ( MtModelImportRollout.width )
-	fn _height = ( MtModelImportRollout.height )
+	fn _width = ( MtMaxModelImportRollout.width )
+	fn _height = ( MtMaxModelImportRollout.height )
 	
 	label lblFile "Output model file" across:1 align:#left
 	edittext edtFile across:2 width:(_width() - 60) offset:[-0,0]
@@ -236,7 +238,7 @@ rollout MtModelExportRollout "Model export"
 
 	fn emit args = 
 	(
-		mtCallPythonFunc "MtModelExportRollout" "onEvent" args
+		mtCallPythonFunc "MtMaxModelExportRollout" "onEvent" args
 	)
 	
 	on btnExport 			pressed 		do emit #("btnExportPressed" )
@@ -268,14 +270,14 @@ rollout MtModelExportRollout "Model export"
 	on cbxExportMaterialPreset selected i do emit #("cbxExportMaterialPresetSelected", cbxExportMaterialPreset.items[i])
 )
 
-rollout MtDebugRollout "Debug"
+rollout MtMaxDebugRollout "Debug"
 (
 	checkbox chkDisableLog "Disable logging"
 	edittext edtExportForceShader "Force shader on export"
 
 	fn emit args = 
 	(
-		mtCallPythonFunc "MtDebugRollout" "onEvent" args
+		mtCallPythonFunc "MtMaxDebugRollout" "onEvent" args
 	)
 
 	on chkDisableLog changed state do emit #("chkDisableLogChanged", state)

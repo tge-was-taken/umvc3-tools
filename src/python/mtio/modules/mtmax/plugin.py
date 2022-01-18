@@ -5,6 +5,9 @@ import glob
 
 _defaultModules = None
 
+def _getScriptDir():
+    return os.path.dirname(os.path.realpath(__file__))
+
 def _isDebugEnv():
     return os.path.exists( os.path.join( os.path.dirname( __file__ ), '.debug' ) )
 
@@ -62,8 +65,14 @@ def _bootstrap():
         
     loadedModules = [x for x in sys.modules if not x in _getDefaultModules()]
     print(f'bootstrapper: loaded modules: {loadedModules}')
-
+    
+def _installMenu():
+    from pymxs import runtime as rt
+    rt.MtMaxEntrypointFilePath = os.path.realpath(__file__)
+    rt.fileIn( _getScriptDir() + '/src/maxscript/menu.ms' )
+    
 if __name__ == '__main__':
     _bootstrap()
+    _installMenu()
     from src import *
     main()

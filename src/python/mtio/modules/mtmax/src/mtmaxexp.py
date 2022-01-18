@@ -9,12 +9,12 @@ from mtlib import *
 import mtmaxconfig
 import mtmaxutil
 from mtlib import texconv
-import maxlog
+import mtmaxlog
 import shutil
 from mtlib import textureutil
 from mtlib import util
 import mtmaxver
-from mtmax.src import MtModelExportRollout
+from mtmax.src import MtMaxModelExportRollout
 
 def _tryParseInt(input, base=10, default=None):
     try:
@@ -29,24 +29,24 @@ def _tryParseFloat(input, default=None):
         return default
     
 def _updateProgress( what, value, count = 0 ):
-    rollout = MtModelExportRollout.getMxsVar()
+    rollout = MtMaxModelExportRollout.getMxsVar()
     rollout.pbExport.value = value if count == 0 else (value/count) * 100
     rollout.lblExportProgressCategory.text = what
     
 def _updateSubProgress( what, value, count = 0 ):
-    rollout = MtModelExportRollout.getMxsVar()
+    rollout = MtMaxModelExportRollout.getMxsVar()
     rollout.pbExportSub.value = value if count == 0 else (value/count) * 100
     rollout.lblExportProgressSubCategory.text = what
     
 def _progressCallback( what, i, count ):
     if mtmaxutil.updateUI():
-        maxlog.info( what + f' {i}/{count}' )
+        mtmaxlog.info( what + f' {i}/{count}' )
         _updateSubProgress( what, i, count )
 
 class MtGroupAttribData(object):
     '''Wrapper for group custom attribute data'''
     def __init__( self, maxNode ):
-        attribs = maxNode.mtModelGroupAttributes if hasattr(maxNode, 'mtModelGroupAttributes') else None
+        attribs = maxNode.MtMaxGroupAttributes if hasattr(maxNode, 'MtMaxGroupAttributes') else None
         if attribs != None:
             self.id = _tryParseInt(attribs.id)
             self.field04 = _tryParseInt(attribs.field04)
@@ -65,7 +65,7 @@ class MtGroupAttribData(object):
 class MtPrimitiveAttribData(object):
     '''Wrapper for primitive custom attribute data'''
     def __init__( self, maxNode ):
-        attribs = maxNode.mtPrimitiveAttributes if hasattr(maxNode, 'mtPrimitiveAttributes') else None
+        attribs = maxNode.MtPrimitiveAttributes if hasattr(maxNode, 'MtPrimitiveAttributes') else None
         if attribs != None:
             self.flags = _tryParseInt(attribs.flags, base=0)
             if attribs.groupId == "inherit":
@@ -104,7 +104,7 @@ class MtJointAttribData(object):
     '''Wrapper for joint custom attribute data'''
     def __init__( self, maxNode, jointMeta ):
         name: str = maxNode.name
-        attribs = maxNode.mtJointAttributes if hasattr(maxNode, 'mtJointAttributes') else None
+        attribs = maxNode.MtMaxJointAttributes if hasattr(maxNode, 'MtMaxJointAttributes') else None
         if attribs != None:
             # grab attributes from custom attributes on node
             self.id = _tryParseInt(attribs.id)
@@ -213,11 +213,11 @@ class MtModelExporter(object):
             return False
         
         # definitely not a group if it has joint attributes
-        if hasattr( node, 'mtJointAttributes' ):
+        if hasattr( node, 'MtMaxJointAttributes' ):
             return False
 
         # definitely a group if it has group attributes
-        if hasattr( node, 'mtModelGroupAttributes' ):
+        if hasattr( node, 'MtMaxGroupAttributes' ):
             return True
         
         # a group should not be parented to anything
@@ -284,7 +284,7 @@ class MtModelExporter(object):
             # prevent recursion
             return self.maxNodeToJointMap[maxNode]
 
-        maxlog.info(f'processing bone: {maxNode.name}')
+        mtmaxlog.info(f'processing bone: {maxNode.name}')
         jointMeta = self.metadata.getJointByName( maxNode.name )
         attribs = MtJointAttribData( maxNode, jointMeta )
         localMtx = self._getNodeLocalMtx( maxNode )
@@ -319,10 +319,10 @@ class MtModelExporter(object):
     
     def _processBones( self ):
         if not mtmaxconfig.exportSkeleton:
-            maxlog.info('processing bones skipped because it has been disabled through the config')
+            mtmaxlog.info('processing bones skipped because it has been disabled through the config')
             return
         
-        maxlog.info('processing bones')
+        mtmaxlog.info('processing bones')
         
         # convert all joints first
         # so we can reference them when building the primitives
@@ -332,7 +332,7 @@ class MtModelExporter(object):
         
         if self.ref != None and mtmaxconfig.exportUseRefJoints:
             # copy over original joints
-            maxlog.info('copying bones from reference model')
+            mtmaxlog.info('copying bones from reference model')
             for i, refJoint in enumerate(self.ref.joints):
                 joint = imJoint(
                     name=self.metadata.getJointName(refJoint.id),
@@ -380,7 +380,7 @@ class MtModelExporter(object):
             self._textureMapCache[textureMap] = True
             
             if rt.classOf( textureMap ) in [rt.Bitmap, rt.Bitmaptexture]:
-                maxlog.info(f'processing texture: {textureMap.filename}')
+                mtmaxlog.info(f'processing texture: {textureMap.filename}')
                 if os.path.exists(textureMap.filename):
                     relPath = self._getTextureMapResourcePathOrDefault( textureMap, None )
                     fullPath = mtmaxconfig.exportRoot + '/' + relPath
@@ -390,17 +390,17 @@ class MtModelExporter(object):
                     else:
                         texPath = fullPath + '.tex'
                     if mtmaxconfig.exportOverwriteTextures or not os.path.exists(texPath):
-                        maxlog.info('converting texture to TEX')
+                        mtmaxlog.info('converting texture to TEX')
                         self._convertTextureToTEX( textureMap.filename, texPath )
                     else:
-                        maxlog.info(f'skipping texture conversion because {texPath} already exists')
+                        mtmaxlog.info(f'skipping texture conversion because {texPath} already exists')
                 else:
-                    maxlog.info(f'skipping texture conversion because {textureMap.filename} does not exist')
+                    mtmaxlog.info(f'skipping texture conversion because {textureMap.filename} does not exist')
             elif rt.classOf( textureMap ) == rt.Normal_Bump:
                 self._exportTextureMapSafe( textureMap, 'normal_map' )
                 self._exportTextureMapSafe( textureMap, 'bump_map' )
             else:
-                maxlog.warn(f'unknown texture map type: {rt.classOf( textureMap )}')
+                mtmaxlog.warn(f'unknown texture map type: {rt.classOf( textureMap )}')
                 
     def _exportTextureMapSafe( self, material, textureMapName ):
         materialName = getattr(material, "name", None)
@@ -408,9 +408,9 @@ class MtModelExporter(object):
             if getattr( material, textureMapName, None ) != None:
                 self._exportTextureMap( getattr( material, textureMapName ) )
             else:
-                maxlog.debug( f'material "{materialName}" texture map "{textureMapName}" not exported because it has not been assigned')
+                mtmaxlog.debug( f'material "{materialName}" texture map "{textureMapName}" not exported because it has not been assigned')
         else:
-            maxlog.debug( f'material "{materialName}" texture map "{textureMapName}" not exported because it does not exist on the material')
+            mtmaxlog.debug( f'material "{materialName}" texture map "{textureMapName}" not exported because it does not exist on the material')
             
     def _getTextureMapResourcePathInternal( self, name ):
         if self.outPath.relBasePath != None:
@@ -531,14 +531,14 @@ class MtModelExporter(object):
             # add to cache
             self._materialCache[material] = True
             
-            maxlog.info(f'processing material: {material.name}')
+            mtmaxlog.info(f'processing material: {material.name}')
             materialInstance = None
             if hasattr( rt, 'PBRSpecGloss' ) and rt.classOf( material ) == rt.PBRSpecGloss:
                 materialInstance = self._processMaterial_PBRSpecGloss( material )
             elif rt.classOf( material ) == rt.PhysicalMaterial:
                 materialInstance = self._processMaterial_PhysicalMaterial( material )
             else:
-                maxlog.error( f"unsupported material type: {rt.classOf( material )}" )
+                mtmaxlog.error( f"unsupported material type: {rt.classOf( material )}" )
                 return
             
             if materialInstance != None:
@@ -552,11 +552,11 @@ class MtModelExporter(object):
             return material.name
             
     def _processMesh( self, maxNode ):
-        maxlog.info(f'processing mesh: {maxNode.name}')
+        mtmaxlog.info(f'processing mesh: {maxNode.name}')
         attribs = MtPrimitiveAttribData(maxNode)
             
         if mtmaxconfig.exportWeights:
-            maxlog.debug('getting skin modifier')
+            mtmaxlog.debug('getting skin modifier')
             maxSkin = maxNode.modifiers[rt.Name('Skin')]
             hasSkin = maxSkin != None
             if hasSkin:
@@ -572,14 +572,14 @@ class MtModelExporter(object):
         editNormalsMod = maxNode.modifiers[rt.Name('Edit_Normals')]
         if editNormalsMod == None:
             if mtmaxconfig.exportNormals:
-                maxlog.debug('adding temporary edit normals modifier to get the proper vertex normals')
+                mtmaxlog.debug('adding temporary edit normals modifier to get the proper vertex normals')
                 editNormalsMod = rt.Edit_Normals()
                 rt.select( maxNode )
                 rt.modPanel.addModToSelection( editNormalsMod, ui=False )
                 removeEditNormals = True
         
         # collect all vertex data per material
-        maxlog.debug('collecting vertex data')
+        mtmaxlog.debug('collecting vertex data')
         maxMesh = rt.snapshotAsMesh( maxNode )
         faceCount = rt.getNumFaces( maxMesh )
         hasUVs = rt.getNumTVerts( maxMesh ) > 0
@@ -681,7 +681,7 @@ don't have an reference/original model specified as it will override the skeleto
             mtmaxutil.updateUI()
             
             prim: imPrimitive = tempMesh
-            maxlog.info(f'processing submesh with material {prim.materialName}')
+            mtmaxlog.info(f'processing submesh with material {prim.materialName}')
 
             # copy over attribs
             if attribs.flags != None: prim.flags = attribs.flags
@@ -714,16 +714,16 @@ don't have an reference/original model specified as it will override the skeleto
                 # force shader on export if specified
                 prim.vertexFormat = imVertexFormat.createFromShader( mtmaxconfig.debugExportForceShader )
                             
-            maxlog.debug("generating tangents")
+            mtmaxlog.debug("generating tangents")
             prim.generateTangents( _progressCallback )
             
-            maxlog.debug("optimizing mesh")
+            mtmaxlog.debug("optimizing mesh")
             prim.makeIndexed( _progressCallback )
             
             self.model.primitives.append( prim )
             
         if removeEditNormals:
-            maxlog.debug('delete temporary edit normals modifier')
+            mtmaxlog.debug('delete temporary edit normals modifier')
             try:
                 rt.deleteModifier( maxNode, editNormalsMod )
             except:
@@ -743,11 +743,11 @@ don't have an reference/original model specified as it will override the skeleto
         
     def _processMeshes( self ):
         if not mtmaxconfig.exportPrimitives:
-            maxlog.info('exporting meshes skipped because it has been disabled through the config')
+            mtmaxlog.info('exporting meshes skipped because it has been disabled through the config')
             return
         
         # convert meshes
-        maxlog.info('processing meshes')
+        mtmaxlog.info('processing meshes')
         meshNodes = list(self._iterMeshNodes())
         for i, maxNode in enumerate( meshNodes ):
             _updateProgress('Processing meshes', i, len( meshNodes ) )
@@ -763,12 +763,12 @@ don't have an reference/original model specified as it will override the skeleto
 
     def _processGroups( self ):
         if not mtmaxconfig.exportGroups:
-            maxlog.info('exporting groups skipped because it has been disabled through the config')
+            mtmaxlog.info('exporting groups skipped because it has been disabled through the config')
             return
         
-        maxlog.info('processing groups')
+        mtmaxlog.info('processing groups')
         if self.ref != None and mtmaxconfig.exportUseRefGroups:
-            maxlog.info('copying groups from reference model')
+            mtmaxlog.info('copying groups from reference model')
             for i, refGroup in enumerate(self.ref.groups):
                 group = imGroup(
                     name=self.metadata.getGroupName(refGroup.id),
@@ -787,7 +787,7 @@ don't have an reference/original model specified as it will override the skeleto
                 _updateProgress( 'Processing groups', i, len( groupNodes ) )
                 maxNode = groupNodes[i]
                 
-                maxlog.info(f'processing group node {maxNode}')
+                mtmaxlog.info(f'processing group node {maxNode}')
                 attribs = MtGroupAttribData(maxNode)
                 group = imGroup(
                     name=maxNode.name,
@@ -803,12 +803,12 @@ don't have an reference/original model specified as it will override the skeleto
                 
     def _processPjl( self ):
         if not mtmaxconfig.exportPjl:
-            maxlog.info('exporting pjl skipped because it has been disabled through the config')
+            mtmaxlog.info('exporting pjl skipped because it has been disabled through the config')
             return
         
-        maxlog.info('processing pjl')
+        mtmaxlog.info('processing pjl')
         if self.ref != None and mtmaxconfig.exportUseRefPjl:
-            maxlog.info('copying pjl from reference model')
+            mtmaxlog.info('copying pjl from reference model')
             for i, refPjl in enumerate(self.ref.primitiveJointLinks):
                 pjl = imPrimitiveJointLink(
                     name='pjl_'+str(i),
@@ -826,16 +826,16 @@ don't have an reference/original model specified as it will override the skeleto
                 self._refPrimitiveJointLinks.append( pjl )
         else:
             # TODO: represent these in the scene
-            maxlog.debug("exporting pjl from scene not implemented")
+            mtmaxlog.debug("exporting pjl from scene not implemented")
     
     def _writeBinaries( self ):
-        maxlog.info('writing files')
-        maxlog.debug('converting intermediate model to binary model format')
+        mtmaxlog.info('writing files')
+        mtmaxlog.debug('converting intermediate model to binary model format')
         _updateProgress( 'Writing files', 0 )
         binMod = self.model.toBinaryModel( _progressCallback )
         _updateProgress( 'Writing files', 25 )
         
-        maxlog.debug('writing binary model')
+        mtmaxlog.debug('writing binary model')
         stream = NclBitStream()
         binMod.write( stream )
         try:
@@ -851,7 +851,7 @@ don't have an reference/original model specified as it will override the skeleto
         _updateProgress( 'Writing files', 50 )
         if mtmaxconfig.exportGenerateMrl:
             mrlYmlExportPath = mrlExportPath + ".yml"
-            maxlog.info(f"writing generated mrl yml to {mrlYmlExportPath}")
+            mtmaxlog.info(f"writing generated mrl yml to {mrlYmlExportPath}")
             self.mrl.updateTextureList()
             try:
                 self.mrl.saveYamlFile( mrlYmlExportPath )
@@ -860,7 +860,7 @@ don't have an reference/original model specified as it will override the skeleto
           
         _updateProgress( 'Writing files', 75 )  
         if mtmaxconfig.exportGenerateMrl or (mtmaxconfig.exportExistingMrlYml and self.mrl != None):
-            maxlog.info(f'exporting mrl yml to {mrlExportPath}')
+            mtmaxlog.info(f'exporting mrl yml to {mrlExportPath}')
             
             try:
                 self.mrl.saveBinaryFile( mrlExportPath )
@@ -880,8 +880,8 @@ don't have an reference/original model specified as it will override the skeleto
         self._transformMtxNormal = nclTranspose( nclInverse( self._transformMtx ) )
     
     def exportModel( self, path ):
-        maxlog.info(f'script version: {mtmaxver.version}')
-        maxlog.info(f'exporting to {path}')
+        mtmaxlog.info(f'script version: {mtmaxver.version}')
+        mtmaxlog.info(f'exporting to {path}')
         
         # start building intermediate model data for conversion
         self.model = imModel()
@@ -894,32 +894,32 @@ don't have an reference/original model specified as it will override the skeleto
         self._calcMatrices()
 
         if os.path.exists( mtmaxconfig.exportMetadataPath ):
-            maxlog.info(f'loading metadata file from {mtmaxconfig.exportMetadataPath}')
+            mtmaxlog.info(f'loading metadata file from {mtmaxconfig.exportMetadataPath}')
             self.metadata.loadFile( mtmaxconfig.exportMetadataPath )
 
         if os.path.exists( mtmaxconfig.exportRefPath ):
-            maxlog.info(f'loading reference model from {mtmaxconfig.exportRefPath}')
+            mtmaxlog.info(f'loading reference model from {mtmaxconfig.exportRefPath}')
             self.ref = rModelData()
             self.ref.read( NclBitStream( util.loadIntoByteArray( mtmaxconfig.exportRefPath ) ) )
             
         if os.path.exists( mtmaxconfig.exportMrlYmlPath ):
-            maxlog.info(f'loading mrl yml from {mtmaxconfig.exportMrlYmlPath}')
+            mtmaxlog.info(f'loading mrl yml from {mtmaxconfig.exportMrlYmlPath}')
             self.mrl = imMaterialLib()
             self.mrl.loadYamlFile( mtmaxconfig.exportMrlYmlPath )
         elif mtmaxconfig.exportGenerateMrl:
-            maxlog.info(f'generating new mrl')
+            mtmaxlog.info(f'generating new mrl')
             self.mrl = imMaterialLib()
             
-        maxlog.debug('creating output directories')
+        mtmaxlog.debug('creating output directories')
         if not os.path.exists( mtmaxconfig.exportRoot ):
             os.makedirs( mtmaxconfig.exportRoot )
         if not os.path.exists( os.path.dirname( mtmaxconfig.exportFilePath ) ):
             os.makedirs( mtmaxconfig.exportFilePath )
 
-        maxlog.info('processing scene')
+        mtmaxlog.info('processing scene')
         if self.ref != None and mtmaxconfig.exportUseRefBounds:
             # copy over header values
-            maxlog.debug('copying over header values from reference model')
+            mtmaxlog.debug('copying over header values from reference model')
             self.model.field90 = self.ref.header.field90
             self.model.field94 = self.ref.header.field94
             self.model.field98 = self.ref.header.field98
@@ -942,4 +942,4 @@ don't have an reference/original model specified as it will override the skeleto
         
         _updateProgress( 'Done', 0 )
         _updateSubProgress( '', 0 )
-        maxlog.info('export completed successfully')
+        mtmaxlog.info('export completed successfully')

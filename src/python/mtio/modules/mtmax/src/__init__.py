@@ -12,12 +12,12 @@ import mtmaxconfig
 from mtmaxexp import *
 from mtmaximp import *
 import mtmaxutil
-import maxlog
+import mtmaxlog
 import mtmaxver
 from mtlib import log
 
 def _handleException( e, brief ):
-    maxlog.exception( e )
+    mtmaxlog.exception( e )
     mtmaxutil.showExceptionMessageBox( brief, e )
     if mtmaxconfig.showLogOnError:
         mtmaxutil.openLogFile()
@@ -28,16 +28,16 @@ class MtRollout:
     @classmethod
     def onEvent( cls, e, *args ):
         try:
-            maxlog.debug(f'received event: {e} with args: {args}')
+            mtmaxlog.debug(f'received event: {e} with args: {args}')
             if hasattr(cls, e):
                 getattr(cls, e)(*args)
             else:
-                maxlog.debug(f'no event handler for {e}')
+                mtmaxlog.debug(f'no event handler for {e}')
 
             if hasattr( cls, 'updateVisibility'): 
                 cls.updateVisibility()
             else:
-                maxlog.debug(f'no update visibility handler defined in {cls}')
+                mtmaxlog.debug(f'no update visibility handler defined in {cls}')
 
             mtmaxconfig.save()
         except Exception as e:
@@ -48,34 +48,34 @@ class MtRollout:
         assert( hasattr( rt, cls.__name__ ) )
         return getattr( rt, cls.__name__ )
     
-class MtInfoRollout(MtRollout):
+class MtMaxInfoRollout(MtRollout):
     @staticmethod
     def loadConfig():
-        self = MtInfoRollout.getMxsVar()
+        self = MtMaxInfoRollout.getMxsVar()
     
-class MtSettingsRollout(MtRollout):
+class MtMaxSettingsRollout(MtRollout):
     @staticmethod
     def updateVisibility():
         pass
 
     @staticmethod
     def loadConfig():
-        self = MtSettingsRollout.getMxsVar()
+        self = MtMaxSettingsRollout.getMxsVar()
         self.chkFlipUpAxis.checked = mtmaxconfig.flipUpAxis
     
     @staticmethod
     def chkFlipUpAxisChanged( state ):
         mtmaxconfig.flipUpAxis = state
         
-class MtModelImportRollout(MtRollout):
+class MtMaxModelImportRollout(MtRollout):
     @staticmethod
     def updateVisibility():
-        rt.MtModelImportRollout.btnImport.enabled = \
+        rt.MtMaxModelImportRollout.btnImport.enabled = \
             os.path.isfile( mtmaxconfig.importFilePath )
             
     @staticmethod
     def loadConfig():
-        self = MtModelImportRollout.getMxsVar()
+        self = MtMaxModelImportRollout.getMxsVar()
         self.edtFile.text = mtmaxconfig.importFilePath
         self.edtMetadata.text = mtmaxconfig.importMetadataPath
         self.chkImportWeights.checked = mtmaxconfig.importWeights
@@ -88,7 +88,7 @@ class MtModelImportRollout(MtRollout):
         self.chkCreateLayer.checked = mtmaxconfig.importCreateLayer
         self.spnScale.value = mtmaxconfig.importScale
         self.chkBakeScale.checked = mtmaxconfig.importBakeScale
-        MtModelImportRollout.updateVisibility()
+        MtMaxModelImportRollout.updateVisibility()
         
     @staticmethod
     def setFilePath( path ):
@@ -96,7 +96,7 @@ class MtModelImportRollout(MtRollout):
         newMetadataPath = ModelMetadata.getDefaultFilePath( os.path.basename( mtmaxconfig.importFilePath ).split('.')[0] )
         if os.path.exists( newMetadataPath ):
             mtmaxconfig.importMetadataPath = newMetadataPath
-        MtModelImportRollout.loadConfig()
+        MtMaxModelImportRollout.loadConfig()
     
     @staticmethod
     def chkImportWeightsChanged( state ):
@@ -105,12 +105,12 @@ class MtModelImportRollout(MtRollout):
     @staticmethod
     def btnImportPressed():
         try:
-            maxlog.clear()
+            mtmaxlog.clear()
             mtmaxconfig.dump()
             
             importer = MtModelImporter()
             importer.importModel( mtmaxconfig.importFilePath )
-            if maxlog.hasError():
+            if mtmaxlog.hasError():
                 mtmaxutil.showErrorMessageBox( "Import completed with one or more errors.", '' )
                 mtmaxutil.openListener()
             else:
@@ -126,11 +126,11 @@ class MtModelImportRollout(MtRollout):
         if path == None:
             return
         
-        MtModelImportRollout.setFilePath( path )
+        MtMaxModelImportRollout.setFilePath( path )
         
     @staticmethod
     def edtFileChanged( state ):
-        MtModelImportRollout.setFilePath( state )
+        MtMaxModelImportRollout.setFilePath( state )
         
     @staticmethod
     def edtMetadataChanged( state ):
@@ -181,10 +181,10 @@ class MtModelImportRollout(MtRollout):
         mtmaxconfig.importBakeScale = state
 
         
-class MtModelExportRollout(MtRollout):
+class MtMaxModelExportRollout(MtRollout):
     @staticmethod
     def updateVisibility():
-        self = MtModelExportRollout.getMxsVar()
+        self = MtMaxModelExportRollout.getMxsVar()
         self.btnExport.enabled = mtmaxconfig.exportFilePath.strip() != '' and mtmaxconfig.exportRoot.strip() != ''
         self.edtMrlYml.enabled = not mtmaxconfig.exportGenerateMrl and mtmaxconfig.exportExistingMrlYml
         self.btnMrlYml.enabled = not mtmaxconfig.exportGenerateMrl and mtmaxconfig.exportExistingMrlYml
@@ -194,7 +194,7 @@ class MtModelExportRollout(MtRollout):
     
     @staticmethod
     def loadConfig():
-        self = MtModelExportRollout.getMxsVar()
+        self = MtMaxModelExportRollout.getMxsVar()
         self.edtFile.text = mtmaxconfig.exportFilePath
         self.edtMetadata.text = mtmaxconfig.exportMetadataPath
         self.edtRef.text = mtmaxconfig.exportRefPath
@@ -215,7 +215,7 @@ class MtModelExportRollout(MtRollout):
         self.chkExportGeneratePjl.checked = mtmaxconfig.exportGeneratePjl
         self.cbxExportMaterialPreset.items = mtmaxutil.toMaxArray( imMaterialInfo.TEMPLATE_MATERIALS )
         self.cbxExportMaterialPreset.selection = rt.findItem(self.cbxExportMaterialPreset.items, mtmaxconfig.exportMaterialPreset)
-        MtModelExportRollout.updateVisibility()
+        MtMaxModelExportRollout.updateVisibility()
         
     @staticmethod
     def setFilePath( path ):
@@ -224,7 +224,7 @@ class MtModelExportRollout(MtRollout):
             newMetadataPath = ModelMetadata.getDefaultFilePath( os.path.basename( mtmaxconfig.exportFilePath ).split('.')[0] )
             if os.path.exists( newMetadataPath ):
                 mtmaxconfig.exportMetadataPath = newMetadataPath
-        MtModelExportRollout.loadConfig()
+        MtMaxModelExportRollout.loadConfig()
 
     @staticmethod
     def setRefFilePath( path ):
@@ -233,12 +233,12 @@ class MtModelExportRollout(MtRollout):
             newMetadataPath = ModelMetadata.getDefaultFilePath( os.path.basename( mtmaxconfig.exportRefPath ).split('.')[0] )
             if os.path.exists( newMetadataPath ): 
                 mtmaxconfig.exportMetadataPath = newMetadataPath
-        MtModelExportRollout.loadConfig()
+        MtMaxModelExportRollout.loadConfig()
         
     @staticmethod
     def setMrlYmlFilePath( path ):
         mtmaxconfig.exportMrlYmlPath = path
-        MtModelExportRollout.loadConfig()
+        MtMaxModelExportRollout.loadConfig()
     
     @staticmethod
     def chkExportWeightsChanged( state ):
@@ -247,12 +247,12 @@ class MtModelExportRollout(MtRollout):
     @staticmethod
     def btnExportPressed():
         try:
-            maxlog.clear()
+            mtmaxlog.clear()
             mtmaxconfig.dump()
             
             exporter = MtModelExporter()
             exporter.exportModel( mtmaxconfig.exportFilePath )
-            if maxlog.hasError():
+            if mtmaxlog.hasError():
                 mtmaxutil.showErrorMessageBox( "Export completed with one or more errors." )
                 mtmaxutil.openListener()
             else:
@@ -267,11 +267,11 @@ class MtModelExportRollout(MtRollout):
         if path == None:
             return
         
-        MtModelExportRollout.setFilePath( path )
+        MtMaxModelExportRollout.setFilePath( path )
         
     @staticmethod
     def edtFileChanged( state ):
-        MtModelExportRollout.setFilePath( state )
+        MtMaxModelExportRollout.setFilePath( state )
         
     @staticmethod
     def edtMetadataChanged( state ):
@@ -287,7 +287,7 @@ class MtModelExportRollout(MtRollout):
 
     @staticmethod
     def edtRefChanged( state ):
-        MtModelExportRollout.setRefFilePath( state )
+        MtMaxModelExportRollout.setRefFilePath( state )
         
     @staticmethod
     def btnRefPressed():
@@ -295,11 +295,11 @@ class MtModelExportRollout(MtRollout):
         if path == None:
             return
         
-        MtModelExportRollout.setRefFilePath( path )
+        MtMaxModelExportRollout.setRefFilePath( path )
         
     @staticmethod
     def edtMrlYmlChanged( state ):
-        MtModelExportRollout.setMrlYmlFilePath( state )
+        MtMaxModelExportRollout.setMrlYmlFilePath( state )
         
     @staticmethod
     def btnMrlYmlPressed():
@@ -307,7 +307,7 @@ class MtModelExportRollout(MtRollout):
         if path == None:
             return
         
-        MtModelExportRollout.setMrlYmlFilePath( path )
+        MtMaxModelExportRollout.setMrlYmlFilePath( path )
         
     @staticmethod
     def chkExportNormalsChanged( state ):
@@ -352,7 +352,7 @@ class MtModelExportRollout(MtRollout):
             return
         
         mtmaxconfig.exportRoot = os.path.abspath( path ).replace( "\\", "/" )
-        MtModelExportRollout.loadConfig()
+        MtMaxModelExportRollout.loadConfig()
         
     @staticmethod
     def chkExportTexOverwriteChanged( state ):
@@ -378,7 +378,7 @@ class MtModelExportRollout(MtRollout):
     def cbxExportMaterialPresetSelected( state ):
         mtmaxconfig.exportMaterialPreset = state
 
-class MtUtilitiesRollout(MtRollout):
+class MtMaxUtilitiesRollout(MtRollout):
     @staticmethod
     def loadConfig():
         pass
@@ -401,45 +401,45 @@ class MtUtilitiesRollout(MtRollout):
 
     @staticmethod
     def btnAddJointAttribsPressed():
-        MtUtilitiesRollout._addAttributeToSelection( rt.mtJointAttributesInstance )
+        MtMaxUtilitiesRollout._addAttributeToSelection( rt.MtMaxJointAttributesInstance )
 
     @staticmethod
     def btnAddGroupAttribsPressed():
-        MtUtilitiesRollout._addAttributeToSelection( rt.mtModelGroupAttributesInstance )
+        MtMaxUtilitiesRollout._addAttributeToSelection( rt.MtMaxGroupAttributesInstance )
 
     @staticmethod
     def btnAddPrimAttribsPressed():
-        MtUtilitiesRollout._addAttributeToSelection( rt.mtPrimitiveAttributesInstance )
+        MtMaxUtilitiesRollout._addAttributeToSelection( rt.MtMaxPrimitiveAttributesInstance )
         
     @staticmethod
     def btnRemJointAttribsPressed():
-        MtUtilitiesRollout._removeAttributeFromSelection( rt.mtJointAttributesInstance )
+        MtMaxUtilitiesRollout._removeAttributeFromSelection( rt.MtMaxJointAttributesInstance )
 
     @staticmethod
     def btnRemGroupAttribsPressed():
-        MtUtilitiesRollout._removeAttributeFromSelection( rt.mtModelGroupAttributesInstance )
+        MtMaxUtilitiesRollout._removeAttributeFromSelection( rt.MtMaxGroupAttributesInstance )
 
     @staticmethod
     def btnRemPrimAttribsPressed():
-        MtUtilitiesRollout._removeAttributeFromSelection( rt.mtPrimitiveAttributesInstance )
+        MtMaxUtilitiesRollout._removeAttributeFromSelection( rt.MtMaxPrimitiveAttributesInstance )
 
     @staticmethod
     def btnCreateGroupPressed():
         group = rt.dummy()
         group.name = "New group"
-        rt.custAttributes.add( group, rt.mtModelGroupAttributesInstance )
+        rt.custAttributes.add( group, rt.MtMaxGroupAttributesInstance )
         rt.select( group )
         
-class MtDebugRollout(MtRollout):
+class MtMaxDebugRollout(MtRollout):
     @staticmethod
     def updateVisibility():
-        self = MtDebugRollout.getMxsVar()
+        self = MtMaxDebugRollout.getMxsVar()
     
     @staticmethod
     def loadConfig():
-        self = MtDebugRollout.getMxsVar()
+        self = MtMaxDebugRollout.getMxsVar()
         self.chkDisableLog.checked = mtmaxconfig.debugDisableLog
-        MtDebugRollout.updateVisibility()
+        MtMaxDebugRollout.updateVisibility()
         
     @staticmethod
     def chkDisableLogChanged( state ):
@@ -471,9 +471,9 @@ def createMainWindow():
         
     # create plugin window
     rt.g_mtWindow = rt.newRolloutFloater( "MT Framework Max IO Plugin", w, h, x, y )
-    rollouts = [MtInfoRollout, MtSettingsRollout, MtModelImportRollout, MtModelExportRollout, MtUtilitiesRollout]
+    rollouts = [MtMaxInfoRollout, MtMaxSettingsRollout, MtMaxModelImportRollout, MtMaxModelExportRollout, MtMaxUtilitiesRollout]
     if mtmaxutil.isDebugEnv():
-        rollouts.insert(0, MtDebugRollout)
+        rollouts.insert(0, MtMaxDebugRollout)
         
     for rollout in rollouts:
         rollout.getMxsVar().width = w
@@ -483,19 +483,21 @@ def createMainWindow():
     
 class MaxLogger():
     def debug( self, msg, *args ):
-        maxlog.debug( msg, *args )
+        mtmaxlog.debug( msg, *args )
     
     def info( self, msg, *args ):
-        maxlog.info( msg, *args )
+        mtmaxlog.info( msg, *args )
     
     def warn( self, msg, *args ):
-        maxlog.warn( msg, *args )
+        mtmaxlog.warn( msg, *args )
     
     def error( self, msg, *args ):
-        maxlog.error( msg, *args )
+        mtmaxlog.error( msg, *args )
     
 def main():
-    maxlog.info(f'script version: {mtmaxver.version}')
+    rt.MtMaxVersion = mtmaxver.version
+    
+    mtmaxlog.info(f'script version: {mtmaxver.version}')
     
     # increase heap size to improve stability
     heapSize = 512

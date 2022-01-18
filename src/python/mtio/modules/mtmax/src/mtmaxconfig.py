@@ -3,7 +3,7 @@ import yaml
 import os
 import importlib
 import mtmaxutil
-import maxlog
+import mtmaxlog
 
 # general
 flipUpAxis = True
@@ -99,7 +99,7 @@ def dump():
     for key in _getVariables():
         val = getattr(_getModule(), key)
         s += f"{key} = {val}\n"
-    maxlog.debug(s)
+    mtmaxlog.debug(s)
         
 
 if __name__ == '__main__':

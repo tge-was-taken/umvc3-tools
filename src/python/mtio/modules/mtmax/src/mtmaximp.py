@@ -3,19 +3,19 @@ from mtlib import *
 import mtmaxconfig
 import mtmaxutil
 import plugin
-import maxlog
+import mtmaxlog
 import mtmaxver
 import copy
 
 def _updateProgress( what, value, count = 0 ):
-    from mtmax.src import MtModelImportRollout
-    rollout = MtModelImportRollout.getMxsVar()
+    from mtmax.src import MtMaxModelImportRollout
+    rollout = MtMaxModelImportRollout.getMxsVar()
     rollout.pbImport.value = value if count == 0 else (value/count) * 100
     rollout.lblImportProgressCategory.text = what
     
 def _updateSubProgress( what, value, count = 0 ):
-    from mtmax.src import MtModelImportRollout
-    rollout = MtModelImportRollout.getMxsVar()
+    from mtmax.src import MtMaxModelImportRollout
+    rollout = MtMaxModelImportRollout.getMxsVar()
     rollout.pbImportSub.value = value if count == 0 else (value/count) * 100
     rollout.lblImportProgressSubCategory.text = what
 
@@ -118,7 +118,7 @@ class MtModelImporter:
             textureTEXPath, textureDDSPath = util.resolveTexturePath( self.basePath, texturePath )
             
             if mtmaxconfig.importConvertTexturesToDDS and textureTEXPath != None and os.path.exists( textureTEXPath ):
-                maxlog.info( f'converting TEX file {textureTEXPath} to DDS {textureDDSPath}' )
+                mtmaxlog.info( f'converting TEX file {textureTEXPath} to DDS {textureDDSPath}' )
                 
                 try:
                     texture = rTextureData()
@@ -127,10 +127,10 @@ class MtModelImporter:
                     try:
                         textureDDS.saveFile( textureDDSPath )
                     except PermissionError:
-                        maxlog.error( f"failed to save TEX file to DDS, make sure you have write permissions to: {textureDDSPath}" )
+                        mtmaxlog.error( f"failed to save TEX file to DDS, make sure you have write permissions to: {textureDDSPath}" )
                 except Exception as e:
-                    maxlog.error( 'failed to convert TEX file to DDS' )
-                    maxlog.exception( e )
+                    mtmaxlog.error( 'failed to convert TEX file to DDS' )
+                    mtmaxlog.exception( e )
                         
             return rt.BitmapTexture( filename=textureDDSPath )
        
@@ -145,20 +145,20 @@ class MtModelImporter:
     def loadMetadata( self, path ):
         metadata = ModelMetadata()
         if os.path.exists( path ):
-            maxlog.info(f'loading metadata file from {path}')
+            mtmaxlog.info(f'loading metadata file from {path}')
             metadata.loadFile( path )
         return metadata
             
     def loadModel( self, path ):
         model = rModelData()
-        maxlog.info(f'loading model from {path}')
+        mtmaxlog.info(f'loading model from {path}')
         model.read( NclBitStream( util.loadIntoByteArray( path ) ) )
         mvc3materialnamedb.registerMaterialNames( model.materials )
         return model
 
     def _addPrimitiveAttribs( self, primitive, shaderInfo, maxMesh, primitiveJointLinkIndex ):
-        rt.custAttributes.add( maxMesh.baseObject, rt.mtPrimitiveAttributesInstance )
-        attribs = maxMesh.mtPrimitiveAttributes
+        rt.custAttributes.add( maxMesh.baseObject, rt.MtMaxPrimitiveAttributesInstance )
+        attribs = maxMesh.MtPrimitiveAttributes
         attribs.flags = hex( primitive.flags )
         attribs.groupId = "inherit" # inherited from parent
         attribs.lodIndex = primitive.indices.getLodIndex()
@@ -183,8 +183,8 @@ class MtModelImporter:
         attribs.index = str( self.model.primitives.index( primitive ) )
 
     def _addGroupAttribs( self, group, maxGroup ):
-        rt.custAttributes.add( maxGroup, rt.mtModelGroupAttributesInstance )
-        attribs =  maxGroup.mtModelGroupAttributes
+        rt.custAttributes.add( maxGroup, rt.MtMaxGroupAttributesInstance )
+        attribs =  maxGroup.MtMaxGroupAttributes
         attribs.id = group.id
         attribs.field04 = group.field04
         attribs.field08 = group.field08
@@ -193,8 +193,8 @@ class MtModelImporter:
         attribs.index = str( self.model.groups.index( group ) )
 
     def _addJointAttribs( self, joint, maxBone ):
-        rt.custAttributes.add( maxBone.baseObject, rt.mtJointAttributesInstance )
-        attribs = maxBone.mtJointAttributes
+        rt.custAttributes.add( maxBone.baseObject, rt.MtMaxJointAttributesInstance )
+        attribs = maxBone.MtMaxJointAttributes
         attribs.id = joint.id
         attribs.parentIndex = str(joint.parentIndex)
         attribs.symmetryIndex = str(joint.symmetryIndex)
@@ -208,7 +208,7 @@ class MtModelImporter:
         attribs.index = str( self.model.joints.index( joint ) )
             
     def importGroups( self ):
-        maxlog.info('importing groups')
+        mtmaxlog.info('importing groups')
         
         self.maxGroupArray = []
         self.maxGroupLookup = dict()
@@ -226,7 +226,7 @@ class MtModelImporter:
             self.maxGroupLookup[ group.id ] = maxGroup
             
     def importWeights( self, maxMesh, primitive, maxJointArray, maxWeightArray ):
-        maxlog.info( 'importing mesh weights' )
+        mtmaxlog.info( 'importing mesh weights' )
         
         maxSkin = rt.skin()
         rt.addModifier( maxMesh, maxSkin )
@@ -319,7 +319,7 @@ class MtModelImporter:
             
     def importPrimitive( self, primitive, primitiveJointLinkIndex, indexStream, vertexStream ):
         shaderInfo: ShaderObjectInfo = mvc3shaderdb.shaderObjectsByHash[ primitive.vertexShader.getHash() ]
-        maxlog.debug( f'shader {shaderInfo.name} ({hex(shaderInfo.hash)})')
+        mtmaxlog.debug( f'shader {shaderInfo.name} ({hex(shaderInfo.hash)})')
 
         # read vertices
         maxVertexArray = rt.Array()
@@ -331,7 +331,7 @@ class MtModelImporter:
         maxWeightArray = rt.Array()
         maxJointArray = rt.Array()
 
-        maxlog.debug( 'decoding vertices' )
+        mtmaxlog.debug( 'decoding vertices' )
         vertexBufferStart = primitive.vertexBufferOffset + (primitive.vertexStartIndex * primitive.vertexStride)
         for j in range( 0, primitive.vertexCount ):
             vertexStart = vertexBufferStart + ( j * primitive.vertexStride )
@@ -370,7 +370,7 @@ class MtModelImporter:
                 rt.append( maxJointArray, maxVtxJointArray ) 
 
         # read faces
-        maxlog.debug( 'decoding faces')
+        mtmaxlog.debug( 'decoding faces')
         maxFaceArray = rt.Array()
         indexStart = ( primitive.indexBufferOffset + primitive.indexStartIndex ) * 2
         indexStream.setOffset( indexStart )
@@ -382,7 +382,7 @@ class MtModelImporter:
             rt.append( maxFaceArray, face )
            
         # build mesh object
-        maxlog.debug( 'creating mesh' )
+        mtmaxlog.debug( 'creating mesh' )
         meshName = self.metadata.getPrimitiveName( primitive.id )
         maxMesh = rt.Mesh(vertices=maxVertexArray, faces=maxFaceArray, normals=maxNormalArray)
         maxMesh.backfacecull = True
@@ -413,14 +413,14 @@ class MtModelImporter:
         if len( maxJointArray ) > 0 and mtmaxconfig.importWeights:
             self.importWeights( maxMesh, primitive, maxJointArray, maxWeightArray )
         elif len( maxJointArray ) == 0:
-            maxlog.debug( f'primitive {maxMesh.name} has no vertex weights' )
+            mtmaxlog.debug( f'primitive {maxMesh.name} has no vertex weights' )
             
         if self.layer != None:
             # add to layer
             self.layer.addNode( maxMesh )
             
     def importPrimitives( self ):
-        maxlog.info('importing primitives')
+        mtmaxlog.info('importing primitives')
         
         indexStream = NclBitStream( self.model.indexBuffer )
         vertexStream = NclBitStream( self.model.vertexBuffer )
@@ -431,17 +431,17 @@ class MtModelImporter:
             primitive = self.model.primitives[i]
             
             if len(mtmaxconfig.debugImportPrimitiveIdFilter) > 0 and primitive.id not in mtmaxconfig.debugImportPrimitiveIdFilter:
-                maxlog.debug(f'skipped importing primitive {self.metadata.getPrimitiveName( primitive.id )} (id {primitive.id}) because it does not match the filter')
+                mtmaxlog.debug(f'skipped importing primitive {self.metadata.getPrimitiveName( primitive.id )} (id {primitive.id}) because it does not match the filter')
                 continue
 
-            maxlog.info( "importing primitive " + str(i) + " " + self.metadata.getPrimitiveName( primitive.id ) )
+            mtmaxlog.info( "importing primitive " + str(i) + " " + self.metadata.getPrimitiveName( primitive.id ) )
             mtmaxutil.updateUI()
             
             self.importPrimitive( primitive, primitiveJointLinkIndex, indexStream, vertexStream )
             primitiveJointLinkIndex += primitive.primitiveJointLinkCount
             
     def importSkeleton( self ):
-        maxlog.info('importing skeleton')
+        mtmaxlog.info('importing skeleton')
         
         self.maxBoneArray = []
         self.maxBoneLookup = dict()
@@ -506,32 +506,32 @@ class MtModelImporter:
         return maxMaterial
             
     def importMaterials( self ):
-        maxlog.info('importing materials')
+        mtmaxlog.info('importing materials')
         
         # load mtl
         mtl = imMaterialLib()
         mrlName, _ = util.getExtractedResourceFilePath( self.basePath + '/' + self.baseName, '2749c8a8', 'mrl' )
         if mrlName != None and os.path.exists( mrlName ):
-            maxlog.info(f'loading mrl file from {mrlName}')
+            mtmaxlog.info(f'loading mrl file from {mrlName}')
             mtl.loadBinaryStream(NclBitStream(util.loadIntoByteArray(mrlName)))
             if mtmaxconfig.importSaveMrlYml:
                 mrlYmlPath =  mrlName + '.yml'
-                maxlog.info(f'saving mrl yml to {mrlYmlPath}')
+                mtmaxlog.info(f'saving mrl yml to {mrlYmlPath}')
                 try:
                     mtl.saveYamlFile( mrlYmlPath )
                 except PermissionError as e:
-                    maxlog.error( f"unable to save mrl yml file, make sure you have write permissions to {mrlYmlPath}" )
+                    mtmaxlog.error( f"unable to save mrl yml file, make sure you have write permissions to {mrlYmlPath}" )
         else:
-            maxlog.warn(f'skipped loading mrl from {mrlName} because the file does not exist')
+            mtmaxlog.warn(f'skipped loading mrl from {mrlName} because the file does not exist')
         
         self.maxMaterialArray = []
         for i, materialName in enumerate( self.model.materials ):
-            maxlog.info(f'importing material {materialName}')
+            mtmaxlog.info(f'importing material {materialName}')
             _updateProgress( 'Importing materials', i, len( self.model.materials ) )
             
             material = mtl.getMaterialByName( materialName )
             if material == None:
-                maxlog.warn( "model references material {} that does not exist in the mrl".format( materialName ) )
+                mtmaxlog.warn( "model references material {} that does not exist in the mrl".format( materialName ) )
             
             if hasattr(rt, 'PBRSpecGloss') and not mtmaxconfig.debugForcePhysicalMaterial:
                 # sometimes not available? reported to be missing on 2022 24.0.0.923
@@ -540,17 +540,17 @@ class MtModelImporter:
                 maxMaterial = self.convertMaterial_PhysicalMaterial( material, materialName )
             
             if material != None:                    
-                rt.custAttributes.add( maxMaterial, rt.mtMaterialAttributesInstance )
-                maxMaterial.mtMaterialAttributes.type = material.type
-                maxMaterial.mtMaterialAttributes.depthStencilState = material.depthStencilState
-                maxMaterial.mtMaterialAttributes.rasterizerState = material.rasterizerState
-                maxMaterial.mtMaterialAttributes.cmdListFlags = hex( material.cmdListFlags )
-                maxMaterial.mtMaterialAttributes.matFlags = hex( material.matFlags )
+                rt.custAttributes.add( maxMaterial, rt.MtMaxMaterialAttributesInstance )
+                maxMaterial.MtMaxMaterialAttributes.type = material.type
+                maxMaterial.MtMaxMaterialAttributes.depthStencilState = material.depthStencilState
+                maxMaterial.MtMaxMaterialAttributes.rasterizerState = material.rasterizerState
+                maxMaterial.MtMaxMaterialAttributes.cmdListFlags = hex( material.cmdListFlags )
+                maxMaterial.MtMaxMaterialAttributes.matFlags = hex( material.matFlags )
                 
             self.maxMaterialArray.append( maxMaterial )
             
     def importPrimitiveJointLinks( self ):
-        maxlog.warn('importing pjl skipped')
+        mtmaxlog.warn('importing pjl skipped')
         
         # build primitive joint links
         #~ maxPrimitiveJointLinks = []
@@ -576,8 +576,8 @@ class MtModelImporter:
         self.maxModelMtxNormal = self.convertNclMat44ToMaxMatrix3( self.modelMtxNormal )
             
     def importModel( self, modFilePath ):
-        maxlog.info(f'script version: {mtmaxver.version}')
-        maxlog.info(f'import model from {modFilePath}')
+        mtmaxlog.info(f'script version: {mtmaxver.version}')
+        mtmaxlog.info(f'import model from {modFilePath}')
         
         startTime = rt.timeStamp()
         
@@ -611,7 +611,7 @@ class MtModelImporter:
         endTime = rt.timeStamp()
         _updateProgress( 'Done', 0 )
         _updateSubProgress( '', 0 )
-        maxlog.info( 'Import done in ' + str( endTime - startTime ) + ' ms' )
+        mtmaxlog.info( 'Import done in ' + str( endTime - startTime ) + ' ms' )
         
     def selectImportModel( self ):
         filePath = self.selectOpenFile( 'UMVC3 model', 'mod' )
