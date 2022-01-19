@@ -10,7 +10,7 @@ def getScriptDir():
 lastWindowUpdateTime = rt.timestamp()
 def updateUI():
     global lastWindowUpdateTime
-    if rt.timestamp() - lastWindowUpdateTime > 3000:
+    if rt.timestamp() - lastWindowUpdateTime > 2000:
         print('UI update triggered')
         rt.windows.processPostedMessages()
         lastWindowUpdateTime = rt.timestamp()

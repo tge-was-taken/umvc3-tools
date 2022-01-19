@@ -303,7 +303,6 @@ class MtModelExporter(object):
             index=attribs.index,
         )
         
-
         self.maxNodeToJointMap[maxNode] = joint
         self.jointToMaxNodeMap[joint] = maxNode
         self.model.joints.append( joint )
@@ -584,28 +583,41 @@ class MtModelExporter(object):
         faceCount = rt.getNumFaces( maxMesh )
         hasUVs = rt.getNumTVerts( maxMesh ) > 0
         
-        tempMeshes = dict()
+        primWorkingSets: Dict[int, imPrimitiveWorkingSet] = dict()
 
         for i in range( 0, faceCount ):
-            mtmaxutil.updateUI()
+            if mtmaxutil.updateUI(): _updateSubProgress( 'Processing faces', i, faceCount )
             
             face = rt.getFace( maxMesh, i + 1 )
             tvFace = rt.getTVFace( maxMesh, i + 1 ) if hasUVs else None
             matId = rt.getFaceMatID( maxMesh, i + 1 ) 
             material = maxNode.material[matId-1] if rt.classOf(maxNode.material) == rt.Multimaterial else maxNode.material
             
+
+            if matId not in primWorkingSets:
+                # create temporary mesh for this material
+                prim = imPrimitive(
+                    maxNode.name,
+                    self._getMaterialName( material ),
+                )
+                primWorkingSets[matId] = imPrimitiveWorkingSet(prim, [prim])
+            
+            workingSet = primWorkingSets[matId]
+            
+            # Max Vertex count 26758, Index count 63762
+            if len( workingSet.current.positions ) >= 63762:
+                prim = imPrimitive(
+                    maxNode.name,
+                    self._getMaterialName( material ),
+                )
+                workingSet.current = prim
+                workingSet.primitives.append( prim )
+            
             for j in range( 0, 3 ):
                 vertIdx = face[j]
-                tvertIdx = tvFace[j] if hasUVs else None
-
-                if matId not in tempMeshes:
-                    # create temporary mesh for this material
-                    tempMeshes[matId] = imPrimitive(
-                        maxNode.name,
-                        self._getMaterialName( material ),
-                    )
-
-                tempMesh = tempMeshes[matId]
+                tvertIdx = tvFace[j] if hasUVs else None               
+                tempMesh = workingSet.current
+                                    
                 if material != None:
                     self._processMaterial( material )
                 
@@ -677,50 +689,52 @@ don't have an reference/original model specified as it will override the skeleto
                         tempMesh.weights.append( weight )
 
         # create optimized primitives
-        for i, tempMesh in enumerate(tempMeshes.values()):
-            mtmaxutil.updateUI()
+        for i, primWorkingSet in enumerate(primWorkingSets.values()):
+            primWorkingSet: imPrimitiveWorkingSet
             
-            prim: imPrimitive = tempMesh
-            mtmaxlog.info(f'processing submesh with material {prim.materialName}')
+            for prim in primWorkingSet.primitives:
+                prim: imPrimitive
+                if mtmaxutil.updateUI(): _updateProgress( "Optimizing submesh", i, len(primWorkingSets) )
+                mtmaxlog.info(f'processing submesh with material {prim.materialName}')
 
-            # copy over attribs
-            if attribs.flags != None: prim.flags = attribs.flags
-            if attribs.groupId != None: 
-                group = self.model.getGroupById(attribs.groupId)
-                if group == None:
-                    # add group
-                    group = imGroup(self.metadata.getGroupName(attribs.groupId), attribs.groupId)
-                    self.model.groups.append(group)
-                prim.group = group
-            elif mtmaxconfig.exportGroupPerMesh:
-                prim.group = imGroup(maxNode.name + '_' + str(i), len(self.model.groups)+1)
-                self.model.groups.append(prim.group)
-                    
-            if attribs.lodIndex != None: prim.lodIndex = attribs.lodIndex
-            if attribs.renderFlags != None: prim.renderFlags = attribs.renderFlags
-            if attribs.id != None: prim.id = attribs.id
-            if attribs.field2c != None: prim.field2c = attribs.field2c
-            if attribs.primitiveJointLinkCount != None and attribs.primitiveJointLinkIndex != None and len( self._refPrimitiveJointLinks ) > 0: 
-                # add primitive joint links from ref to the primitive
-                for i in range(attribs.primitiveJointLinkIndex, attribs.primitiveJointLinkIndex+attribs.primitiveJointLinkCount):
-                    prim.primitiveJointLinks.append(self._refPrimitiveJointLinks[i])
-            elif mtmaxconfig.exportGeneratePjl:
-                # TODO local transform/pivot, link to joint(s)
-                prim.primitiveJointLinks.append(imPrimitiveJointLink())
-            if attribs.index != None: prim.index = attribs.index
-            if attribs.vertexShader != None: prim.vertexFormat = imVertexFormat.createFromShader( attribs.vertexShader )
-            
-            if mtmaxconfig.debugExportForceShader != '':
-                # force shader on export if specified
-                prim.vertexFormat = imVertexFormat.createFromShader( mtmaxconfig.debugExportForceShader )
-                            
-            mtmaxlog.debug("generating tangents")
-            prim.generateTangents( _progressCallback )
-            
-            mtmaxlog.debug("optimizing mesh")
-            prim.makeIndexed( _progressCallback )
-            
-            self.model.primitives.append( prim )
+                # copy over attribs
+                if attribs.flags != None: prim.flags = attribs.flags
+                if attribs.groupId != None: 
+                    group = self.model.getGroupById(attribs.groupId)
+                    if group == None:
+                        # add group
+                        group = imGroup(self.metadata.getGroupName(attribs.groupId), attribs.groupId)
+                        self.model.groups.append(group)
+                    prim.group = group
+                elif mtmaxconfig.exportGroupPerMesh:
+                    prim.group = imGroup(maxNode.name + '_' + str(i), len(self.model.groups)+1)
+                    self.model.groups.append(prim.group)
+                        
+                if attribs.lodIndex != None: prim.lodIndex = attribs.lodIndex
+                if attribs.renderFlags != None: prim.renderFlags = attribs.renderFlags
+                if attribs.id != None: prim.id = attribs.id
+                if attribs.field2c != None: prim.field2c = attribs.field2c
+                if attribs.primitiveJointLinkCount != None and attribs.primitiveJointLinkIndex != None and len( self._refPrimitiveJointLinks ) > 0: 
+                    # add primitive joint links from ref to the primitive
+                    for i in range(attribs.primitiveJointLinkIndex, attribs.primitiveJointLinkIndex+attribs.primitiveJointLinkCount):
+                        prim.primitiveJointLinks.append(self._refPrimitiveJointLinks[i])
+                elif mtmaxconfig.exportGeneratePjl:
+                    # TODO local transform/pivot, link to joint(s)
+                    prim.primitiveJointLinks.append(imPrimitiveJointLink())
+                if attribs.index != None: prim.index = attribs.index
+                if attribs.vertexShader != None: prim.vertexFormat = imVertexFormat.createFromShader( attribs.vertexShader )
+                
+                if mtmaxconfig.debugExportForceShader != '':
+                    # force shader on export if specified
+                    prim.vertexFormat = imVertexFormat.createFromShader( mtmaxconfig.debugExportForceShader )
+                                
+                mtmaxlog.debug("generating tangents")
+                prim.generateTangents( _progressCallback )
+                
+                mtmaxlog.debug("optimizing mesh")
+                prim.makeIndexed( _progressCallback )
+                
+                self.model.primitives.append( prim )
             
         if removeEditNormals:
             mtmaxlog.debug('delete temporary edit normals modifier')

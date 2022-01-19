@@ -243,6 +243,10 @@ def genMetadata( inputName, ref ):
 def processModBatch( func, *args, path='X:\\project\\umvc3_model\\samples\\test' ):
     for entry in scantree(path):
         if entry.name.endswith(".mod") and entry.is_file():
+            diff = entry.stat().st_mtime_ns - entry.stat().st_ctime_ns
+            # 21780333610000000
+            if diff > 2000000000:
+                continue
             func( entry.path, *args )
                 
 def processTexBatch( func, *args ):
@@ -501,10 +505,35 @@ def dumpUniqueMaterials():
     for key, value in stats.values():
         print(key, value)
     
+def dumpMaxVertexCount():
+    class Work:
+        vertexCount = -1
+        indexCount = -1
+        
+    def _dump( inputName: str ):
+        basePath, baseName, exts = util.splitPath( inputName )
+        modPath = os.path.join( basePath, baseName + '.58a15856.mod' )
+        mrlPath = os.path.join( basePath, baseName + '.2749c8a8.mrl' )
+        ymlPath = os.path.join( basePath, baseName + '.2749c8a8.mrl.yml' )
+        
+        # read mod
+        modBuffer = util.loadIntoByteArray( modPath )
+        mod = rModelData()
+        mod.read( NclBitStream( modBuffer ) )
+        for prim in mod.primitives:
+            if prim.vertexCount > Work.vertexCount:
+                Work.vertexCount = prim.vertexCount
+            if prim.indexCount > Work.indexCount:
+                Work.indexCount = prim.indexCount
+    
+    processModBatch( _dump, path=r'X:\game\platform\pc\Ultimate Marvel vs. Capcom 3\nativePCx64\stg' )
+    print( "Vertex count", Work.vertexCount, "Index count", Work.indexCount )
+
 def main():
     #dumpVertexFlags()
     #dumpPjl()
-    dumpUniqueMaterials()
+    #dumpUniqueMaterials()
+    dumpMaxVertexCount()
     
     # inputName = "X:/work/umvc3_model/samples/UMVC3ModelSamples/Ryu/Ryu.58a15856.mod"
     # baseName = os.path.basename(inputName).split('.')[0]

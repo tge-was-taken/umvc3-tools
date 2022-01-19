@@ -409,8 +409,7 @@ class imVertexFormat(object):
              
         return fmt
 
-# TODO refactor vertex format into its own class
-class imPrimitive:
+class imPrimitive(object):
     '''
     Intermediate primitive data container intended to be used for generating optimized data for export
     '''
@@ -667,6 +666,11 @@ class imPrimitive:
 
             if nearestVertexIndex != -1:
                 self.tangents[ i ] = self.tangents[ nearestVertexIndex ]
+                
+@dataclass
+class imPrimitiveWorkingSet:
+    current: imPrimitive
+    primitives: List[imPrimitive]
         
 class imJoint:
     def __init__( self, name='', id=None, localMtx=None, worldMtx=None, 

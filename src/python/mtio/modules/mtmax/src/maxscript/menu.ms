@@ -1,10 +1,5 @@
 global MtMaxMenuTitle = "Mt Max"
 
-macroScript MtMaxOpenPluginMacro category:MtMaxMenuTitle
-(
-	python.ExecuteFile MtMaxEntrypointFilePath
-)
-
 fn MtMaxUnregisterMenuItem = (
     menu = menuMan.findMenu MtMaxMenuTitle
     while menu != undefined do (
@@ -14,12 +9,19 @@ fn MtMaxUnregisterMenuItem = (
     )
 )
 
+-- The macro can't reference any variables because they haven't been assigned at load time
+fn MtMaxDefineOpenPluginMacro = (
+    src = "macroScript MtMaxOpenPluginMacro category:\"" + MtMaxMenuTitle + "\" ( python.ExecuteFile \"" + ( substituteString MtMaxEntrypointFilePath "\\" "\\\\" ) + "\" )"
+    execute src
+)
+
 fn MtMaxRegisterMenuItem = (
     MtMaxUnregisterMenuItem()
     mainMenu = menuMan.getMainMenuBar()
     menu = menuMan.createMenu MtMaxMenuTitle 
     subMenu = menuMan.createSubMenuItem MtMaxMenuTitle menu
     mainMenu.addItem subMenu (mainMenu.numItems()+1)
+    MtMaxDefineOpenPluginMacro()
     action = menuMan.createActionItem "MtMaxOpenPluginMacro" MtMaxMenuTitle
     action.setTitle "Open plugin"
     action.setUseCustomTitle true
