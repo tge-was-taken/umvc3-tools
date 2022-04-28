@@ -50,6 +50,10 @@ def findPython3Dir( installDir ):
     for dir in os.scandir( installDir ):
         if dir.is_dir() and dir.name.startswith( 'Python3' ):
             return dir.path
+    # 3dsmax 2023 Python path is only Python
+    for dir in os.scandir( installDir ):
+        if dir.is_dir() and dir.name.startswith( 'Python' ):
+            return dir.path
 
 def execPython( pythonDir, args ):
     pythonExePath = os.path.join( pythonDir, "python.exe")
