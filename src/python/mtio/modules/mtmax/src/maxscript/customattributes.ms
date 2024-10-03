@@ -17,13 +17,14 @@ MtMaxPrimitiveAttributesInstance = attributes MtPrimitiveAttributes attribID: #(
 		indexCount type:#string ui:indexCount default:""
 		indexStartIndex type:#string ui:indexStartIndex default:""
 		boneMapStartIndex type:#string ui:boneMapStartIndex default:""
-		primitiveJointLinkCount type:#string ui:primitiveJointLinkCount default:""
-		primitiveJointLinkIndex type:#string ui:primitiveJointLinkIndex default:""
+		envelopeCount type:#string ui:envelopeCount default:""
+		envelopeIndex type:#string ui:envelopeIndex default:""
 		id type:#integer ui:id default:-1
 		minVertexIndex type:#string ui:minVertexIndex default:""
 		maxVertexIndex type:#string ui:maxVertexIndex default:""
 		field2C type:#integer ui:field2C default:0
-		primitiveJointLinkPtr type:#string ui:primitiveJointLinkPtr default:""
+		envelopePtr type:#string ui:envelopePtr default:""
+		_version type:#integer ui:_version default:2
 	)
 	
 	rollout params "MT Primitive Attributes"
@@ -80,11 +81,11 @@ MtMaxPrimitiveAttributesInstance = attributes MtPrimitiveAttributes attribID: #(
 			label boneMapStartIndexLabel "Bone map start index" across:1 align:#left
 			edittext boneMapStartIndex	"" type:#string across:1 readonly:true
 
-			label primitiveJointLinkCountLabel "Primitive joint link count" across:1 align:#left
-			edittext primitiveJointLinkCount	"" type:#string across:1 readonly:true
+			label envelopeCountLabel "Envelope count" across:1 align:#left
+			edittext envelopeCount	"" type:#string across:1 readonly:true
 
-			label primitiveJointLinkIndexLabel "Primitive joint link index" across:1 align:#left
-			edittext primitiveJointLinkIndex	"" type:#string across:1 readonly:true
+			label envelopeIndexLabel "Envelope index" across:1 align:#left
+			edittext envelopeIndex	"" type:#string across:1 readonly:true
 
 			label minVertexIndexLabel "Min vertex index" across:1 align:#left
 			edittext minVertexIndex	"" type:#string across:1 readonly:true
@@ -92,8 +93,11 @@ MtMaxPrimitiveAttributesInstance = attributes MtPrimitiveAttributes attribID: #(
 			label maxVertexIndexLabel "Max vertex index" across:1 align:#left
 			edittext maxVertexIndex	"" type:#string across:1 readonly:true
 
-			label primitiveJointLinkPtrLabel "Primitive joint link pointer" across:1 align:#left
-			edittext primitiveJointLinkPtr	"" type:#string across:1 readonly:true
+			label envelopePtrLabel "Envelope pointer" across:1 align:#left
+			edittext envelopePtr	"" type:#string across:1 readonly:true
+
+			label _versionLabel "Version" across:1 align:#left
+			edittext _version	"" type:#integer across:1 readonly:true
 		)
 	)
 )
@@ -113,6 +117,7 @@ MtMaxJointAttributesInstance = attributes MtMaxJointAttributes attribID: #(0x14e
 		offsetX type:#string ui:offsetX default:""
 		offsetY type:#string ui:offsetY default:""
 		offsetZ type:#string ui:offsetZ default:""
+		_version type:#integer ui:_version default:2
 	)
 	
 	rollout params "MT Joint Attributes"
@@ -150,6 +155,9 @@ MtMaxJointAttributesInstance = attributes MtMaxJointAttributes attribID: #(0x14e
 
 			label offsetZLabel "Offset Z" across:1 align:#left
 			edittext offsetZ 	"" type:#string across:1 readonly:true
+
+			label _versionLabel "Version" across:1 align:#left
+			edittext _version	"" type:#integer across:1 readonly:true
 		)
 	)
 )
@@ -165,6 +173,7 @@ MtMaxMaterialAttributesInstance = attributes MtMaxMaterialAttributes attribID: #
 		rasterizerState type:#string ui:rasterizerState default:"RSMeshCN"
 		cmdListFlags type:#string ui:cmdListFlags default:"0x400"
 		matFlags type:#string ui:matFlags default:"0x8c800803"
+		_version type:#integer ui:_version default:2
 	)
 	
 	rollout params "MT Material Attributes"
@@ -190,6 +199,8 @@ MtMaxMaterialAttributesInstance = attributes MtMaxMaterialAttributes attribID: #
 		group "Read only" (
 			label indexLabel "Index" across:1 align:#left
 			edittext index 	"" type:#string across:1 readonly:true
+			label _versionLabel "Version" across:1 align:#left
+			edittext _version	"" type:#integer across:1 readonly:true
 		)
 	)
 )
@@ -204,6 +215,7 @@ MtMaxGroupAttributesInstance = attributes MtMaxGroupAttributes attribID: #(0x23f
 		field08 type:#integer ui:field08 default:0
 		field0c type:#integer ui:field0c default:0
 		bsphere type:#point4 default:[0,0,0,0]
+		_version type:#integer ui:_version default:2
 	)
 	
 	rollout params "MT Group Attributes"
@@ -223,6 +235,8 @@ MtMaxGroupAttributesInstance = attributes MtMaxGroupAttributes attribID: #(0x23f
 		group "Read only" (
 			label indexLabel "Index" across:1 align:#left
 			edittext index 	"" type:#string across:1 readonly:true
+			label _versionLabel "Version" across:1 align:#left
+			edittext _version	"" type:#integer across:1 readonly:true
 		)
 	)
 )

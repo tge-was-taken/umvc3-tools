@@ -5,6 +5,8 @@ Vertex component encoding & decoding module.
 import struct
 import binascii
 import math
+import target
+import util
 
 from ncl import *
  
@@ -76,7 +78,11 @@ def decodeU8( val ):
 
 # type 9
 def decodeFS8( val ):
-    return float( ( val - 127 ) / 127 )
+    if target.current.name in ['aa-pc']:
+        return float( util.s8( val ) / 127 )
+    else:
+        # mvc3-pc
+        return float( ( val - 127 ) / 127 )
 
 # type 10
 def decodeFU8( val ):
@@ -138,8 +144,11 @@ def encodeFU8( val ):
 # type 10
 def encodeFS8( val ):
     val = 0 if math.isnan( val ) else val
-    #assert( isNormalizedFloat( val ) )
-    return int( ( val * 127 ) + 127 ) & 0xFF
+    if target.current.name in ['aa-pc']:
+        return int( val * 127 ) & 0xFF
+    else:
+        # mvc3-pc
+        return int( ( val * 127 ) + 127 ) & 0xFF
 
 # type 11
 def encodeX8Y8Z8W8( val ):

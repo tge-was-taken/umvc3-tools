@@ -64,7 +64,9 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument( "input" )
     parser.add_argument( "output", nargs='?' )
+    parser.add_argument( "--target", default="mvc3-pc" )
     args = parser.parse_args()
+    target.setTarget( args.target )
     processFile( args.input, args.output )
 
 if __name__ == '__main__':

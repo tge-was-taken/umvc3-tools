@@ -4,7 +4,6 @@ Target runtime module. Used to determine which runtime the library is targetting
 
 
 noesis = False
-
 try:
     import inc_noesis
     noesis = True
@@ -22,5 +21,12 @@ max = False
 try:
     import pymxs
     max = True
+except:
+    pass
+
+blender = False
+try:
+    import bpy
+    blender = True
 except:
     pass

@@ -28,7 +28,14 @@ typedef hfloat f16;
 typedef float f32;
 
 // Globals
-local bool gIs64Bit = true;
+#ifdef MT_TARGET_MVC3_PC
+#define MT_TARGET_64 1
+#define MT_TARGET_PATH_LENGTH 64
+#endif
+#ifdef MT_TARGET_AA_PC
+#define MT_TARGET_64 1
+#define MT_TARGET_PATH_LENGTH 128
+#endif
 
 // Vertex types
 /* 1 f32 */
@@ -142,14 +149,11 @@ typedef struct
 
 typedef struct
 {
-    if ( gIs64Bit )
-    {
-        u64 Value;
-    }
-    else
-    {
-        u32 Value;
-    }
+#ifdef MT_TARGET_64
+    u64 Value;
+#else
+    u32 Value;
+#endif
 } SNativeInt <read=SNativeIntToString>;
 
 string SNativeIntToString(SNativeInt& v)

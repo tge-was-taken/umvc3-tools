@@ -20,4 +20,7 @@ import vertexcodec
 import mvc3materialnamedb
 import mvc3shaderdb
 import mvc3types
+import target
+from base_editor import *
+from base_importer import *
 #import texconv

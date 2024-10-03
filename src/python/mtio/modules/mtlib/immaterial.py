@@ -3,9 +3,10 @@ Intermediate material library representation for easier editing
 '''
        
 from argparse import ArgumentError
+import base64
 from dataclasses import dataclass
 import os
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 import yaml
 from rmaterial import *
 import mvc3materialnamedb
@@ -37,10 +38,11 @@ class imMaterialInfo(object):
     DEFAULT_ALBEDO_MAP: str = "default_BM"
     DEFAULT_SPECULAR_MAP: str = "default_MM"
     TEMPLATE_MATERIALS: Tuple[str] = (
-        "nDraw::MaterialChar",
-        "nDraw::MaterialCharAlpha",
-        'nDraw::MaterialStgSimple',
-        'nDraw::MaterialStdEst'
+        "MVC3 MaterialChar",
+        "MVC3 MaterialCharAlpha",
+        'MVC3 MaterialStgSimple',
+        'MVC3 MaterialStdEst',
+        'TGAA MaterialChar',
     )
     
     type: str = ''
@@ -50,18 +52,18 @@ class imMaterialInfo(object):
     rasterizerState: str = ''
     cmdListFlags: int = 0
     matFlags: int = 0
-    cmds: List[imMaterialCmd] = None
+    cmds: Optional[List[imMaterialCmd]] = None
+    animData: Optional[bytes] = None
     
     def __post_init__( self ):
         if self.cmds is None: self.cmds = []
         
     @staticmethod
     def isDefaultTextureMap( map ):
-        imMaterialInfo()
         return os.path.basename( map ) in [imMaterialInfo.DEFAULT_NORMAL_MAP, imMaterialInfo.DEFAULT_ALBEDO_MAP, imMaterialInfo.DEFAULT_SPECULAR_MAP]
         
     @staticmethod
-    def _createFromTemplate_MaterialChar( name = "default_material", normalMap=DEFAULT_NORMAL_MAP, albedoMap=DEFAULT_ALBEDO_MAP, specularMap=DEFAULT_SPECULAR_MAP ):
+    def _createFromTemplate_MVC3MaterialChar( name = "default_material", normalMap=DEFAULT_NORMAL_MAP, albedoMap=DEFAULT_ALBEDO_MAP, specularMap=DEFAULT_SPECULAR_MAP ):
         mat = imMaterialInfo()
         mat.type = 'nDraw::MaterialChar'
         mat.name = name
@@ -136,7 +138,7 @@ class imMaterialInfo(object):
         return mat
     
     @staticmethod
-    def _createFromTemplate_MaterialCharAlpha( name = "default_material", normalMap=DEFAULT_NORMAL_MAP, albedoMap=DEFAULT_ALBEDO_MAP, specularMap=DEFAULT_SPECULAR_MAP ):
+    def _createFromTemplate_MVC3MaterialCharAlpha( name = "default_material", normalMap=DEFAULT_NORMAL_MAP, albedoMap=DEFAULT_ALBEDO_MAP, specularMap=DEFAULT_SPECULAR_MAP ):
         mat = imMaterialInfo(
             name=name,
             type="nDraw::MaterialCharAlpha",
@@ -184,7 +186,7 @@ class imMaterialInfo(object):
         return mat
     
     @staticmethod
-    def _createFromTemplate_MaterialStgSimple( name = "default_material", normalMap=DEFAULT_NORMAL_MAP, albedoMap=DEFAULT_ALBEDO_MAP, specularMap=DEFAULT_SPECULAR_MAP ):
+    def _createFromTemplate_MVC3MaterialStgSimple( name = "default_material", normalMap=DEFAULT_NORMAL_MAP, albedoMap=DEFAULT_ALBEDO_MAP, specularMap=DEFAULT_SPECULAR_MAP ):
         mat = imMaterialInfo()
         mat.type = 'nDraw::MaterialStgSimple'
         mat.name = name
@@ -243,7 +245,7 @@ class imMaterialInfo(object):
         return mat
     
     @staticmethod
-    def _createFromTemplate_MaterialStdEst( name = "default_material", normalMap=DEFAULT_NORMAL_MAP, albedoMap=DEFAULT_ALBEDO_MAP, specularMap=DEFAULT_SPECULAR_MAP ):
+    def _createFromTemplate_MVC3MaterialStdEst( name = "default_material", normalMap=DEFAULT_NORMAL_MAP, albedoMap=DEFAULT_ALBEDO_MAP, specularMap=DEFAULT_SPECULAR_MAP ):
         mat = imMaterialInfo(
             name=name,
             type="nDraw::MaterialStdEst",
@@ -290,8 +292,52 @@ class imMaterialInfo(object):
         return mat
     
     @staticmethod
+    def _createFromTemplate_TGAAMaterialChar( name = 'default_material', normalMap=DEFAULT_NORMAL_MAP, albedoMap=DEFAULT_ALBEDO_MAP, specularMap=DEFAULT_SPECULAR_MAP ):
+        mat = imMaterialInfo(
+            name=name,
+            type='_0x63627736',
+            blendState='BSBlendAlpha',
+            depthStencilState='DSZTestWrite',
+            rasterizerState='RSMesh',
+            cmdListFlags=0x202dc,
+            matFlags=0x91800000,
+            cmds=[
+                imMaterialCmd( 'cbuffer', 'CBMaterial', [
+                    1.0, 1.0, 1.0, 0.0, 
+                    0.0, 0.0, 0.0, 0.0, 
+                    0.0, 0.0, 1.0, 1.0, 
+                    1.0, 1.0, 1.0, 1.0, 
+                    10.0, 0.0, 0.0, 0.0, 
+                    1.0, 0.0, 0.0, 0.0, 
+                    0.0, 1.0, 0.0, 0.0, 
+                    1.0, 0.0, 0.0, 0.0, 
+                    0.0, 1.0, 0.0, 0.0, 
+                    1.0, 0.0, 0.0, 0.0, 
+                    0.0, 1.0, 0.0, 0.0, 
+                    0.0, 0.0, 0.0, 0.0, 
+                ]),
+               imMaterialCmd( 'flag', 'FUVTransformPrimary', 'FUVTransformPrimary'),
+               imMaterialCmd( 'cbuffer', '_0x798aa',[
+                    1.0, 1.0, 1.0, 0.0, 
+                    1.0, 1.0, 1.0, 0.0, 
+                    0.0, 0.09997700154781342, 0.33606499433517456, 0.0, 
+                    1.0, 0.0, 1.0, 0.4999769926071167, 
+                    1.0, 1.0, 1.0, 1.0, 
+                    1.0, 1.0, 1.0, 0.0, 
+                    1.0, 0.0, 0.0, 0.0, 
+                    0.30000001192092896, 0.30000001192092896, 0.30000001192092896, 1.0, 
+                    0.0, 0.0, 0.0, 0.0, 
+                ]),
+               imMaterialCmd( 'texture', 'tAlbedoMap', albedoMap ),
+               imMaterialCmd( 'samplerstate', 'SSAlbedoMap', 'SSAlbedoMap' ),
+               imMaterialCmd( 'texture', '_0xb3fbe', '' )
+            ]
+        )
+        return mat
+    
+    @staticmethod
     def createFromTemplate( type: str, name: str = "default_material", normalMap: str=DEFAULT_NORMAL_MAP, albedoMap: str=DEFAULT_ALBEDO_MAP, specularMap:str =DEFAULT_SPECULAR_MAP ):
-        createFunc = getattr( imMaterialInfo, '_createFromTemplate_' + type.replace( "nDraw::", "" ), None )
+        createFunc = getattr( imMaterialInfo, '_createFromTemplate_' + type.replace( "nDraw::", "" ).replace(" ", ""), None )
         if createFunc == None:
             raise ArgumentError( message=type )
         
@@ -334,7 +380,13 @@ class imMaterialLib:
     def loadBinaryStream( self, stream ):
         reader = rMaterialStreamReader( stream )
         header = reader.getHeader()
-        assert( util.u32( header.hash ) == util.u32( 0xE588940A ) )
+        if target.current.name in ['mvc3-pc']:
+            assert( util.u32( header.hash ) == util.u32( 0xE588940A ) )
+        elif target.current.name in ['aa-pc']:
+            assert( util.u32( header.hash ) == util.u32( 0x1C67197D ) )
+        else:
+            raise NotImplementedError('unhandled target')
+            
         assert( header.field14 == 0 )
         
         for binTexInfo in reader.iterTextureInfo():
@@ -350,7 +402,8 @@ class imMaterialLib:
             self.textures.append( texInfo )
             
         for binMatInfo in reader.iterMaterialInfo():
-            assert( binMatInfo.field04 == 0 )
+            # TODO fix
+            assert( binMatInfo.field04 == 0 or binMatInfo.field04 == 0xCDCDCDCD )
             #assert( binMatInfo.cmdListInfo.getFlags() == 0 )
             assert( binMatInfo.field24 == 0 )
             assert( binMatInfo.field28 == 0 )
@@ -366,16 +419,16 @@ class imMaterialLib:
                 log.error("unknown material name hash: {}".format( hex( binMatInfo.nameHash ) ) )
                 matInfo.name = '_' + hex( binMatInfo.nameHash )
                 
-            matInfo.blendState = mvc3shaderdb.shaderObjectsByHash[ binMatInfo.blendState.getHash() ].name
-            matInfo.depthStencilState = mvc3shaderdb.shaderObjectsByHash[ binMatInfo.depthStencilState.getHash() ].name
-            matInfo.rasterizerState = mvc3shaderdb.shaderObjectsByHash[ binMatInfo.rasterizerState.getHash() ].name
+            matInfo.blendState = mvc3shaderdb.getShaderObjectName( binMatInfo.blendState.getHash() )
+            matInfo.depthStencilState = mvc3shaderdb.getShaderObjectName( binMatInfo.depthStencilState.getHash() )
+            matInfo.rasterizerState = mvc3shaderdb.getShaderObjectName( binMatInfo.rasterizerState.getHash() )
             matInfo.cmdListFlags = binMatInfo.cmdListInfo.getFlags()
             matInfo.matFlags = binMatInfo.flags
 
             for binMatCmd in reader.iterMaterialCmd( binMatInfo ):
                 matCmd = imMaterialCmd()
                 matCmd.type = imMaterialCmd.TYPES[ binMatCmd.info.getType() ]
-                matCmd.name = mvc3shaderdb.shaderObjectsByHash[ binMatCmd.shaderObjectId.getHash() ].name
+                matCmd.name = mvc3shaderdb.getShaderObjectName( binMatCmd.shaderObjectId.getHash() )
                 matCmd.data = reader.getMaterialCmdData( binMatInfo, binMatCmd )
                 assert( matCmd.data != None )
                 if matCmd.type == 'texture':
@@ -384,11 +437,13 @@ class imMaterialLib:
                     else:
                         matCmd.data = ""
                 elif matCmd.type in ['flag', 'samplerstate']:
-                    matCmd.data = mvc3shaderdb.shaderObjectsByHash[ matCmd.data.getHash() ].name
+                    matCmd.data = mvc3shaderdb.getShaderObjectName( matCmd.data.getHash() )
                 elif matCmd.type != 'cbuffer':
                     raise Exception("unhandled material cmd type: {}".format( matCmd.type ) )
                     
                 matInfo.cmds.append( matCmd )
+                
+            matInfo.animData = reader.getMaterialAnimBuffer( binMatInfo )
             self.materials.append( matInfo )
             
     def _needsExplicitTextureList( self ):
@@ -440,6 +495,11 @@ class imMaterialLib:
                     f.write( "              ]]\n")
                 else:
                     f.write( "            - [ {}, {}, {} ]\n".format( cmd.type, sanitize( cmd.name ), sanitize( cmd.data ) ) )
+            if mat.animData is not None:
+                if isinstance( mat.animData, bytes ):
+                    f.write( "        animData: {}\n".format( base64.b64encode( mat.animData ).decode('ascii') ) )
+                else:
+                    raise NotImplementedError('animData not implemented')
     
     def saveYamlFile( self, path ):   
         if os.path.dirname( path ) != '':
@@ -495,6 +555,13 @@ class imMaterialLib:
                                 self.textures.append( tex )
                                 
                             mat.cmds.append( cmd )
+                    if 'animData' in yamlMat:
+                        if yamlMat['animData'] is None:
+                            mat.animData = None
+                        elif isinstance(yamlMat['animData'], str):
+                            mat.animData = base64.b64decode( yamlMat['animData'] )
+                        else:
+                            raise NotImplementedError('animData not implemented')
                     self.materials.append( mat )
 
     def loadYamlIO( self, f ):
@@ -513,7 +580,15 @@ class imMaterialLib:
             
     def saveBinaryStream( self, stream ):
         writer = rMaterialStreamWriter( stream )
-        writer.setHash( 0xE588940A )
+        
+        if target.current.name in ['mvc3-pc']:
+            hash = 0xE588940A
+        elif target.current.name in ['aa-pc']:
+            hash = 0x1C67197D
+        else:
+            raise NotImplementedError('unhandled target')
+            
+        writer.setHash( hash )
         writer.setField14( 0 )
         
         writer.beginTextureInfoList()
@@ -529,23 +604,26 @@ class imMaterialLib:
         writer.beginMaterialInfoList()
         for matInfo in self.materials:
             binMatInfo = rMaterialInfo()
-            binMatInfo.typeHash = util.computeHash( matInfo.type ) & ~0x80000000
+            if matInfo.type.startswith( '_0x' ):
+                binMatInfo.typeHash = int( matInfo.type[1:], 16 )
+            else:
+                binMatInfo.typeHash = util.computeHash( matInfo.type ) & ~0x80000000
             
             if matInfo.name.startswith( "_0x" ):
                 binMatInfo.nameHash = int( matInfo.name[1:], 16 )
             else:
                 binMatInfo.nameHash = util.computeHash( matInfo.name )     
             
-            binMatInfo.blendState = util.getShaderObjectIdFromName( matInfo.blendState )
-            binMatInfo.depthStencilState = util.getShaderObjectIdFromName( matInfo.depthStencilState )
-            binMatInfo.rasterizerState = util.getShaderObjectIdFromName( matInfo.rasterizerState )
+            binMatInfo.blendState = mvc3shaderdb.getShaderObjectIdFromName( matInfo.blendState )
+            binMatInfo.depthStencilState = mvc3shaderdb.getShaderObjectIdFromName( matInfo.depthStencilState )
+            binMatInfo.rasterizerState = mvc3shaderdb.getShaderObjectIdFromName( matInfo.rasterizerState )
             binMatInfo.cmdListInfo.setFlags( matInfo.cmdListFlags )
             binMatInfo.flags = matInfo.matFlags   
               
             writer.beginMaterialInfo( binMatInfo )
             for cmd in matInfo.cmds:
                 binCmd = rMaterialCmd()
-                binCmd.shaderObjectId = util.getShaderObjectIdFromName( cmd.name )
+                binCmd.shaderObjectId = mvc3shaderdb.getShaderObjectIdFromName( cmd.name )
                 binCmd.info.setType( imMaterialCmd.TYPES.index( cmd.type ) )
                 binCmd.info.setShaderObjectIndex( binCmd.shaderObjectId.getIndex() )
                 
@@ -556,13 +634,18 @@ class imMaterialLib:
                     else:
                         binCmdData = ( 1 + ( texturePathToIndex[ cmd.data ] ) )
                 elif cmd.type in ['flag', 'samplerstate']:
-                    binCmdData = util.getShaderObjectIdFromName( cmd.data )
+                    binCmdData = mvc3shaderdb.getShaderObjectIdFromName( cmd.data )
                 elif cmd.type == 'cbuffer':
                     binCmdData = cmd.data
                 else:
                     raise Exception( "unhandled material cmd type: {}".format( cmd.type ) )
                                 
                 writer.addMaterialCmd( binCmd, binCmdData )
+            if matInfo.animData is not None:
+                if isinstance(matInfo.animData, bytes):
+                    writer.setMaterialAnimDataBuffer(matInfo.animData)
+                else:
+                    raise NotImplementedError('animData not implemented')
             writer.endMaterialInfo()
         writer.endMaterialInfoList()
         

@@ -4,16 +4,16 @@ Classes and functions for serializing MRL material libraries.
 
 import yaml
 from collections import namedtuple
+from ncl import NclBitStream
 
 import util
 from rshader import rShaderObjectId
 import mvc3shaderdb
 import mvc3types
+import target
 
 class rMaterialTextureInfo: 
-    SIZE = 0x28
-    MAX_NAME_LENGTH = 64
-    
+
     def __init__( self ):
         self.typeHash = 0
         self.field04 = 0
@@ -30,7 +30,7 @@ class rMaterialTextureInfo:
         self.field0c = stream.readInt()
         self.field10 = stream.readInt()
         self.field14 = stream.readInt()
-        self.path = util.readCStringBuffer( stream, rMaterialTextureInfo.MAX_NAME_LENGTH )
+        self.path = util.readCStringBuffer( stream, target.current.pathLength )
         
     def write( self, stream ):
         stream.writeUInt( self.typeHash )
@@ -39,7 +39,7 @@ class rMaterialTextureInfo:
         stream.writeUInt( self.field0c )
         stream.writeUInt( self.field10 )
         stream.writeUInt( self.field14 )
-        util.writeCStringBuffer( stream, self.path, rMaterialTextureInfo.MAX_NAME_LENGTH )
+        util.writeCStringBuffer( stream, self.path, target.current.pathLength )
         
 class rMaterialCmdListInfo:
     def __init__(self, value=0):
@@ -267,7 +267,7 @@ class rMaterialCmd:
     
     def __init__( self ):
         self.info = rMaterialCmdInfo()
-        self.field04 = 0
+        self.field04 = 0xCDCDCDCD if target.current.useUninitializedPadding else 0
         self.data = rMaterialCmdData()
         self.shaderObjectId = rShaderObjectId()
         self.field14 = 0
@@ -436,7 +436,7 @@ class rMaterialInfo:
     
     def __init__( self ):
         self.typeHash = 0
-        self.field04 = 0
+        self.field04 = 0xCDCDCDCD if target.current.useUninitializedPadding else 0
         self.nameHash = 0
         self.cmdBufferSize = 0
         self.blendState = rShaderObjectId()
@@ -629,6 +629,9 @@ class rMaterialStreamWriter:
         self.matInfoCtx.animData.header = header
         self.matInfoCtx.animData.header.entryCount = 0
         
+    def setMaterialAnimDataBuffer( self, buf ):
+        self.matInfoCtx.animData = buf
+        
     def endMaterialAnimData( self ):
         pass
         
@@ -707,47 +710,52 @@ class rMaterialStreamWriter:
         # now we write the animation data
         for ctx in self.matInfoCtxs:
             if ctx.animData != None:
-                # write header
-                animDataHeaderPos = self.stream.getOffset()
-                ctx.animData.header.write( self.stream )
-                
-                # write entries
-                nextOffsetPos = self.stream.getOffset()
-                nextDataPos = self._getAligned( nextOffsetPos + ctx.animData.header.entryCount * 8, 16 )
-                
-                for entry in ctx.animData.entries: 
-                    # reserve space for the entry header        
-                    dataPos = nextDataPos
-                    self.seek( nextDataPos + rMaterialAnimEntryHeader.SIZE )
+                if isinstance( ctx.animData, bytes ):
+                    ctx.data.animDataOffset = self.stream.getOffset()
+                    ctx.data.animDataSize = len( ctx.animData )
+                    self.stream.writeBytes( ctx.animData )
+                else:
+                    # write header
+                    animDataHeaderPos = self.stream.getOffset()
+                    ctx.animData.header.write( self.stream )
                     
-                    # write sub entries
-                    entryList1Pos = self.stream.getOffset()
-                    for entry1 in entry.entryList1:
-                        entry1.write( self.stream )
-                        
-                    entryList2Pos = self.stream.getOffset()
-                    for entry2 in entry.entryList2:
-                        entry2.header.write( self.stream )
-                        self.stream.writeBytes( entry2.entryListHeader )
-                        for subEntry in entry2.entries:
-                            self.stream.writeBytes( subEntry )
-                            
-                    nextDataPos = self.stream.getOffset()
-                    
-                    # write entry after populating offsets
-                    self.seek( dataPos )
-                    entry.header.entryList1Offset = entryList1Pos - animDataHeaderPos
-                    entry.header.entryList2Offset = entryList2Pos - animDataHeaderPos
-                    entry.header.write( self.stream )
-                    
-                    # write entry offset
-                    self.seek( nextOffsetPos )
-                    self.stream.writeUInt64( dataPos - animDataHeaderPos )
+                    # write entries
                     nextOffsetPos = self.stream.getOffset()
+                    nextDataPos = self._getAligned( nextOffsetPos + ctx.animData.header.entryCount * 8, 16 )
                     
-                ctx.data.animDataOffset = animDataHeaderPos
-                ctx.data.animDataSize = nextDataPos - nextOffsetPos
-                self.seek( nextDataPos )
+                    for entry in ctx.animData.entries: 
+                        # reserve space for the entry header        
+                        dataPos = nextDataPos
+                        self.seek( nextDataPos + rMaterialAnimEntryHeader.SIZE )
+                        
+                        # write sub entries
+                        entryList1Pos = self.stream.getOffset()
+                        for entry1 in entry.entryList1:
+                            entry1.write( self.stream )
+                            
+                        entryList2Pos = self.stream.getOffset()
+                        for entry2 in entry.entryList2:
+                            entry2.header.write( self.stream )
+                            self.stream.writeBytes( entry2.entryListHeader )
+                            for subEntry in entry2.entries:
+                                self.stream.writeBytes( subEntry )
+                                
+                        nextDataPos = self.stream.getOffset()
+                        
+                        # write entry after populating offsets
+                        self.seek( dataPos )
+                        entry.header.entryList1Offset = entryList1Pos - animDataHeaderPos
+                        entry.header.entryList2Offset = entryList2Pos - animDataHeaderPos
+                        entry.header.write( self.stream )
+                        
+                        # write entry offset
+                        self.seek( nextOffsetPos )
+                        self.stream.writeUInt64( dataPos - animDataHeaderPos )
+                        nextOffsetPos = self.stream.getOffset()
+                        
+                    ctx.data.animDataOffset = animDataHeaderPos
+                    ctx.data.animDataSize = nextDataPos - nextOffsetPos
+                    self.seek( nextDataPos )
                 
                 
         
@@ -763,12 +771,19 @@ class rMaterialStreamWriter:
         self.seek( materialCmdEndPos )
                 
 class rMaterialStreamReader:
-    def __init__( self, stream ):
+    def __init__( self, stream: NclBitStream ):
         self.stream = stream
         self.startPos = stream.getOffset()
         self.header = rMaterialHeader()
         self.header.read( self.stream )
         self.objectToOffset = dict()
+        
+    def _readBytesAtOffset( self, offset, count ):
+        p = self.stream.getOffset()
+        self.stream.setOffset( offset )
+        value = self.stream.readBytes( count )
+        self.stream.setOffset( p )
+        return value
         
     def _readStructAtOffset( self, structType, offset ):
         p = self.stream.getOffset()
@@ -811,6 +826,11 @@ class rMaterialStreamReader:
         if materialInfo.animDataSize <= 0:
             return None
         return self._readStructAtOffset( rMaterialAnimHeader, materialInfo.animDataOffset )
+    
+    def getMaterialAnimBuffer( self, materialInfo: rMaterialInfo ):
+        if materialInfo.animDataSize <= 0:
+            return None
+        return self._readBytesAtOffset( materialInfo.animDataOffset, materialInfo.animDataSize )
     
     def iterTextureInfo( self ):
         return self._iterStructArray( rMaterialTextureInfo, self.header.textureOffset, self.header.textureCount )
@@ -876,20 +896,32 @@ class rMaterialStreamReader:
             self.stream.setOffset( materialInfo.cmdListOffset + materialCmd.data.getConstantBufferDataOffset() )
             data = None
             shaderObjectHash = materialCmd.shaderObjectId.getHash() 
-            if ( shaderObjectHash == mvc3shaderdb.CBMaterial.hash ):
-                data = util.readFloatBuffer( self.stream, 32 )
-            elif ( shaderObjectHash == mvc3shaderdb._DOLLAR_Globals.hash ):
-                data = util.readFloatBuffer( self.stream, 76 )
-            elif ( shaderObjectHash == mvc3shaderdb.CBDiffuseColorCorect.hash ):
-                data = util.readFloatBuffer( self.stream, 4 )
-            elif ( shaderObjectHash == mvc3shaderdb.CBHalfLambert.hash ):
-                data = util.readFloatBuffer( self.stream, 4 )
-            elif ( shaderObjectHash == mvc3shaderdb.CBToon2.hash ):
-                data = util.readFloatBuffer( self.stream, 4 )
-            elif ( shaderObjectHash == mvc3shaderdb.CBIndirectUser.hash ):
-                data = util.readFloatBuffer( self.stream, 12 )
+            if target.current.name in ['mvc3-pc']:
+                if ( shaderObjectHash == mvc3shaderdb.CBMaterial.hash ):
+                    data = util.readFloatBuffer( self.stream, 32 )
+                elif ( shaderObjectHash == mvc3shaderdb._DOLLAR_Globals.hash ):
+                    data = util.readFloatBuffer( self.stream, 76 )
+                elif ( shaderObjectHash == mvc3shaderdb.CBDiffuseColorCorect.hash ):
+                    data = util.readFloatBuffer( self.stream, 4 )
+                elif ( shaderObjectHash == mvc3shaderdb.CBHalfLambert.hash ):
+                    data = util.readFloatBuffer( self.stream, 4 )
+                elif ( shaderObjectHash == mvc3shaderdb.CBToon2.hash ):
+                    data = util.readFloatBuffer( self.stream, 4 )
+                elif ( shaderObjectHash == mvc3shaderdb.CBIndirectUser.hash ):
+                    data = util.readFloatBuffer( self.stream, 12 )
+                else:
+                    raise Exception( "Unhandled constant buffer: {}".format( hex( shaderObjectHash ) ) )
+            elif target.current.name in ['aa-pc']:
+                if ( shaderObjectHash == mvc3shaderdb.CBMaterial.hash ):
+                    data = util.readFloatBuffer( self.stream, 48 )
+                elif ( shaderObjectHash == 0x000798AA ): # TODO get proper name (aa-pc)
+                    data = util.readFloatBuffer( self.stream, 36 )
+                elif ( shaderObjectHash == 0x0007D913 ): # TODO get proper name (aa-pc)
+                    data = util.readFloatBuffer( self.stream, 8 )
+                else:
+                    raise Exception( "Unhandled constant buffer: {}".format( hex( shaderObjectHash ) ) )
             else:
-                raise Exception( "Unhandled constant buffer: {}".format( hex( shaderObjectHash ) ) )
+                raise Exception(f'Unhandled target: {target.current.name}')
                 
             self.stream.setOffset( temp )
             return data
@@ -921,28 +953,31 @@ class rMaterialData:
             for matCmd in reader.iterMaterialCmd( matInfo ):
                 matCmdData = reader.getMaterialCmdData( matInfo, matCmd )
                 mat.cmds.append((matCmd, matCmdData))
-                
-            animHeader = reader.getMaterialAnimHeader( mat.info )
-            if animHeader != None:
-                mat.animData = rMaterialAnimData()
-                mat.animData.header = animHeader
-                for animEntryHeader in reader.iterMaterialAnimEntry( mat.info, animHeader ):
-                    animEntryData = rMaterialAnimEntryData()
-                    animEntryData.header = animEntryHeader
-                    
-                    for se1 in reader.iterMaterialAnimSubEntry1( mat.info, animEntryData.header ):
-                        animEntryData.entryList1.append( se1 )
-                    
-                    for se2Header in reader.iterMaterialAnimSubEntry2( mat.info, animEntryData.header ):
-                        se2 = rMaterialAnimSubEntry2Data()
-                        se2.header = se2Header
-                        se2.entryListHeader = reader.getMaterialAnimSubEntry2TypeHeader( se2.header )
-                        # TODO fix this
-                        #for se2entry in reader.iterMaterialAnimSubEntry2Entries( se2.header ):
-                        #    se2.entries.append( se2entry )
-                        animEntryData.entryList2.append( se2 )
- 
-                    mat.animData.entries.append( animEntryData )
+              
+            # TODO support other targets
+            mat.animData = reader.getMaterialAnimBuffer( matInfo )
+            # if target.current.name in ['umvc3-pc']:  
+            #     animHeader = reader.getMaterialAnimHeader( mat.info )
+            #     if animHeader != None:
+            #         mat.animData = rMaterialAnimData()
+            #         mat.animData.header = animHeader
+            #         for animEntryHeader in reader.iterMaterialAnimEntry( mat.info, animHeader ):
+            #             animEntryData = rMaterialAnimEntryData()
+            #             animEntryData.header = animEntryHeader
+                        
+            #             for se1 in reader.iterMaterialAnimSubEntry1( mat.info, animEntryData.header ):
+            #                 animEntryData.entryList1.append( se1 )
+                        
+            #             for se2Header in reader.iterMaterialAnimSubEntry2( mat.info, animEntryData.header ):
+            #                 se2 = rMaterialAnimSubEntry2Data()
+            #                 se2.header = se2Header
+            #                 se2.entryListHeader = reader.getMaterialAnimSubEntry2TypeHeader( se2.header )
+            #                 # TODO fix this
+            #                 #for se2entry in reader.iterMaterialAnimSubEntry2Entries( se2.header ):
+            #                 #    se2.entries.append( se2entry )
+            #                 animEntryData.entryList2.append( se2 )
+    
+            #             mat.animData.entries.append( animEntryData )
                 
             self.materials.append( mat )
             
@@ -962,18 +997,21 @@ class rMaterialData:
             for cmd, cmdData in mat.cmds:
                 writer.addMaterialCmd( cmd, cmdData )
             if mat.animData != None:
-                writer.beginMaterialAnimData( mat.animData.header )
-                for entry in mat.animData.entries:
-                    writer.beginMaterialAnimEntry( entry.header )
-                    
-                    for entry1 in entry.entryList1:
-                        writer.addMaterialAnimSubEntry1( entry1 )
+                if isinstance( mat.animData, bytes ):
+                    writer.setMaterialAnimDataBuffer( mat.animData )
+                else:
+                    writer.beginMaterialAnimData( mat.animData.header )
+                    for entry in mat.animData.entries:
+                        writer.beginMaterialAnimEntry( entry.header )
                         
-                    for entry2 in entry.entryList2:
-                        writer.addMaterialAnimSubEntry2( entry2.header, entry2.entryListHeader, entry2.entries )
-                        
-                    writer.endMaterialAnimEntry()
-                writer.endMaterialAnimData()
+                        for entry1 in entry.entryList1:
+                            writer.addMaterialAnimSubEntry1( entry1 )
+                            
+                        for entry2 in entry.entryList2:
+                            writer.addMaterialAnimSubEntry2( entry2.header, entry2.entryListHeader, entry2.entries )
+                            
+                        writer.endMaterialAnimEntry()
+                    writer.endMaterialAnimData()
                 
             writer.endMaterialInfo()
         writer.endMaterialInfoList()

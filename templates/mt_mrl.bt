@@ -11,6 +11,9 @@
 //   History: 
 //------------------------------------------------
 
+//#define MT_TARGET_AA_PC 1
+#define MT_TARGET_MVC3_PC 1
+
 #include "mt_shared.bt"
 #include "mvc3_types.bt"
 
@@ -22,7 +25,7 @@ typedef struct
     u32 Field0C;
     u32 Field10;
     u32 Field14;
-    char Path[64];
+    char Path[MT_TARGET_PATH_LENGTH];
 } MrlTextureInfo <bgcolor=0x550000>;
 
 //BitfieldRightToLeft();
@@ -71,15 +74,23 @@ typedef struct( u32 baseOffset )
         
         Printf( "hash 0x%08X baseOffset 0x%08X dataOffset 0x%08X\n", 
             ShaderObject.Hash, baseOffset, dataOffset );
+
         switch ( ShaderObject.Hash )
         {
+#ifdef MT_TARGET_MVC3_PC
             case SHADER_CBMaterial: float Data[32]; break;
             case SHADER__DOLLAR_Globals: float Data[76]; break;
             case SHADER_CBDiffuseColorCorect: float Data[4]; break;
             case SHADER_CBHalfLambert: float Data[4]; break;
             case SHADER_CBToon2: float Data[4]; break;
             case SHADER_CBIndirectUser: float Data[12]; break;
-            default: Assert( false );
+#endif
+#ifdef MT_TARGET_AA_PC
+            case SHADER_CBMaterial: float Data[48]; break;
+            case 0x000798AA: float Data[36]; break;
+            case 0x0007D913: float Data[8]; break;
+#endif
+            default: Printf("unhandled hash\n"); //Assert( false );
         }       
 
 
@@ -361,8 +372,8 @@ typedef struct
         Printf( "AnimDataSize 0x%08X\n", AnimDataSize );
 
         FSeek( AnimDataOffset );
-        MrlMaterialAnimData AnimData;
-        //u8 AnimData[ AnimDataSize + 0x10 ];
+        //MrlMaterialAnimData AnimData;
+        u8 AnimData[ AnimDataSize ];
         FSeek( p );
     }
 

@@ -14,6 +14,8 @@
 //   History: 
 //------------------------------------------------
 
+#define MT_TARGET_MVC3_PC 1
+
 #include "mt_shared.bt"
 
 typedef struct
@@ -36,9 +38,9 @@ typedef struct
     /* 40 */ SMtx44 Pivot; // guess, translation part is in the middle
     /* 80 */ SVec4 Vec80;
     //Printf( "jointIdx: %d\n", JointIdx );
-} rModelPrimitiveJointLink <bgcolor=0xbcdd3f, optimize=true>;
+} rModelEnvelope <bgcolor=0xbcdd3f, optimize=true>;
 
-typedef struct( u32& primitiveJointLinkIndex )
+typedef struct( u32& envelopeIndex )
 {
     /* 00 */ u16 Flags;                         // ?
     /* 02 */ u16 VertexCount;                   // no. of vertices drawn by this primitive
@@ -53,13 +55,13 @@ typedef struct( u32& primitiveJointLinkIndex )
     /* 1C */ u32 IndexCount;                    // number of indices to render
     /* 20 */ u32 IndexStartIndex;               // index of the starting index in the buffer slice
     /* 24 */ u8 BoneMapStartIndex;              // starting index used for the bone idx -> joint idx map
-    /* 25 */ u8 PrimitiveJointLinkCount;        // no. prim joint links used by this primitive
+    /* 25 */ u8 EnvelopeCount;        // no. prim joint links used by this primitive
     /* 26 */ u16 Id;                            // base 1 unique primitive id; overwritten at load
                                                 // becomes index of unique primitive (same vertex format etc)
     /* 28 */ u16 MinVertexIndex;                // lowest vertex triangle index in buffer
     /* 2A */ u16 MaxVertexIndex;                // highest vertex index in buffer
     /* 2C */ u32 Field2C;                       // ?; always 0 for Ryu
-    /* 30 */ u64 PrimitiveJointLinkPtr;         // overwritten at load
+    /* 30 */ u64 EnvelopePtr;         // overwritten at load
 
     local u64 p = FTell();
     FSeek( File.Header.VertexBufferOffset.Value + VertexBufferOffset );
@@ -71,9 +73,9 @@ typedef struct( u32& primitiveJointLinkIndex )
     FSeek( File.Header.IndexBufferOffset.Value + ( relIndexBufferOffset * 2 ) );
     u16 IndexBuffer[ IndexCount ];
 
-    FSeek( File.Header.PrimitiveOffset.Value + ( Header.PrimitiveCount * 56 ) + ( primitiveJointLinkIndex * 144 ) );
-    rModelPrimitiveJointLink PrimitiveJointLinks[ PrimitiveJointLinkCount ] <bgcolor=cGreen>;
-    primitiveJointLinkIndex += PrimitiveJointLinkCount;
+    FSeek( File.Header.PrimitiveOffset.Value + ( Header.PrimitiveCount * 56 ) + ( envelopeIndex * 144 ) );
+    rModelEnvelope Envelopes[ EnvelopeCount ] <bgcolor=cGreen>;
+    envelopeIndex += EnvelopeCount;
 
     //Printf( "%d\n", Type );
     //Printf( "%08X\n", Type );
@@ -82,7 +84,14 @@ typedef struct( u32& primitiveJointLinkIndex )
     //Printf( "%d\n", Field2C );
 
     FSeek( p );
-} rModelPrimitive <bgcolor=0x9c171d, optimize=false>;
+} rModelPrimitive <bgcolor=0x9c171d, optimize=false, read=rModelPrimitiveToString>;
+
+string rModelPrimitiveToString( rModelPrimitive& val )
+{
+    string s = "";
+    SPrintf( s, "id %d shader %s", val.Id, rShaderObjectIdToString( val.Shader ) );
+    return s;
+}
 
 
 typedef struct
@@ -97,20 +106,20 @@ typedef struct
     //Printf( "Field10: %d\n", Field10 );
 } rModelGroup <bgcolor=0x254cae, optimize=true>;
 
-u64 _GetPrimitiveJointLinkOffset( u32 i )
+u64 _GetEnvelopeOffset( u32 i )
 {
     return File.Header.PrimitiveOffset.Value + ( Header.PrimitiveCount * 56 ) + ( i * 144 );
 }
 
-u64 _GetNextPrimitiveJointLinkIndex( u32 jointIndex, u32 startIndex )
+u64 _GetNextEnvelopeIndex( u32 jointIndex, u32 startIndex )
 {
     local u64 p = FTell();
     local u32 i;
     local u32 curJointIndex;
     local u32 offset;
-    for ( i = startIndex; i < File.Header.PrimitiveJointLinkCount; ++i )
+    for ( i = startIndex; i < File.Header.EnvelopeCount; ++i )
     {
-        FSeek( _GetPrimitiveJointLinkOffset( i ) );
+        FSeek( _GetEnvelopeOffset( i ) );
         curJointIndex = ReadInt( FTell() );
         if ( curJointIndex == jointIndex )
         {
@@ -123,29 +132,30 @@ u64 _GetNextPrimitiveJointLinkIndex( u32 jointIndex, u32 startIndex )
     return -1;
 }
 
-void ListPrimitiveJointLinksByIndex( u8 jointIndex )
+void ListEnvelopesByIndex( u8 jointIndex )
 {
     local u64 p = FTell();
-    local u32 pjlIndex = _GetNextPrimitiveJointLinkIndex( jointIndex, 0 );
-    if ( pjlIndex != -1 )
+    local u32 envelopeIndex = _GetNextEnvelopeIndex( jointIndex, 0 );
+    if ( envelopeIndex != -1 )
     {
         struct( u8 jointIndex )
         {
-            local u64 pjlIndex = 0;
-            while ( ( pjlIndex = _GetNextPrimitiveJointLinkIndex( jointIndex, pjlIndex ) ) != -1 )
+            local u64 envelopeIndex = 0;
+            while ( ( envelopeIndex = _GetNextEnvelopeIndex( jointIndex, envelopeIndex ) ) != -1 )
             {
-                FSeek( _GetPrimitiveJointLinkOffset( pjlIndex ) );
-                rModelPrimitiveJointLink PrimitiveJointLink;
-                pjlIndex += 1;
+                FSeek( _GetEnvelopeOffset( envelopeIndex ) );
+                rModelEnvelope Envelope;
+                envelopeIndex += 1;
             }
-        } PrimitiveJointLinks( jointIndex );
+        } Envelopes( jointIndex );
     }
     FSeek( p );
 }
 
 // size = 0x18
-typedef struct( u32& index )
+typedef struct( u32& inIndex )
 {
+    local u32 index = inIndex;
     // attr, parentIndex, symmetryIndex, no, type
 
     /* 00 */ u8 Id; // mNo, id of the joint
@@ -156,9 +166,16 @@ typedef struct( u32& index )
     /* 08 */ f32 Length; // mLength, distance to parent bone
     /* 0C */ SVec3 Offset; // mOffset, relative to parent
 
-    ListPrimitiveJointLinksByIndex( index );
+    ListEnvelopesByIndex( index );
     index++;
-} rModelJoint <bgcolor=0x14c2e9, optimize=false>;
+} rModelJoint <bgcolor=0x14c2e9, optimize=false, read=rModelJointToString>;
+
+string rModelJointToString( rModelJoint& val )
+{
+    string s;
+    SPrintf( s, "id:%d pi:%d si:%d", val.Id, val.ParentIndex, val.SymmetryIndex );
+    return s;
+}
 
 typedef struct
 {
@@ -196,7 +213,7 @@ typedef struct
     u32 Field94; // 3000
     u32 Field98; // 1, layer info?
     u32 Field9C; // 0
-    u32 PrimitiveJointLinkCount;
+    u32 EnvelopeCount;
 } rModelHeader <bgcolor=0x0177e2>;
 
 typedef struct 
@@ -217,7 +234,7 @@ string rModelBoneMapEntryToString( rModelBoneMapEntry& e )
 {
     if ( e.JointIndex < 0 ) return "<null>";
     string s = "";
-    SPrintf( s, "idx %03d, id %03d, p %03d, sym %03d", e.JointIndex, e.Joint.Id, e.Joint.Parent, e.Joint.Symmetry );
+    SPrintf( s, "idx %03d, id %03d, p %03d, sym %03d", e.JointIndex, e.Joint.Id, e.Joint.ParentIndex, e.Joint.Symmetry );
     return s; 
 }
 
@@ -244,9 +261,9 @@ typedef struct
     rModelMaterial Materials[Header.MaterialCount];
 
     FSeek( p + Header.PrimitiveOffset.Value );
-    local u32 primitiveJointLinkIndex = 0;
-    struct { rModelPrimitive Primitives( primitiveJointLinkIndex )[Header.PrimitiveCount]; } Primitives;
-    rModelPrimitiveJointLink PrimitiveJointLinks[Header.PrimitiveJointLinkCount];
+    local u32 envelopeIndex = 0;
+    struct { rModelPrimitive Primitives( envelopeIndex )[Header.PrimitiveCount]; } Primitives;
+    rModelEnvelope Envelopes[Header.EnvelopeCount];
 
     FSeek( p + Header.VertexBufferOffset.Value );
     byte VertexBuffer[ Header.VertexBufferSize ] <bgcolor=0x17e9aa>;

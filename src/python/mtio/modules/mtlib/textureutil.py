@@ -103,30 +103,40 @@ def convertTexture( srcTexturePath: str, dstTexturePath: str = None,
             isNormal = fmt == rTextureSurfaceFmt.NM
             if srcExt.lower() == 'dds':
                 # check if DDS format matches
-                fmtDDS = rTextureSurfaceFmt.getDDSFormat( fmt )
+                ddsFmt = rTextureSurfaceFmt.getDDSFormat( fmt )
                 dds = DDSFile.fromFile( srcTexturePath )
-                if dds.header.ddspf.dwFourCC == fmtDDS:
-                    # don't need to convert to proper format
-                    convert = False
+                if dds.header.ddspf.dwFourCC == ddsFmt.fourCC:
+                    if ddsFmt.fourCC == DDS_FOURCC_DXT10:
+                        if dds.dxt10Header.dxgiFormat == ddsFmt.dxgiFormat:
+                            # don't need to convert to proper format
+                            convert = False
+                    else:
+                        # don't need to convert to proper format
+                        convert = False
                     
             if convert:  
                 # convert file to DDS with texconv
-                fmtDDS = rTextureSurfaceFmt.getDDSFormat( fmt )
+                ddsFmt = rTextureSurfaceFmt.getDDSFormat( fmt )
                 fmtDDSName = ''
-                if fmtDDS == DDS_FOURCC_DXT1:
+                if ddsFmt.fourCC == DDS_FOURCC_DXT1:
                     fmtDDSName = 'DXT1'
-                elif fmtDDS == DDS_FOURCC_DXT2:
+                elif ddsFmt.fourCC == DDS_FOURCC_DXT2:
                     fmtDDSName = 'DXT2'
-                elif fmtDDS == DDS_FOURCC_DXT3:
+                elif ddsFmt.fourCC == DDS_FOURCC_DXT3:
                     fmtDDSName = 'DXT3'
-                elif fmtDDS == DDS_FOURCC_DXT4:
+                elif ddsFmt.fourCC == DDS_FOURCC_DXT4:
                     fmtDDSName = 'DXT4'
-                elif fmtDDS == DDS_FOURCC_DXT5:
+                elif ddsFmt.fourCC == DDS_FOURCC_DXT5:
                     fmtDDSName = 'DXT5'
-                elif fmtDDS == DDS_FOURCC_NONE:
+                elif ddsFmt.fourCC == DDS_FOURCC_NONE:
                     fmtDDSName = 'RGBA'
+                elif ddsFmt.fourCC == DDS_FOURCC_DXT10:
+                    if ddsFmt.dxgiFormat in [DXGI_FORMAT_BC7_UNORM, DXGI_FORMAT_BC7_TYPELESS, DXGI_FORMAT_BC7_UNORM_SRGB]:
+                        fmtDDSName = 'BC7'
+                    else:
+                        raise Exception("Unhandled dds dxt10 format: " + str(ddsFmt.dxgiFormat))
                 else:
-                    raise Exception("Unhandled dds format: " + str(fmtDDS))
+                    raise Exception("Unhandled dds format: " + str(ddsFmt.fourCC))
                 
                 log.info( 'converting input {} to DDS {}'.format(srcTexturePath, srcDDSPath))
                 log.debug( 'DDS format: {}'.format( fmtDDSName ) )

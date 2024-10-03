@@ -1,6 +1,7 @@
 import os
 import sys
 import io
+from tkinter import Image
 from typing import Dict, TypedDict
 
 sys.path.append( os.path.dirname( sys.path[0] ) )
@@ -218,7 +219,7 @@ def dumpModStats( inputName, stats ):
         #addFreq( stats, "joint.field04", joint.field04 )
         #addFreq( stats, "joint.length", joint.length )
         
-    for link in mod.primitiveJointLinks:
+    for link in mod.envelopes:
         addFreq( stats, "link.field04", link.field04 )
         addFreq( stats, "link.field08", link.field08 )
         addFreq( stats, "link.field0c", link.field0c )  
@@ -241,13 +242,21 @@ def genMetadata( inputName, ref ):
             metadata.loadFile( filePath )  
     
 def processModBatch( func, *args, path='X:\\project\\umvc3_model\\samples\\test' ):
+    files = []
+    
     for entry in scantree(path):
         if entry.name.endswith(".mod") and entry.is_file():
             diff = entry.stat().st_mtime_ns - entry.stat().st_ctime_ns
             # 21780333610000000
             if diff > 2000000000:
                 continue
-            func( entry.path, *args )
+            
+            files.append( entry.path )
+            
+    for i, file in enumerate( files ):
+        os.system('cls')
+        print( f'{i}/{len(files)} {file}')
+        func( file, *args )
                 
 def processTexBatch( func, *args ):
     with os.scandir('X:\\project\\umvc3_model\\samples\\test') as it:
@@ -387,7 +396,7 @@ def dumpVertexFlags():
     for key, value in stats.items():
         print(key, value)
     
-def dumpPjl():
+def dumpEnvelope():
     def _dump( inputName: str, stats: Dict[str, Dict[str, int]] ):
         basePath, baseName, exts = util.splitPath( inputName )
         modPath = os.path.join( basePath, baseName + '.58a15856.mod' )
@@ -399,7 +408,7 @@ def dumpPjl():
         mod = rModelData()
         mod.read( NclBitStream( modBuffer ) )
         
-        if len( mod.primitiveJointLinks ) == 1:
+        if len( mod.envelopes ) == 1:
             print( modPath )
     
     stats = dict()
@@ -509,6 +518,17 @@ def dumpMaxVertexCount():
     class Work:
         vertexCount = -1
         indexCount = -1
+        totalVertexCount = -1
+        totalIndexCount = -1
+        totalVertexCountVisible = -1
+        totalIndexCountVisible = -1
+        
+        @staticmethod
+        def dump():
+            s = ''
+            for key, value in Work.__dict__.items():
+                s += f'{key} = {value}, '
+            return s
         
     def _dump( inputName: str ):
         basePath, baseName, exts = util.splitPath( inputName )
@@ -520,20 +540,70 @@ def dumpMaxVertexCount():
         modBuffer = util.loadIntoByteArray( modPath )
         mod = rModelData()
         mod.read( NclBitStream( modBuffer ) )
+        vertexCountVisible = 0
+        indexCountVisible = 0
         for prim in mod.primitives:
             if prim.vertexCount > Work.vertexCount:
                 Work.vertexCount = prim.vertexCount
             if prim.indexCount > Work.indexCount:
                 Work.indexCount = prim.indexCount
+            if prim.indices.getGroupId() < 70:
+                vertexCountVisible += prim.vertexCount
+                indexCountVisible += prim.indexCount
+                
+        Work.totalVertexCount = max( Work.totalVertexCount, mod.header.vertexCount )
+        Work.totalIndexCount = max( Work.totalIndexCount, mod.header.indexCount )
+        
+        Work.totalVertexCountVisible = max( Work.totalVertexCountVisible, vertexCountVisible )
+        Work.totalIndexCountVisible = max( Work.totalIndexCountVisible, indexCountVisible )
     
-    processModBatch( _dump, path=r'X:\game\platform\pc\Ultimate Marvel vs. Capcom 3\nativePCx64\stg' )
-    print( "Vertex count", Work.vertexCount, "Index count", Work.indexCount )
+    processModBatch( _dump, path=r'X:\game\platform\pc\Ultimate Marvel vs. Capcom 3\nativePCx64\chr' )
+    print( Work.dump() )
+    
+def writeLabTiff():
+    from skimage import color
+    from skimage.io import imsave, imread
+    from skimage.color import hed2rgb, hsv2rgb, lab2rgb, luv2rgb, rgbcie2rgb, xyz2rgb, ycbcr2rgb, ydbdr2rgb, yiq2rgb, ypbpr2rgb, yuv2rgb
+    from skimage.color.colorconv import _convert, rgb_from_yuv
+    import numpy as np
+    
+    # Start with a matrix of zeros, and later substitute Lab values
+    # nRow = 100;
+    # nCol = 100;
+    # Lab = zeros(nRow,nCol,3); 
+    # # Cyan stripe on top
+    # iSlice = 1:33; % The rows of the image that we set to this Lab value
+    # Lab(iSlice,:,1) = 63; % L
+    # Lab(iSlice,:,2) = -90; % a
+    # Lab(iSlice,:,3) = -15; % b
+    # # Orange in middle
+    # iSlice = 34:66;
+    # Lab(iSlice,:,1) = 72; % L
+    # Lab(iSlice,:,2) = 33; % a
+    # Lab(iSlice,:,3) = 117; % b
+    # # Green on bottom
+    # iSlice = 67:100;
+    # Lab(iSlice,:,1) = 81; % L
+    # Lab(iSlice,:,2) = -59; % a
+    # Lab(iSlice,:,3) = 84; % b
+    # lab_uint16=lab2uint16(Lab); % Convert to 16-bit 
+    # fileTif = 'test_Lab.tif'; % The tif file containing your Lab values
+    # imwrite(lab_uint16,fileTif,'tif','ColorSpace','CIELab');  % 16-bit CIELAB
+    cols = []
+    for i in range(512):
+        row = []
+        for j in range(512):
+            row.append(np.array([63, -90, -15]))
+        cols.append(np.array(row))
+    
+    imsave( 'test.tiff', np.array(cols), plugin='tifffile', check_contrast=True, photometric='CIELab' )
 
 def main():
     #dumpVertexFlags()
-    #dumpPjl()
+    #dumpEnvelope()
     #dumpUniqueMaterials()
-    dumpMaxVertexCount()
+    #dumpMaxVertexCount()
+    writeLabTiff()
     
     # inputName = "X:/work/umvc3_model/samples/UMVC3ModelSamples/Ryu/Ryu.58a15856.mod"
     # baseName = os.path.basename(inputName).split('.')[0]

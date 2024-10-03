@@ -1,13 +1,45 @@
 # Generated file. Any changes made will be lost.
 from typing import Dict
 from shaderinfo import *
+from rshader import rShaderObjectId
+
 shaderObjects = []
 shaderObjectsByName : Dict[str, ShaderObjectInfo] = {}
 shaderObjectsByHash : Dict[int, ShaderObjectInfo] = {}
 def _add( shaderObject ):
-	shaderObjects.append( shaderObject )
-	shaderObjectsByName[ shaderObject.name ] = shaderObject
-	shaderObjectsByHash[ shaderObject.hash ] = shaderObject
+    shaderObjects.append( shaderObject )
+    shaderObjectsByName[ shaderObject.name ] = shaderObject
+    shaderObjectsByHash[ shaderObject.hash ] = shaderObject
+
+def getShaderObjectHash( name: str ):
+    if name.startswith( '_0x' ):
+        # fallback
+        return int(name[3:], base=16)
+    else:
+        return shaderObjectsByName[ name ].hash
+    
+def getShaderObjectName( hashVal: int ):
+    if hashVal in shaderObjectsByHash:
+        return shaderObjectsByHash[hashVal].name
+    else:
+        # fallback
+        return f'_{hex(hashVal)}'
+    
+def getShaderObjectIdFromName( name: str ):
+    '''Gets the shader object ID associated with the given shader object name'''
+    
+    soId = rShaderObjectId()
+    if name.startswith('_0x'):
+        soId.setHash( getShaderObjectHash( name ) )
+        soId.setIndex( 0 )
+    else:
+        so = shaderObjectsByName[ name ]
+        soId.setHash( so.hash )
+        soId.setIndex( so.index )
+  
+    assert( soId.getValue() <= 0xFFFFFFFF )
+    return soId
+ 
 _EMPTY_ = ShaderObjectInfo( 0, '', 0x0, [] )
 IASystemCopy = ShaderObjectInfo( 1, 'IASystemCopy', 0xabee5, [ShaderInputInfo( 0, 1, 'Position', 2 ), ShaderInputInfo( 8, 1, 'Texcoord', 2 ), ] )
 IASystemClear = ShaderObjectInfo( 2, 'IASystemClear', 0x7fa75, [ShaderInputInfo( 0, 1, 'Position', 3 ), ShaderInputInfo( 12, 1, 'Color', 4 ), ] )

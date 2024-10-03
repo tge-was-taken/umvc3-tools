@@ -2,6 +2,9 @@
 Binary texture (.TEX) serialization module. 
 '''
 
+from dataclasses import dataclass
+from typing import Optional
+import target
 import util
 from ncl import *
 from dds import *
@@ -11,7 +14,9 @@ class rTextureHeaderDesc(object):
         self.value = value
         
     @staticmethod
-    def create( dimensions=2, shift=0, field2=0, typeVal=0xA09D ):
+    def create( dimensions=2, shift=0, field2=0, typeVal=None ):
+        if typeVal is None:
+            typeVal = target.current.textureType
         desc = rTextureHeaderDesc()
         desc.setType( typeVal )
         desc.setField2( field2 )
@@ -93,6 +98,12 @@ class rTextureHeaderDim(object):
     mipCount = property( getMipCount, setMipCount )
     height = property( getHeight, setHeight )
     width = property( getWidth, setWidth )
+    
+@dataclass
+class DDSFormatInfo:
+    pixelFormat: int
+    fourCC: int = DDS_FOURCC_NONE
+    dxgiFormat: int = DXGI_FORMAT_UNKNOWN
 
 class rTextureSurfaceFmt:
     # OPA: opaque
@@ -115,26 +126,35 @@ class rTextureSurfaceFmt:
     DXT5_37  = 37 # DXT5, not used in mvc3
     LIN      = 39 # RGBA, used for linear textures/ramps
     DXT1_41  = 41 # DXT1, not used in mvc3
-    BM_HQ    = 42 # DXT5    
+    BM_HQ    = 42 # DXT5 (mvc3-pc) or BC7 (aa-pc)   
     DXT5_43  = 43 # DXT5, not used in mvc3
     DXT5_47  = 47 # DXT5, not used in mvc3
+    BC7_54   = 54 # BC7, used in aa-pc but not used in mvc3-pc
     
     @staticmethod
     def getDDSFormat( fmt ):
         if fmt in [rTextureSurfaceFmt.BM_OPA, rTextureSurfaceFmt.DXT1_20, 
                    rTextureSurfaceFmt.MM_OPA, rTextureSurfaceFmt.DXT1_26, 
                    rTextureSurfaceFmt.DXT1_30, rTextureSurfaceFmt.DXT1_41]: 
-            return DDS_FOURCC_DXT1
+            return DDSFormatInfo(DDPF_FOURCC, DDS_FOURCC_DXT1)
         elif fmt in [rTextureSurfaceFmt.DXT5_21, rTextureSurfaceFmt.DXT5_22,
                      rTextureSurfaceFmt.BM_XLU, rTextureSurfaceFmt.DXT5_24,
                      rTextureSurfaceFmt.DXT5_27, rTextureSurfaceFmt.NM,
                      rTextureSurfaceFmt.DXT5_32, rTextureSurfaceFmt.DXT5_33,
                      rTextureSurfaceFmt.DXT5_35, rTextureSurfaceFmt.DXT5_36,
-                     rTextureSurfaceFmt.DXT5_37, rTextureSurfaceFmt.BM_HQ,
+                     rTextureSurfaceFmt.DXT5_37,
                      rTextureSurfaceFmt.DXT5_43, rTextureSurfaceFmt.DXT5_47]:
-            return DDS_FOURCC_DXT5
+            return DDSFormatInfo(DDPF_FOURCC, DDS_FOURCC_DXT5)
+        elif fmt in [rTextureSurfaceFmt.BM_HQ]:
+            if target.current.BM_HQ_BC7:
+                return DDSFormatInfo(DDPF_FOURCC, DDS_FOURCC_DXT10, DXGI_FORMAT_BC7_UNORM)
+            else:
+                return DDSFormatInfo(DDPF_FOURCC, DDS_FOURCC_DXT5)
+        elif fmt in [rTextureSurfaceFmt.BC7_54]:
+            return DDSFormatInfo(DDPF_FOURCC, DDS_FOURCC_DXT10, DXGI_FORMAT_BC7_UNORM)
         elif fmt in[rTextureSurfaceFmt.LIN]:
-            return DDS_FOURCC_NONE # RGBA
+            return DDSFormatInfo(DDPF_RGB)
+        raise NotImplementedError(f'unknown texture format: {fmt}')
         
     _specialTextureNames = {
         'DEAmoji00_MM': DXT5_21,
@@ -352,18 +372,25 @@ class rTextureData:
             for mip in surface.mips:
                 dds.buffer += mip
 
-        fourCC = rTextureSurfaceFmt.getDDSFormat( self.header.fmt.getSurfaceFmt() )
-        if fourCC != DDS_FOURCC_NONE:
+        fmt = self.header.fmt.getSurfaceFmt()
+        ddsFmt = rTextureSurfaceFmt.getDDSFormat( fmt )
+        if ddsFmt.pixelFormat == DDPF_FOURCC:
             blockSize = 16
-            if fourCC == DDS_FOURCC_DXT1:
+            if ddsFmt.fourCC == DDS_FOURCC_DXT1:
                 blockSize = 8
             
             pitch = ddsCalcLinearSizeBlockCompressed( self.header.dim.getWidth(), self.header.dim.getHeight(), blockSize )
             dds.header.dwPitchOrLinearSize = pitch
             dds.header.ddspf.dwFlags |= DDPF_FOURCC
-            dds.header.ddspf.dwFourCC = fourCC
-        else:
-            # TODO RGBA is assumed here
+            dds.header.ddspf.dwFourCC = ddsFmt.fourCC
+            if ddsFmt.fourCC == DDS_FOURCC_DXT10:
+                dds.dxt10Header.arraySize = 1
+                dds.dxt10Header.dxgiFormat = ddsFmt.dxgiFormat
+                dds.dxt10Header.miscFlag = 0
+                dds.dxt10Header.miscFlags2 = 0
+                dds.dxt10Header.resourceDimension = D3D11_RESOURCE_DIMENSION_TEXTURE2D
+        elif ddsFmt.pixelFormat == DDPF_RGB:
+            # assume uncompressed RGBA
             dds.header.ddspf.dwFlags |= DDS_RGBA
             dds.header.ddspf.dwRGBBitCount = 32
             dds.header.ddspf.dwRBitMask = 0xff

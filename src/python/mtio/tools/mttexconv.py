@@ -21,7 +21,9 @@ def main():
     parser.add_argument( '-fmt', '--format', type=hexOrDecimalInt, default=None, required=False, help='forces the texture format for conversion' )
     parser.add_argument( '--swap-normal-map-ra', type=bool, default=False, required=False, help='toggles swapping of the red and alpha channels for normal maps')
     parser.add_argument( '--invert-normal-map-g', type=bool, default=False, required=False, help='inverts the green channel of the normal map')
+    parser.add_argument( "--target", default="mvc3-pc" )
     args = parser.parse_args()
+    target.setTarget( args.target )
     textureutil.convertTexture( args.input, dstTexturePath=args.output, 
                                refTexturePath=args.original, forcedFormat=args.format,
                                swapNormalMapRAChannels=args.swap_normal_map_ra, invertNormalMapG=args.invert_normal_map_g )

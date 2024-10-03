@@ -68,7 +68,7 @@ class GroupMetadata:
     def getIdFromName( name ):
         return int(name[len( GroupMetadata.DEFAULT_NAME_PREFIX ):])
         
-# class PrimitiveJointLinkMetadata:
+# class EnvelopeMetadata:
 #     def __init__( self ):
 #         self.jointId = int()
 #         self.field04 = int()
@@ -109,7 +109,7 @@ class ModelMetadata:
         self.joints = []
         self.groups = []
         self.primitives = []
-        self.primitiveJointLinks = []
+        self.envelopes = []
         self.jointLookupById = dict()
         self.jointLookupByName = dict()
         self.groupLookupById = dict()
@@ -294,7 +294,7 @@ class ModelMetadata:
             self.groupLookupByName[ group.name ] = group.name
         
         # create primitive metadata
-        primJointLinkIndex = 0
+        envelopeIndex = 0
         for mPrim in modelData.primitives:
             prim = PrimitiveMetadata()
             prim.id = mPrim.id
@@ -312,7 +312,7 @@ class ModelMetadata:
             self.primitives.append( prim )
             self.primLookupById[ prim.id ] = prim
             self.primLookupByName[ prim.name ] = prim
-            primJointLinkIndex += mPrim.primitiveJointLinkCount
+            envelopeIndex += mPrim.envelopeCount
             
         self._sort()
         
@@ -322,6 +322,10 @@ class ModelMetadata:
             yamlText = f.read()
         
         yamlObj = yaml.safe_load( yamlText )
+        if yamlObj is None:
+            # empty file
+            return
+        
         if yamlObj['version'] > ModelMetadata.CURRENT_VERSION:
             raise Exception('Unsupported model metadata version')
         

@@ -201,7 +201,7 @@ primitives:
   - [ 8, prm_body_outline_l ]
   - [ 9, prm_cloth_lower ]
   - [ 10, prm_cloth_lower_outline ]
-  - [ 11, prm_cloth-upper ]
+  - [ 11, prm_cloth_upper ]
   - [ 12, prm_cloth_upper_outline ]
   - [ 13, prm_cloth_lower_r ]
   - [ 14, prm_cloth_lower_outline_r ]

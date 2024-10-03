@@ -11,6 +11,7 @@ import re
 import mvc3shaderdb
 from rshader import rShaderObjectId
 from ncl import *
+import target
 
 def loadIntoByteArray( path ):
     '''Loads the given file into a byte array'''
@@ -40,7 +41,14 @@ def replaceSuffix( name, suffix, replacement ):
 def readCStringBuffer( stream, length ):
     '''Reads an ASCII C-string buffer from the stream'''
     
-    return stream.readBytes( length ).decode( "ASCII" ).rstrip( "\0" )
+    buf = stream.readBytes( length )
+    len = 0
+    for b in buf:
+        if b == 0:
+            break
+        len += 1
+    
+    return buf[0:len].decode( "ASCII" )
 
 def writeCStringBuffer( stream, value, length ):
     '''Writes an ASCII C-string buffer to the stream'''
@@ -54,7 +62,22 @@ def writeCStringBuffer( stream, value, length ):
     
     # write padding
     for i in range(rem):
-        stream.writeByte( 0 ) 
+        stream.writeByte( 0xCD if ( target.current.useUninitializedPadding and i > 0 ) else 0 ) 
+        
+def s8( v ):
+    return struct.unpack( 'b', bytes([v]) )[0]
+
+def u8( v ):
+    return struct.unpack( 'B', bytes([v]) )[0]
+
+def s16( v ):
+    return struct.unpack( 'h', struct.pack( 'h', v ) )[0]
+
+def u16( v ):
+    return struct.unpack( 'h', struct.pack( 'h', v ) )[0]
+
+def s32( v ):
+    return struct.unpack( 'i', struct.pack( 'i', v ) )[0]
 
 def u32( v ):
     '''represents the integer as unsigned 32 bit'''
@@ -85,16 +108,6 @@ def readFloatBuffer( stream, length ):
     for i in range( length ):
         buf.append( stream.readFloat() )
     return buf
-
-def getShaderObjectIdFromName( name ):
-    '''Gets the shader object ID associated with the given shader object name'''
-    
-    so = mvc3shaderdb.shaderObjectsByName[ name ]
-    soId = rShaderObjectId()
-    soId.setHash( so.hash )
-    soId.setIndex( so.index )
-    assert( soId.getValue() <= 0xFFFFFFFF )
-    return soId
 
 def splitPath( path ):
     '''Splits the given path into the directory path, the base file name and an array of extensions'''

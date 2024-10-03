@@ -6,6 +6,7 @@ from typing import List
 from rshader import rShaderObjectId
 from ncl import *
 import util
+import mvc3shaderdb
 
 class rModelConstants:
     MATERIAL_NAME_LENGTH = 128
@@ -80,7 +81,7 @@ class rModelHeader:
         self.field94 = 3000 # constant
         self.field98 = 1 # rarely 0, 4
         self.field9c = 0 # constant
-        self.primitiveJointLinkCount = 0
+        self.envelopeCount = 0
         
     def read( self, stream ):
         self.magic = stream.readUInt()
@@ -109,7 +110,7 @@ class rModelHeader:
         self.field94 = stream.readUInt()
         self.field98 = stream.readUInt()
         self.field9c = stream.readUInt()
-        self.primitiveJointLinkCount = stream.readUInt()
+        self.envelopeCount = stream.readUInt()
         
     def write( self, stream ):
         stream.writeUInt( self.magic )
@@ -138,7 +139,7 @@ class rModelHeader:
         stream.writeUInt( self.field94 )
         stream.writeUInt( self.field98 )
         stream.writeUInt( self.field9c )
-        stream.writeUInt( self.primitiveJointLinkCount )
+        stream.writeUInt( self.envelopeCount )
         
 class rModelPrimitive:
     '''Represents a model resource primitive; each primitive specifies the data needed for a drawcall'''
@@ -156,17 +157,17 @@ class rModelPrimitive:
         self.vertexStartIndex = 0
         self.vertexBufferOffset = 0
         # 4 vertex weights per bone
-        self.vertexShader = util.getShaderObjectIdFromName( 'IASkinTB4wt' )
+        self.vertexShader = mvc3shaderdb.getShaderObjectIdFromName( 'IASkinTB4wt' )
         self.indexBufferOffset = 0
         self.indexCount = 0
         self.indexStartIndex = 0
         self.boneIdStart = 0
-        self.primitiveJointLinkCount = 0
+        self.envelopeCount = 0
         self.id = 0
         self.minVertexIndex = 0
         self.maxVertexIndex = 0
         self.field2c = 0 # always 0
-        self.primitiveJointLinkPtr = 0 # init at runtime
+        self.envelopePtr = 0 # init at runtime
         
     def read(self, stream):
         self.flags = stream.readUShort()
@@ -182,12 +183,12 @@ class rModelPrimitive:
         self.indexCount = stream.readUInt()
         self.indexStartIndex = stream.readUInt()
         self.boneIdStart = stream.readUByte()
-        self.primitiveJointLinkCount = stream.readUByte()
+        self.envelopeCount = stream.readUByte()
         self.id = stream.readUShort()
         self.minVertexIndex = stream.readUShort()
         self.maxVertexIndex = stream.readUShort()
         self.field2c = stream.readUInt()
-        self.primitiveJointLinkPtr = stream.readUInt64()
+        self.envelopePtr = stream.readUInt64()
         
     def write( self, stream ):
         stream.writeUShort( self.flags )
@@ -203,12 +204,12 @@ class rModelPrimitive:
         stream.writeUInt( self.indexCount )
         stream.writeUInt( self.indexStartIndex )
         stream.writeUByte( self.boneIdStart )
-        stream.writeUByte( self.primitiveJointLinkCount )
+        stream.writeUByte( self.envelopeCount )
         stream.writeUShort( self.id )
         stream.writeUShort( self.minVertexIndex )
         stream.writeUShort( self.maxVertexIndex )
         stream.writeUInt( self.field2c )
-        stream.writeUInt64( self.primitiveJointLinkPtr )
+        stream.writeUInt64( self.envelopePtr )
         
 class rModelGroup:
     '''Group of model primitives that form an object'''
@@ -268,7 +269,7 @@ class rModelJoint:
         stream.writeFloat( self.length )
         stream.writeVec3( self.offset )
 
-class rModelPrimitiveJointLink:
+class rModelEnvelope:
     SIZE = 0x90
     
     def __init__( self ):
@@ -383,10 +384,10 @@ class rModelStreamBase:
         return self.headerPos + self.header.primitiveOffset + ( i * rModelPrimitive.SIZE )
     
     def getPrimitiveLinkPos( self, i = 0 ):
-        return self.getPrimitivePos() + ( self.header.primitiveCount * rModelPrimitive.SIZE ) + ( i * rModelPrimitiveJointLink.SIZE )
+        return self.getPrimitivePos() + ( self.header.primitiveCount * rModelPrimitive.SIZE ) + ( i * rModelEnvelope.SIZE )
     
-    def hasPrimitiveJointLinks( self ):
-        return self.hasPrimitives() and self.header.primitiveJointLinkCount > 0
+    def hasEnvelopes( self ):
+        return self.hasPrimitives() and self.header.envelopeCount > 0
     
     def hasVertexBuffer( self ):
         return self.header.vertexBufferOffset > 0 and self.header.vertexBufferSize > 0
@@ -475,8 +476,8 @@ class rModelStreamReader(rModelStreamBase):
     def iterPrimitives( self ):
         return self._iterInstanceReadFn( self.getPrimitivePos(), self.header.primitiveCount, rModelPrimitive )
     
-    def iterPrimitiveJointLinks( self ):
-        return self._iterInstanceReadFn( self.getPrimitiveLinkPos(), self.header.primitiveJointLinkCount, rModelPrimitiveJointLink )
+    def iterEnvelopes( self ):
+        return self._iterInstanceReadFn( self.getPrimitiveLinkPos(), self.header.envelopeCount, rModelEnvelope )
 
     def getVertexBuffer( self ):
         self.stream.setOffset( self.getVertexBufferPos() )
@@ -648,14 +649,14 @@ class rModelStreamWriter( rModelStreamBase ):
     def endPrimitiveList( self ):
         pass
     
-    def beginPrimitiveJointLinkList( self ):
+    def beginEnvelopeList( self ):
         pass
     
-    def addPrimitiveJointLink( self, primJointLink ):
-        self.header.primitiveJointLinkCount += 1
-        primJointLink.write( self.stream )     
+    def addEnvelope( self, envelope ):
+        self.header.envelopeCount += 1
+        envelope.write( self.stream )     
     
-    def endPrimitiveJointLinkList( self ):
+    def endEnvelopeList( self ):
         pass
     
     def beginVertexBuffer( self ):
@@ -720,7 +721,7 @@ class rModelData:
         self.groups: list[rModelGroup] = []
         self.materials: list[str] = []
         self.primitives: List[rModelPrimitive] = []
-        self.primitiveJointLinks: List[rModelPrimitiveJointLink] = []
+        self.envelopes: List[rModelEnvelope] = []
         self.vertexBuffer: bytes = []
         self.vertexBuffer2: bytes = None
         self.indexBuffer: bytes = []
@@ -751,8 +752,8 @@ class rModelData:
         for prim in reader.iterPrimitives():
             self.primitives.append( prim )
             
-        for primJointLink in reader.iterPrimitiveJointLinks():
-            self.primitiveJointLinks.append( primJointLink )
+        for envelope in reader.iterEnvelopes():
+            self.envelopes.append( envelope )
             
         self.vertexBuffer = reader.getVertexBuffer()
         self.vertexBuffer2 = reader.getVertexBuffer2()
@@ -798,11 +799,11 @@ class rModelData:
                 writer.addPrimitive( prim )
             writer.endPrimitiveList()
             
-        if len( self.primitiveJointLinks ):
-            writer.beginPrimitiveJointLinkList()
-            for primJointLink in self.primitiveJointLinks:
-                writer.addPrimitiveJointLink( primJointLink )
-            writer.endPrimitiveJointLinkList()
+        if len( self.envelopes ):
+            writer.beginEnvelopeList()
+            for envelope in self.envelopes:
+                writer.addEnvelope( envelope )
+            writer.endEnvelopeList()
             
         writer.setVertexBuffer( self.vertexBuffer )
         writer.setIndexBuffer( self.indexBuffer )
@@ -814,4 +815,12 @@ class rModelData:
         if len( self.joints ) > 0:
             modelMtx = nclMultiply( self.jointInvBindMtx[0], self.jointLocalMtx[0] )
         return modelMtx
+    
+    def usesTriStrips( self ):
+        if self.indexBuffer is None:
+            return False
+        for i in range(0, len(self.indexBuffer), 2):
+            if i + 2 <= len(self.indexBuffer) and struct.unpack_from('H', self.indexBuffer, i)[0] == 0xFFFF:
+                return True
+        return False
         

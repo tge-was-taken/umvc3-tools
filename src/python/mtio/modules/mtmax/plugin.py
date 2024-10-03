@@ -28,6 +28,12 @@ def _attachDebugger():
         print( ptvsd.enable_attach() )
     except:
         pass
+    
+def _deleteModule(filename):
+    modules = list(sys.modules.keys())
+    if filename in modules:
+        print(f'bootstrapper: deleting module {filename}')
+        del sys.modules[filename]
 
 def _bootstrap():
     try:
@@ -52,19 +58,17 @@ def _bootstrap():
         fileName, _ = os.path.splitext(os.path.basename(file))
         qualName = f'{os.path.basename(os.path.dirname(file))}.{fileName}'
         
-        if fileName in sys.modules:
-            print(f'bootstrapper: deleting module {fileName}')
-            del sys.modules[fileName]
-            
-        if qualName in sys.modules:
-            print(f'bootstrapper: deleting module {qualName}')
-            del sys.modules[qualName]
+        _deleteModule(fileName)
+        _deleteModule(qualName)
 
     if _isDebugEnv():
         _attachDebugger()
         
-    loadedModules = [x for x in sys.modules if not x in _getDefaultModules()]
-    print(f'bootstrapper: loaded modules: {loadedModules}')
+    try:
+        loadedModules = [x for x in list(sys.modules.keys()) if not x in _getDefaultModules()]
+        print(f'bootstrapper: loaded modules: {loadedModules}')
+    except:
+        pass
     
 def _installMenu():
     from pymxs import runtime as rt

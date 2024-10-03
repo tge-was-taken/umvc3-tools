@@ -27,12 +27,14 @@ typedef double f64;
 typedef struct
 {
     u64 Offset;
-    if ( Offset )
+    if ( Offset >= 0 && Offset < FTell() )
     {
         local u64 p = FTell();
         FSeek( ShaderPackage.StringTableOffset + Offset );
         string Value;
         FSeek( p );
+    } else {
+        local string Value="";
     }
 } rShaderNamePtr <read=rShaderNamePtrToString>;
 
@@ -95,6 +97,31 @@ string rShaderInputLayoutElementToString(rShaderInputLayoutElement& v)
     return rShaderNamePtrToString( v.Name );
 }
 
+void ScanNamePointers() {
+    local int i;
+    local long tmp = FTell();
+    for(i = 0; i < 256; ++i) {
+        FSeek(tmp);
+        rShaderNamePtr temp;
+        tmp+=4;
+    }
+}
+
+typedef struct 
+{
+    u64 Field00 <comment="Maybe default data offset">; 
+    rShaderNamePtr Field08;
+    u32 Field10;
+    u32 Field14;
+    u32 Field18;
+    u32 Field1C;
+    u16 Field20;
+    u16 Field22;
+    u32 Field24;
+    u32 Field28;
+    u32 Field2C;
+} rShaderCBufferField;
+
 typedef struct
 {
     rShaderNamePtr Name;
@@ -107,7 +134,7 @@ typedef struct
     u32 Field20;
     u32 Field24;
     u16 ElementCount;
-    u16 Field2A;
+    u16 FieldCount;
     u32 CountFlags;
     u32 Field30;
     u32 Field34;
@@ -115,6 +142,13 @@ typedef struct
     if ( Flags.Type == 9 )
     {
         rShaderInputLayoutElement Elements[ElementCount];
+    }
+    else if ( Flags.Type == 0 ) {
+        //ScanNamePointers();
+        rShaderCBufferField Fields[FieldCount] <optimize=false>;
+    }
+    else {
+        //ScanNamePointers();
     }
 } rShaderObject <bgcolor=0xa49c45, read=rShaderObjectToString>;
 

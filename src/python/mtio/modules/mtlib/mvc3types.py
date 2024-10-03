@@ -5946,8 +5946,16 @@ typeHashByName = {
     'MtGeomPlaneXZ': 0x39675442,
 }
 
-def getTypeName( hashVal ):
-    return typeNameByHash[ hashVal ]
+def getTypeName( hashVal: int ):
+    if hashVal in typeNameByHash:
+        return typeNameByHash[hashVal]
+    else:
+        # fallback
+        return f'_{hex(hashVal)}'
 
-def getTypeHash( name ):
-    return typeHashByName[ name ]
+def getTypeHash( name: str ):
+    if name.startswith( '_0x' ):
+        # fallback
+        return int(name[3:], base=16)
+    else:
+        return typeHashByName[ name ]

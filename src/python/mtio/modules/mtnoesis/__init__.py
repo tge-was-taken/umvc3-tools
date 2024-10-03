@@ -166,7 +166,7 @@ def modLoadModel(data, mdlList):
     
     # build model meshes
     indexBs = NoeBitStream(model.indexBuffer)
-    primitiveJointLinkIdx = 0
+    envelopeIdx = 0
     for i in range(len(model.primitives)):
         print("loading primitive " + str(i))
         primitive = model.primitives[i]
@@ -207,7 +207,7 @@ def modLoadModel(data, mdlList):
             
         rapi.rpgCommitTriangles( indexBufferBytes, noesis.RPGEODATA_SHORT, primitive.indexCount, noesis.RPGEO_TRIANGLE, 1 )
         rapi.rpgClearBufferBinds()
-        primitiveJointLinkIdx += primitive.primitiveJointLinkCount
+        envelopeIdx += primitive.envelopeCount
 
     mdl = rapi.rpgConstructModel()                                                          
     

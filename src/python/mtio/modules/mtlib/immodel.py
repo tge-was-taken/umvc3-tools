@@ -21,7 +21,7 @@ class imVertexWeight:
         self.weights = []
         self.indices = []
 
-class imPrimitiveJointLink:
+class imEnvelope:
     def __init__( self, name=None, joint=None, field04=0, field08=0, field0c=0, 
         boundingSphere=None, min=None, max=None, localMtx=None, field80=None, index=sys.maxsize ):
         self.name = name
@@ -86,7 +86,6 @@ class imVertex(object):
     STRIDE = None
     SHADER = None
     MAX_WEIGHT_COUNT = None
-    FLAGS = None
     COMPRESSED = None
     
     def __init__( self ):
@@ -101,6 +100,9 @@ class imVertex(object):
         self.uvUnique = NclVec2()
         self.uvExtend = NclVec2()
         
+    def getFlags( self ):
+        raise NotImplementedError()
+        
     def write( self, stream ):
         raise NotImplementedError()
         
@@ -108,11 +110,14 @@ class imVertexIASkinTB4wt(imVertex):
     STRIDE = 28
     SHADER = 'IASkinTB4wt'
     MAX_WEIGHT_COUNT = 4
-    FLAGS = 0x19
     COMPRESSED = True
     
     def __init__( self ):
         super().__init__()
+        
+    @staticmethod  
+    def getFlags():
+        return target.current.vertexFlags_IASkinTB4wt
     
     def write( self, stream ):
         stream.writeUShort( vertexcodec.encodeFS16( self.position[0] ) )
@@ -157,13 +162,16 @@ class imVertexIASkinTB2wt(imVertex):
     STRIDE = 24
     SHADER = 'IASkinTB2wt'
     MAX_WEIGHT_COUNT = 2
-    FLAGS = 0x11
     COMPRESSED = True
     
     def __init__( self ):
         super().__init__()
+        
+    @staticmethod
+    def getFlags():
+        return target.current.vertexFlags_IASkinTB2wt
 
-    def write( self, stream ):
+    def write( self, stream: NclBitStream ):
         stream.writeUShort( vertexcodec.encodeFS16( self.position[0] ) )
         stream.writeUShort( vertexcodec.encodeFS16( self.position[1] ) )
         stream.writeUShort( vertexcodec.encodeFS16( self.position[2] ) )
@@ -201,11 +209,14 @@ class imVertexIASkinTB1wt(imVertex):
     STRIDE = 20
     SHADER = 'IASkinTB1wt'
     MAX_WEIGHT_COUNT = 1
-    FLAGS = 0x09
     COMPRESSED = True
     
     def __init__( self ):
         super().__init__()
+     
+    @staticmethod   
+    def getFlags():
+        return target.current.vertexFlags_IASkinTB1wt
         
     def write( self, stream ):
         stream.writeUShort( vertexcodec.encodeFS16( self.position[0] ) )
@@ -241,11 +252,14 @@ class imVertexIANonSkinTB(imVertex):
     STRIDE = 24
     SHADER = 'IANonSkinTB'
     MAX_WEIGHT_COUNT = 0
-    FLAGS = 0x01
     COMPRESSED = False
     
     def __init__( self ):
         super().__init__()
+    
+    @staticmethod    
+    def getFlags():
+        return 0x01
         
     def write( self, stream ):
         stream.writeFloat( vertexcodec.encodeF32( self.position[0] ) )
@@ -282,11 +296,14 @@ class imVertexIANonSkinBL(imVertex):
     STRIDE = 24
     SHADER = 'IANonSkinBL'
     MAX_WEIGHT_COUNT = 0
-    FLAGS = 0x101
     COMPRESSED = False
     
     def __init__( self ):
         super().__init__()
+        
+    @staticmethod    
+    def getFlags():
+        return 0x101
         
     def write( self, stream ):
         stream.writeFloat( vertexcodec.encodeF32( self.position[0] ) )
@@ -322,11 +339,14 @@ class imVertexIANonSkinTBNLA(imVertex):
     STRIDE = 36
     SHADER = 'IANonSkinTBNLA'
     MAX_WEIGHT_COUNT = 0
-    FLAGS = 0x201
     COMPRESSED = False
     
     def __init__( self ):
         super().__init__()
+        
+    @staticmethod    
+    def getFlags():
+        return 0x201
         
     def write( self, stream ):
         stream.writeFloat( vertexcodec.encodeF32( self.position[0] ) )
@@ -349,6 +369,137 @@ class imVertexIANonSkinTBNLA(imVertex):
         stream.writeUShort( vertexcodec.encodeF16( self.uvUnique[0] ) )
         stream.writeUShort( vertexcodec.encodeF16( self.uvUnique[1] ) )
         
+'''
+        stream.writeUShort( vertexcodec.encodeFS16( self.position[0] ) )
+        stream.writeUShort( vertexcodec.encodeFS16( self.position[1] ) )
+        stream.writeUShort( vertexcodec.encodeFS16( self.position[2] ) )
+        stream.writeUShort( vertexcodec.encodeU16( self.jointId ) )
+        stream.writeUByte( vertexcodec.encodeFS8( self.normal[0] ) )
+        stream.writeUByte( vertexcodec.encodeFS8( self.normal[1] ) )
+        stream.writeUByte( vertexcodec.encodeFS8( self.normal[2] ) )
+        stream.writeUByte( vertexcodec.encodeFS8( self.occlusion ) )
+        stream.writeUByte( vertexcodec.encodeFS8( self.tangent[0] ) )
+        stream.writeUByte( vertexcodec.encodeFS8( self.tangent[1] ) )
+        stream.writeUByte( vertexcodec.encodeFS8( self.tangent[2] ) )
+        stream.writeUByte( vertexcodec.encodeFS8( self.tangent[3]) )
+        stream.writeUShort( vertexcodec.encodeF16( self.uvPrimary[0] ) )
+        stream.writeUShort( vertexcodec.encodeF16( self.uvPrimary[1] ) )
+'''
+        
+'''
+/* size = 12 */
+typedef struct {
+ local int64 p = FTell();
+ FSeek( p + 0 ); /* 5 */ fs16 Position[3];
+ FSeek( p + 6 ); /* 3 */ s16 Joint[1];
+ FSeek( p + 8 ); /* 11 */ vec432 Normal[1];
+ FSeek( p + 12 );
+} rVertexShaderInputLayout_IASkinBridge1wt;
+'''
+class imVertexIASkinBridge1wt(imVertex):
+    STRIDE = 12
+    SHADER = 'IASkinBridge1wt'
+    MAX_WEIGHT_COUNT = 1
+    COMPRESSED = True
+    
+    def __init__( self ):
+        super().__init__()
+        
+    @staticmethod    
+    def getFlags():
+        return 0x09
+        
+    def write( self, stream ):
+        stream.writeUShort( vertexcodec.encodeFS16( self.position[0] ) )
+        stream.writeUShort( vertexcodec.encodeFS16( self.position[1] ) )
+        stream.writeUShort( vertexcodec.encodeFS16( self.position[2] ) )
+        stream.writeShort( vertexcodec.encodeS16( self.jointIds[0] ) )
+        stream.writeUInt( vertexcodec.encodeX8Y8Z8W8( self.normal ) )
+
+'''
+/* size = 16 */
+typedef struct {
+ local int64 p = FTell();
+ FSeek( p + 0 ); /* 5 */ fs16 Position[3];
+ FSeek( p + 6 ); /* 5 */ fs16 Weight[1];
+ FSeek( p + 8 ); /* 11 */ vec432 Normal[1];
+ FSeek( p + 12 ); /* 4 */ u16 Joint[2];
+ FSeek( p + 16 );
+} rVertexShaderInputLayout_IASkinBridge2wt;
+'''
+class imVertexIASkinBridge2wt(imVertex):
+    STRIDE = 16
+    SHADER = 'IASkinBridge2wt'
+    MAX_WEIGHT_COUNT = 2
+    COMPRESSED = True
+    
+    def __init__( self ):
+        super().__init__()
+        
+    @staticmethod    
+    def getFlags():
+        return 0x11
+        
+    def write( self, stream ):
+        stream.writeUShort( vertexcodec.encodeFS16( self.position[0] ) )
+        stream.writeUShort( vertexcodec.encodeFS16( self.position[1] ) )
+        stream.writeUShort( vertexcodec.encodeFS16( self.position[2] ) )
+        stream.writeUShort( vertexcodec.encodeFS16( self.weights[0] ) )
+        stream.writeUInt( vertexcodec.encodeX8Y8Z8W8( self.normal ) )
+        stream.writeShort( vertexcodec.encodeS16( self.jointIds[0] ) )
+        stream.writeShort( vertexcodec.encodeS16( self.jointIds[1] ) )
+
+'''
+/* size = 20 */
+typedef struct {
+ local int64 p = FTell();
+ FSeek( p + 0 ); /* 5 */ fs16 Position[3];
+ FSeek( p + 8 ); /* 8 */ u8 Joint[4];
+ FSeek( p + 12 ); /* 10 */ fu8 Weight[4];
+ FSeek( p + 16 ); /* 11 */ vec432 Normal[1];
+ FSeek( p + 20 );
+} rVertexShaderInputLayout_IASkinBridge4wt;
+'''
+class imVertexIASkinBridge4wt(imVertex):
+    STRIDE = 20
+    SHADER = 'IASkinBridge4wt'
+    MAX_WEIGHT_COUNT = 4
+    COMPRESSED = True
+    
+    def __init__( self ):
+        super().__init__()
+        
+    @staticmethod    
+    def getFlags():
+        return 0x21
+        
+    def write( self, stream ):
+        stream.writeUShort( vertexcodec.encodeFS16( self.position[0] ) )
+        stream.writeUShort( vertexcodec.encodeFS16( self.position[1] ) )
+        stream.writeUShort( vertexcodec.encodeFS16( self.position[2] ) )
+        stream.writeUShort( 0 ) # padding
+        stream.writeUByte( vertexcodec.encodeU8( self.jointIds[0] ) )
+        stream.writeUByte( vertexcodec.encodeU8( self.jointIds[1] ) )
+        stream.writeUByte( vertexcodec.encodeU8( self.jointIds[2] ) )
+        stream.writeUByte( vertexcodec.encodeU8( self.jointIds[3] ) )
+        stream.writeUByte( vertexcodec.encodeFU8( self.weights[0] ) )
+        stream.writeUByte( vertexcodec.encodeFU8( self.weights[1] ) )
+        stream.writeUByte( vertexcodec.encodeFU8( self.weights[2] ) )
+        stream.writeUByte( vertexcodec.encodeFU8( self.weights[3] ) )
+        stream.writeUInt( vertexcodec.encodeX8Y8Z8W8( self.normal ) )
+
+'''
+/* size = 28 */
+typedef struct {
+ local int64 p = FTell();
+ FSeek( p + 0 ); /* 5 */ fs16 Position[3];
+ FSeek( p + 8 ); /* 8 */ u8 Joint[8];
+ FSeek( p + 16 ); /* 10 */ fu8 Weight[8];
+ FSeek( p + 24 ); /* 11 */ vec432 Normal[1];
+ FSeek( p + 28 );
+} rVertexShaderInputLayout_IASkinBridge8wt;
+'''
+        
 @dataclass()
 class imVertexFormat(object):
     vertexType: imVertex = None
@@ -359,12 +510,15 @@ class imVertexFormat(object):
     @staticmethod
     def createFromShader( shader ):
         if shader == imVertexIASkinTB4wt.SHADER: return imVertexFormat( imVertexIASkinTB4wt )
+        elif shader == imVertexIASkinBridge4wt.SHADER: return imVertexFormat( imVertexIASkinBridge4wt )
         elif shader == imVertexIASkinTB2wt.SHADER: return imVertexFormat( imVertexIASkinTB2wt )
+        elif shader == imVertexIASkinBridge2wt.SHADER: return imVertexFormat( imVertexIASkinBridge2wt )
         elif shader == imVertexIASkinTB1wt.SHADER: return imVertexFormat( imVertexIASkinTB1wt )
+        elif shader == imVertexIASkinBridge1wt.SHADER: return imVertexFormat( imVertexIASkinBridge1wt )
         elif shader == imVertexIANonSkinTB.SHADER: return imVertexFormat( imVertexIANonSkinTB )
         elif shader == imVertexIANonSkinBL.SHADER: return imVertexFormat( imVertexIANonSkinBL )
         elif shader == imVertexIANonSkinTBNLA.SHADER: return imVertexFormat( imVertexIANonSkinTBNLA )
-        else: return imVertexFormat()
+        else: return None
         
     def fixVertexFormat( self, model, prim ):
         maxUsedBoneCount = prim.getMaxUsedBoneCount()
@@ -394,11 +548,20 @@ class imVertexFormat(object):
         maxUsedBoneCount = prim.getMaxUsedBoneCount()
 
         if maxUsedBoneCount > 2 and maxUsedBoneCount <= 4:
-            fmt.vertexType = imVertexIASkinTB4wt
+            if prim.hasUvs():      
+                fmt.vertexType = imVertexIASkinTB4wt
+            else:
+                fmt.vertexType = imVertexIASkinBridge4wt
         elif maxUsedBoneCount == 2:
-            fmt.vertexType = imVertexIASkinTB2wt
+            if prim.hasUvs():
+                fmt.vertexType = imVertexIASkinTB2wt
+            else:
+                fmt.vertexType = imVertexIASkinBridge2wt
         elif maxUsedBoneCount == 1:
-            fmt.vertexType = imVertexIASkinTB1wt
+            if prim.hasUvs():
+                fmt.vertexType = imVertexIASkinTB1wt
+            else:
+                fmt.vertexType = imVertexIASkinBridge4wt
         else:
             if len( model.joints ) > 0:
                 # assume that when the model has joints, it's a character model
@@ -418,7 +581,7 @@ class imPrimitive(object):
             lodIndex=0xFF, vertexFlags=None, vertexStride=None, renderFlags=67, 
             vertexShader=None, id=None, field2c=0, 
             positions=None, tangents=None, normals=None, uvPrimary=None, uvSecondary=None, uvUnique=None, uvExtend=None, weights=None, indices=None, 
-            primitiveJointLinks=None, index=sys.maxsize ):
+            envelopes=None, index=sys.maxsize ):
         self.name = name
         self.materialName = materialName
         self.flags = flags
@@ -434,11 +597,10 @@ class imPrimitive(object):
         self.uvSecondary = uvSecondary if uvSecondary != None else []
         self.uvUnique = uvUnique if uvUnique != None else []
         self.uvExtend = uvExtend if uvExtend != None else []
-        self.weights = weights
-        self.indices = indices
-        self.bitangents = []
+        self.weights = weights if weights != None else []
+        self.indices = indices if indices != None else []
         self.vertexFormat = imVertexFormat( vertexShader )
-        self.primitiveJointLinks = primitiveJointLinks if primitiveJointLinks != None else []
+        self.envelopes = envelopes if envelopes != None else []
         # use maxsize here to ensure new entries come after those who have explicit ordering
         self.index = index if index != None else sys.maxsize
 
@@ -497,19 +659,41 @@ class imPrimitive(object):
             self.vertexFormat = imVertexFormat.determineBestVertexFormat( model, self )
 
     def isIndexed( self ):
-        return self.indices != None
+        return self.indices is not None and len( self.indices ) > 0
     
     def isSkinned( self ):
-        return self.weights != None
+        return self.weights is not None and len( self.weights ) > 0
+    
+    def hasUvs( self ):
+        return self.uvPrimary is not None and len( self.uvPrimary ) > 0
     
     def makeDirect( self ):
         '''
         Removes the need for the index buffer by duplicating all the vertex data according to it.
         '''
-        if self.indices == None:
+        if not self.isIndexed():
             return
         else:
             raise NotImplementedError()
+        
+    def removeUnusedUvs( self, progressCb = None ):
+        def _trim( progressCb, list ):
+            used = False
+            for i, uv in enumerate( list ):
+                if progressCb is not None: progressCb( 'Trimming uvs', i, len( list ) )
+                
+                if uv[0] != 0 or uv[1] != 0:
+                    used = True
+                    break
+            if not used:
+                return []
+            else:
+                return list
+            
+        self.uvPrimary = _trim( progressCb, self.uvPrimary )
+        self.uvSecondary = _trim( progressCb, self.uvSecondary )
+        self.uvUnique = _trim( progressCb, self.uvUnique )
+        self.uvExtend = _trim( progressCb, self.uvExtend )
     
     def makeIndexed( self, progressCb = None ):
         '''
@@ -527,6 +711,7 @@ class imPrimitive(object):
         weights = self.weights
         tangents = self.tangents
         isSkinned = self.isSkinned()
+        hasUvs = self.hasUvs()
         
         # clear vertex data
         self.positions = []
@@ -535,8 +720,8 @@ class imPrimitive(object):
         self.uvSecondary = [] 
         self.uvUnique = []
         self.uvExtend = []
-        self.weights = [] if weights != None else None
-        self.tangents = [] if tangents != None else None
+        self.weights = []
+        self.tangents = []
         self.indices = []
         
         # optimize vertex buffer
@@ -548,15 +733,17 @@ class imPrimitive(object):
             cv = imCacheVertex()
             cv.position = (positions[i][0], positions[i][1], positions[i][2])
             cv.normal = (normals[i][0], normals[i][1], normals[i][2])
-            cv.uvPrimary = (uvPrimary[i][0], uvPrimary[i][1])
-            cv.uvSecondary = (uvSecondary[i][0], uvSecondary[i][1]) if uvSecondary != None and len(uvSecondary) != 0 else None
-            cv.uvUnique = (uvUnique[i][0], uvUnique[i][1]) if uvUnique != None and len(uvUnique) != 0 else None
-            cv.uvExtend = (uvExtend[i][0], uvExtend[i][1]) if uvExtend != None and len(uvExtend) != 0 else None
-            cv.tangent = (tangents[i][0], tangents[i][1], tangents[i][2], tangents[i][3]) if tangents != None else None
+            
+            if hasUvs:
+                cv.uvPrimary = (uvPrimary[i][0], uvPrimary[i][1])
+                cv.uvSecondary = (uvSecondary[i][0], uvSecondary[i][1]) if uvSecondary != None and len(uvSecondary) != 0 else None
+                cv.uvUnique = (uvUnique[i][0], uvUnique[i][1]) if uvUnique != None and len(uvUnique) != 0 else None
+                cv.uvExtend = (uvExtend[i][0], uvExtend[i][1]) if uvExtend != None and len(uvExtend) != 0 else None    
+                cv.tangent = (tangents[i][0], tangents[i][1], tangents[i][2], tangents[i][3]) if tangents != None else None
 
             if isSkinned:
                 cv.weights = tuple(weights[i].weights)
-                cv.weightIndices = tuple(weights[i].indices)    
+                cv.weightIndices = tuple(weights[i].indices)
 
             if cv not in vertexIdxLookup:
                 idx = nextVertexIdx
@@ -565,37 +752,42 @@ class imPrimitive(object):
 
                 self.positions.append( NclVec3( cv.position ) )
                 self.normals.append( NclVec3( cv.normal ) )
-                self.uvPrimary.append( NclVec2( cv.uvPrimary ) )
                 
-                if cv.uvSecondary != None:
-                    self.uvSecondary.append( NclVec2( cv.uvSecondary ) )
-                    
-                if cv.uvUnique != None:
-                    self.uvUnique.append( NclVec2( cv.uvUnique ) )
-                    
-                if cv.uvExtend != None:
-                    self.uvExtend.append( NclVec2( cv.uvExtend ) )
-                
-                if cv.tangent != None:
-                    self.tangents.append( NclVec4( cv.tangent ) )
-
-                vtxWeight = imVertexWeight()
-                vtxWeight.indices = cv.weightIndices
+                if hasUvs:
+                    self.uvPrimary.append( NclVec2( cv.uvPrimary ) )        
+                    if cv.uvSecondary != None: self.uvSecondary.append( NclVec2( cv.uvSecondary ) )
+                    if cv.uvUnique != None: self.uvUnique.append( NclVec2( cv.uvUnique ) )
+                    if cv.uvExtend != None: self.uvExtend.append( NclVec2( cv.uvExtend ) )
+                    if cv.tangent != None: self.tangents.append( NclVec4( cv.tangent ) )
                 
                 if isSkinned:
+                    vtxWeight = imVertexWeight()
+                    vtxWeight.indices = cv.weightIndices
                     vtxWeight.weights = cv.weights
                     self.weights.append( vtxWeight )
             else:
                 idx = vertexIdxLookup.get(cv)
 
             self.indices.append(idx)
+           
+    def generateTriStrips( self, progressCb=None ):
+        # generate fake strips by creating strips containing only 1 triangle
+        tempIndices = list(self.indices)
+        self.indices=[]
+        for i in range( 0, len( tempIndices ) ):
+            if progressCb != None: progressCb( 'Generating triangle strips', i, len( tempIndices ) )
+            
+            if i != 0 and i % 3 == 0:
+                self.indices.append( 0xFFFF )
+            
+            self.indices.append( tempIndices[i] )
             
     def generateTangents( self, progressCb=None ):
         tangents = [NclVec3()] * len(self.positions)
         bitangents = [NclVec3()] * len(self.positions)
         self.tangents = []
         count = len( self.indices ) if self.isIndexed() else len( self.positions )
-        
+
         for i in range( 0, count, 3 ):
             if progressCb != None: progressCb( 'Calculating tangent and binormal', i, count )
             triangleA = self.indices[i] if self.isIndexed() else i
@@ -683,29 +875,29 @@ class imJoint:
 
         self.name = name
         self.invBindMtx = deepcopy(invBindMtx)
-        self.id = 0 if id == None else id
+        self.id = 0 if id is None else id
         self.symmetry = symmetry
-        self.field03 = 0 if field03 == None else field03
-        self.field04 = 0 if field04 == None else field04
+        self.field03 = 0 if field03 is None else field03
+        self.field04 = 0 if field04 is None else field04
          # use maxsize here to ensure new entries come after those who have explicit ordering
         self.index = index if index != None else sys.maxsize
 
         self.localMtx = deepcopy(localMtx)
         self.worldMtx = deepcopy(worldMtx)
         self.parent = parent
-        if self.localMtx == None:
+        if self.localMtx is None:
             assert self.worldMtx != None
             self.updateLocalFromWorld()
-        elif self.worldMtx == None:
+        elif self.worldMtx is None:
             assert self.localMtx != None
             self.updateWorldFromLocal()
 
         self.offset = deepcopy(offset)
-        if self.offset == None:
+        if self.offset is None:
             self.updateOffsetFromLocal()
 
         self.length = length
-        if self.length == None:
+        if self.length is None:
             self.updateLength()
         
         assert self.worldMtx != None
@@ -714,8 +906,15 @@ class imJoint:
         assert self.length != None
         assert self.offset != None
 
+    def setParent( self, parent ):
+        self.parent = parent
+        self.worldMtx = None
+        assert self.localMtx != None
+        self.updateWorldFromLocal()
+
+
     def getWorldMtx( self ):
-        if self.worldMtx == None:
+        if self.worldMtx is None:
             self.updateWorldFromLocal()
     
         return self.worldMtx
@@ -749,9 +948,9 @@ class imGroup:
         
         self.name = name
         self.id = id
-        self.field04 = 0 if field04 == None else field04
-        self.field08 = 0 if field08 == None else field08
-        self.field0c = 0 if field0c == None else field0c
+        self.field04 = 0 if field04 is None else field04
+        self.field08 = 0 if field08 is None else field08
+        self.field0c = 0 if field0c is None else field0c
         self.boundingSphere = deepcopy(boundingSphere) if boundingSphere != None else None # can be zero, in which case it is calculated later
          # use maxsize here to ensure new entries come after those who have explicit ordering
         self.index = index if index != None else sys.maxsize
@@ -873,41 +1072,41 @@ class imModel:
             
             mesh: imPrimitive
             
-            # convert pjl
-            mesh.primitiveJointLinks = sorted( mesh.primitiveJointLinks, key=lambda x: x.index )
-            for i, pjl in enumerate( mesh.primitiveJointLinks ):
-                modPjl = rModelPrimitiveJointLink()
-                modPjl.jointIndex = self.joints.index( pjl.joint ) if pjl.joint is not None else 255
-                modPjl.field04 = pjl.field04
-                modPjl.field08 = pjl.field08
-                modPjl.field0c = pjl.field0c
-                if _isValidBoundingSphere(pjl.boundingSphere) and pjl.min != None and pjl.max != None:
+            # convert envelope
+            mesh.envelopes = sorted( mesh.envelopes, key=lambda x: x.index )
+            for i, envelope in enumerate( mesh.envelopes ):
+                modEnvelope = rModelEnvelope()
+                modEnvelope.jointIndex = self.joints.index( envelope.joint ) if envelope.joint is not None else 255
+                modEnvelope.field04 = envelope.field04
+                modEnvelope.field08 = envelope.field08
+                modEnvelope.field0c = envelope.field0c
+                if _isValidBoundingSphere(envelope.boundingSphere) and envelope.min != None and envelope.max != None:
                     # copy bounds from model
-                    modPjl.boundingSphere = pjl.boundingSphere
-                    modPjl.min = pjl.min
-                    modPjl.max = pjl.max
+                    modEnvelope.boundingSphere = envelope.boundingSphere
+                    modEnvelope.min = envelope.min
+                    modEnvelope.max = envelope.max
                 else:
                     # calc bounds
                     bounds = modelutil.calcBounds( mesh.positions )
-                    modPjl.boundingSphere = NclVec4( bounds.center[0], bounds.center[1], bounds.center[2], bounds.radius )
-                    modPjl.min = NclVec4((bounds.vmin[0], bounds.vmin[1], bounds.vmin[2], 0))
-                    modPjl.max = NclVec4((bounds.vmax[0], bounds.vmax[1], bounds.vmax[2], 0))
-                    assert( modPjl.boundingSphere != None )
+                    modEnvelope.boundingSphere = NclVec4( bounds.center[0], bounds.center[1], bounds.center[2], bounds.radius )
+                    modEnvelope.min = NclVec4((bounds.vmin[0], bounds.vmin[1], bounds.vmin[2], 0))
+                    modEnvelope.max = NclVec4((bounds.vmax[0], bounds.vmax[1], bounds.vmax[2], 0))
+                    assert( modEnvelope.boundingSphere != None )
 
-                if pjl.localMtx != None:
+                if envelope.localMtx != None:
                     # copy it over
-                    modPjl.localMtx = pjl.localMtx
+                    modEnvelope.localMtx = envelope.localMtx
                 else:
                     # TODO find a more proper way to do this
                     # approximate it based on the primitive center
-                    modPjl.localMtx = nclCreateMat44()
-                    modPjl.localMtx[3] = NclVec4( modPjl.boundingSphere[0], modPjl.boundingSphere[1], modPjl.boundingSphere[2], 1 )
+                    modEnvelope.localMtx = nclCreateMat44()
+                    modEnvelope.localMtx[3] = NclVec4( modEnvelope.boundingSphere[0], modEnvelope.boundingSphere[1], modEnvelope.boundingSphere[2], 1 )
                     
                 # TODO fix this hack, may end up causing culling issues
-                modPjl.field80 = pjl.field80 if pjl.field80 != None else \
+                modEnvelope.field80 = envelope.field80 if envelope.field80 != None else \
                     NclVec4((999999,999999,999999,0))
                     #NclVec4((951.5436,95.71989,33.6127,0))
-                mod.primitiveJointLinks.append(modPjl)
+                mod.envelopes.append(modEnvelope)
             
             # find material
             meshMatIndex = -1
@@ -931,25 +1130,26 @@ class imModel:
             for i in range(0, len(mesh.positions)):
                 if progressCb != None: progressCb( 'Converting vertices', i, len( mesh.positions ) )
                 
-                t = mesh.tangents[i]
                 vtx: imVertex = mesh.vertexFormat.vertexType()                
                 vtx.position = mesh.positions[i]
                 vtx.normal = mesh.normals[i]  
                 vtx.occlusion = 1
-                vtx.tangent = NclVec4( ( t[0], t[1], t[2], t[3] ) )  
-                vtx.uvPrimary = mesh.uvPrimary[i]
                 
-                # assign other uv channels to primary if they're not assigned
-                vtx.uvSecondary = mesh.uvSecondary[i] if mesh.uvSecondary is not None and len(mesh.uvSecondary) > i else vtx.uvPrimary
-                vtx.uvUnique = mesh.uvUnique[i] if mesh.uvUnique is not None and len(mesh.uvUnique) > i else vtx.uvPrimary
-                vtx.uvExtend = mesh.uvExtend[i] if mesh.uvExtend is not None and len(mesh.uvExtend) > i else vtx.uvPrimary
+                if mesh.hasUvs():
+                    vtx.tangent = mesh.tangents[i]  
+                    vtx.uvPrimary = mesh.uvPrimary[i]
+                    
+                    # assign other uv channels to primary if they're not assigned
+                    vtx.uvSecondary = mesh.uvSecondary[i] if mesh.uvSecondary is not None and len(mesh.uvSecondary) > i else vtx.uvPrimary
+                    vtx.uvUnique = mesh.uvUnique[i] if mesh.uvUnique is not None and len(mesh.uvUnique) > i else vtx.uvPrimary
+                    vtx.uvExtend = mesh.uvExtend[i] if mesh.uvExtend is not None and len(mesh.uvExtend) > i else vtx.uvPrimary
                 
                 if vtx.MAX_WEIGHT_COUNT == 0:
                     pass
                 elif vtx.MAX_WEIGHT_COUNT == 1:
                     # HACK assume that when the vertex has no indices but is assigned a vertex format with 1 weight, that it's an unrigged mesh
                     # for a skeleton mesh model
-                    if mesh.weights == None or len( mesh.weights[i].indices ) == 0:
+                    if not mesh.isSkinned() or len( mesh.weights[i].indices ) == 0:
                         jointIndex = 0
                     else:
                         jointIndex = mesh.weights[ i ].indices[ 0 ]
@@ -1008,22 +1208,22 @@ class imModel:
             prim.indices.setMaterialIndex( meshMatIndex )
 
             # set vertex flags based on bone count
-            prim.vertexFlags = mesh.vertexFormat.vertexType.FLAGS
+            prim.vertexFlags = mesh.vertexFormat.vertexType.getFlags()
             prim.vertexStride = mesh.vertexFormat.vertexType.STRIDE
             prim.renderFlags = mesh.renderFlags
             prim.vertexStartIndex = 0
             prim.vertexBufferOffset = nextVertexOffset
-            prim.vertexShader = util.getShaderObjectIdFromName( mesh.vertexFormat.vertexType.SHADER )
+            prim.vertexShader = mvc3shaderdb.getShaderObjectIdFromName( mesh.vertexFormat.vertexType.SHADER )
             prim.indexBufferOffset = nextTriangleIndex
             prim.indexCount = len( mesh.indices )
             prim.indexStartIndex = 0
             prim.boneIdStart = 0
-            prim.primitiveJointLinkCount = len(mesh.primitiveJointLinks)
+            prim.envelopeCount = len(mesh.envelopes)
             prim.id = meshIndex + 1 if mesh.id is None else mesh.id # ids start with 1
             prim.minVertexIndex = 0
             prim.maxVertexIndex = prim.minVertexIndex + prim.vertexCount
             prim.field2c = 0
-            prim.primitiveJointLinkPtr = 0
+            prim.envelopePtr = 0
             mod.primitives.append( prim )
             
             nextVertexOffset += prim.vertexCount * prim.vertexStride
@@ -1069,7 +1269,10 @@ class imModel:
         vertexBufferStream = NclBitStream()
         for i, v in enumerate( vertices ):
             if progressCb != None: progressCb( 'Writing vertices', i, len( vertices ) )
+            start = vertexBufferStream.getOffset()
             v.write( vertexBufferStream )
+            realStride = vertexBufferStream.getOffset() - start
+            assert( realStride == v.STRIDE )
         mod.vertexBuffer = vertexBufferStream.getBuffer()
             
         indexBufferStream = NclBitStream()
@@ -1088,15 +1291,15 @@ class imModel:
         mod.header.vertexBufferSize = len( mod.vertexBuffer )
         mod.header.vertexBuffer2Size = 0
         mod.header.groupCount = len( mod.groups )
-        mod.header.center = bounds.center if self.center == None else self.center
-        mod.header.radius = bounds.radius if self.radius == None else self.radius
-        mod.header.min = nclCreateVec4( bounds.vmin ) if self.min == None else self.min
-        mod.header.max = nclCreateVec4( bounds.vmax ) if self.max == None else self.max
+        mod.header.center = bounds.center if self.center is None else self.center
+        mod.header.radius = bounds.radius if self.radius is None else self.radius
+        mod.header.min = nclCreateVec4( bounds.vmin ) if self.min is None else self.min
+        mod.header.max = nclCreateVec4( bounds.vmax ) if self.max is None else self.max
         mod.header.field90 = self.field90
         mod.header.field94 = self.field94
         mod.header.field98 = self.field98
         mod.header.field9c = self.field9c
-        mod.header.primitiveJointLinkCount = len( mod.primitiveJointLinks )
+        mod.header.envelopeCount = len( mod.envelopes )
         return mod
         
     def saveBinaryStream( self, stream ):
