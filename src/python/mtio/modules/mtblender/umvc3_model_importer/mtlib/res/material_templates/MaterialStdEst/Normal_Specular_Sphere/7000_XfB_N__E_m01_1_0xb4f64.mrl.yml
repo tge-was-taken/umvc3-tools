@@ -1,0 +1,68 @@
+version: 1
+textures:
+materials:
+    - XfB_N__E_m01_1:
+        type: nDraw::MaterialStdEst
+        blendState: BSSolid
+        depthStencilState: DSZTestWrite
+        rasterizerState: RSMeshCN
+        cmdListFlags: 0x200
+        matFlags: 0x8c800000
+        cmds:
+            - [ flag, FVertexDisplacement, FVertexDisplacement ]
+            - [ flag, FUVTransformPrimary, FUVTransformPrimary ]
+            - [ flag, FUVTransformSecondary, FUVTransformSecondary ]
+            - [ flag, FUVTransformUnique, FUVTransformUnique ]
+            - [ flag, FUVTransformExtend, FUVTransformExtend ]
+            - [ flag, FOcclusion, FOcclusion ]
+            - [ flag, FBump, FBumpNormalMap ]
+            - [ texture, tNormalMap, __PLACEHOLDER__ ]
+            - [ samplerstate, SSNormalMap, SSNormalMap ]
+            - [ flag, FUVNormalMap, FUVPrimary ]
+            - [ flag, FAlbedo, FAlbedo ]
+            - [ cbuffer, $Globals, [
+                0.0, 1.0, 1.0, 1.0, 
+                1.0, 1.0, 1.0, 1.0, 
+                1.0, 1.0, 1.0, 1.0, 
+                0.0, 0.6000000238418579, 0.009999999776482582, 1.0, 
+                4.0, 64.0, 0.0, 0.0, 
+                1.0, 1.0, 1.0, 0.0, 
+                1.0, 1.0, 1.0, 0.10000000149011612, 
+                1.0, 1.0, 0.0, 0.0, 
+                0.0, 0.0, 0.05000000074505806, 0.05000000074505806, 
+                1.0, 1.0, 1.0, 1.0, 
+                1.0, 1.0, 1.0, 40.0, 
+                0.5, 0.5, 0.5, 0.0, 
+                1.0, 1.0, 1.0, 1.0, 
+                1.0, 0.32899999618530273, 0.4746600091457367, 0.382999986410141, 
+                0.0, 1.0, 0.0, 1.0, 
+                0.33329999446868896, 1.0, 1.0, 0.20000000298023224, 
+                1.0, 1.0, 1.0, 0.0, 
+                1.0, 1.0, 1.0, 1.0, 
+                1.0, 0.0, 0.0, 0.0, 
+              ]]
+            - [ flag, FTransparency, FTransparency ]
+            - [ flag, FShininess, FShininess ]
+            - [ flag, FLighting, FLighting ]
+            - [ flag, FBRDF, FBRDF ]
+            - [ flag, FDiffuse, FDiffuse ]
+            - [ cbuffer, CBMaterial, [
+                0.14000000059604645, 0.14000000059604645, 0.14000000059604645, 1.0, 
+                1.0, 1.0, 1.0, 10.0, 
+                1.0, 0.0, 0.0, 0.0, 
+                0.0, 1.0, 0.0, 0.0, 
+                1.0, 0.0, 0.0, 0.0, 
+                0.0, 1.0, 0.0, 0.0, 
+                1.0, 0.0, 0.0, 0.0, 
+                0.0, 1.0, 0.0, 0.0, 
+              ]]
+            - [ flag, FAmbient, FAmbient ]
+            - [ flag, FSpecular, FSpecularMaskToon ]
+            - [ texture, tSpecularMap,  ]
+            - [ samplerstate, SSSpecularMap, SSSpecularMap ]
+            - [ flag, FUVSpecularMap, FUVPrimary ]
+            - [ flag, FReflect, FReflectSphereMap ]
+            - [ texture, tSphereMap, UserShader\spheremap00_CMM ]
+            - [ flag, FFresnel, FFresnel ]
+            - [ flag, FEmission, FEmission ]
+            - [ flag, FDistortion, FDistortion ]

@@ -1,0 +1,12 @@
+version: 1
+name: '7005'
+joints:
+  id, name:
+  - [1, root]
+groups:
+  id, name:
+  - [0, grp_0]
+primitives:
+  id, name:
+  - [1, prm_1]
+  - [2, prm_2]

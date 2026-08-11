@@ -1,0 +1,15 @@
+version: 1
+name: 0005_KobunHead
+joints:
+  id, name:
+  - [3, spine]
+groups:
+  id, name:
+  - [1, grp_1]
+  - [2, grp_2]
+primitives:
+  id, name:
+  - [1, prm_1]
+  - [2, prm_2]
+  - [3, prm_3]
+  - [4, prm_4]

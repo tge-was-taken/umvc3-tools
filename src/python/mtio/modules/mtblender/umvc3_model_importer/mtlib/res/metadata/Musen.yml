@@ -1,0 +1,16 @@
+version: 1
+name: Musen
+joints:
+  id, name:
+  - [1, root]
+  - [2, pelvis]
+groups:
+  id, name:
+  - [1, grp_1]
+  - [2, grp_2]
+primitives:
+  id, name:
+  - [1, prm_1]
+  - [2, prm_2]
+  - [3, prm_3]
+  - [4, prm_4]

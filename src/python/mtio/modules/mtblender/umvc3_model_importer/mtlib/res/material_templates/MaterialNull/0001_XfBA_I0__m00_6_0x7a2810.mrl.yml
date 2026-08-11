@@ -1,0 +1,10 @@
+version: 1
+materials:
+    - XfBA_I0__m00_6:
+        type: nDraw::MaterialNull
+        blendState: BSBlendAlpha
+        depthStencilState: DSZTestWrite
+        rasterizerState: RSMesh
+        cmdListFlags: 0x20000
+        matFlags: 0x91900000
+        cmds:

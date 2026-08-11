@@ -1,0 +1,13 @@
+version: 1
+name: CrsStan
+joints:
+  id, name:
+  - [202, attach_elbow_l]
+  - [203, attach_elbow_r]
+groups:
+  id, name:
+  - [0, grp_0]
+primitives:
+  id, name:
+  - [1, prm_1]
+  - [2, prm_2]

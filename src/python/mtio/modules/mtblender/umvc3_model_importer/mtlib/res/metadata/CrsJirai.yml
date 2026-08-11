@@ -1,0 +1,14 @@
+version: 1
+name: CrsJirai
+joints:
+  id, name:
+  - [209, jnt_209]
+groups:
+  id, name:
+  - [0, grp_0]
+primitives:
+  id, name:
+  - [1, prm_1]
+  - [2, prm_2]
+  - [3, prm_3]
+  - [4, prm_4]

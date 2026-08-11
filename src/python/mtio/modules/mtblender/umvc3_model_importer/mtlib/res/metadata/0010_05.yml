@@ -1,0 +1,9 @@
+version: 1
+name: '0010_05'
+joints: {}
+groups:
+  id, name:
+  - [5, grp_5]
+primitives:
+  id, name:
+  - [1, prm_1]

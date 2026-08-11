@@ -1,0 +1,15 @@
+version: 1
+name: '0005'
+joints:
+  id, name:
+  - [1, root]
+  - [2, pelvis]
+  - [3, spine]
+  - [4, spine2]
+groups:
+  id, name:
+  - [0, grp_0]
+primitives:
+  id, name:
+  - [1, prm_1]
+  - [2, prm_2]

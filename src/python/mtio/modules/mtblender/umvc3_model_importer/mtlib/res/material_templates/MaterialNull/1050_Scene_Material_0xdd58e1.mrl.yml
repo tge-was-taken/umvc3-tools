@@ -1,0 +1,10 @@
+version: 1
+materials:
+    - Scene_Material:
+        type: nDraw::MaterialNull
+        blendState: BSSolid
+        depthStencilState: DSZTestWrite
+        rasterizerState: RSMesh
+        cmdListFlags: 0x20000
+        matFlags: 0x8d900000
+        cmds:

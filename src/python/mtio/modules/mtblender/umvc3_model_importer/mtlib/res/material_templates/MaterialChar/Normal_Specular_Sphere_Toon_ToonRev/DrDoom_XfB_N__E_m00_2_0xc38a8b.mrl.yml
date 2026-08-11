@@ -1,0 +1,70 @@
+version: 1
+textures:
+materials:
+    - XfB_N__E_m00_2:
+        type: nDraw::MaterialChar
+        blendState: BSSolid
+        depthStencilState: DSZTestWriteStencilWrite
+        rasterizerState: RSMesh
+        cmdListFlags: 0x0
+        matFlags: 0x8c800803
+        cmds:
+            - [ flag, FVertexDisplacement, FVertexDisplacement ]
+            - [ flag, FUVTransformPrimary, FUVTransformPrimary ]
+            - [ flag, FUVTransformSecondary, FUVTransformSecondary ]
+            - [ flag, FUVTransformUnique, FUVTransformUnique ]
+            - [ flag, FUVTransformExtend, FUVTransformExtend ]
+            - [ flag, FBump, FBumpNormalMap ]
+            - [ texture, tNormalMap,  ]
+            - [ samplerstate, SSNormalMap, SSNormalMap ]
+            - [ flag, FUVNormalMap, FUVPrimary ]
+            - [ flag, FAlbedo, FAlbedo ]
+            - [ cbuffer, $Globals, [
+                0.0, 1.0, 1.0, 1.0, 
+                1.0, 1.0, 1.0, 1.0, 
+                1.0, 1.0, 1.0, 1.0, 
+                0.0, 0.6000000238418579, 0.009999999776482582, 1.0, 
+                4.0, 64.0, 0.0, 0.0, 
+                1.0, 1.0, 1.0, 0.0, 
+                1.0, 1.0, 1.0, 0.10000000149011612, 
+                1.0, 1.0, 0.0, 0.0, 
+                0.0, 0.0, 0.05000000074505806, 0.05000000074505806, 
+                1.0, 1.0, 1.0, 1.0, 
+                0.625, 0.625, 0.375, 30.0, 
+                0.5, 0.5, 0.5, 0.0, 
+                1.0, 1.0, 1.0, 1.0, 
+                1.0, 0.32899999618530273, 0.4746600091457367, 0.382999986410141, 
+                0.0, 1.0, 0.0, 1.0, 
+                0.33329999446868896, 1.0, 1.0, 0.20000000298023224, 
+                1.0, 1.0, 1.0, 0.0, 
+                1.0, 1.0, 1.0, 1.0, 
+                1.0, 0.0, 0.0, 0.0, 
+              ]]
+            - [ flag, FShininess, FShininess ]
+            - [ flag, FLighting, FLighting ]
+            - [ flag, FBRDF, FToonShader ]
+            - [ flag, FToonLightCalc, FToonLightCalc ]
+            - [ texture, tToonMap, UserShader\toon_Black2_BM_HQ ]
+            - [ flag, FCalcRimLight, FCalcRimLight ]
+            - [ flag, FToonLightRevCalc, FToonLightRevCalc ]
+            - [ texture, tToonRevMap, UserShader\toonRev_BM_HQ ]
+            - [ flag, FDiffuse, FDiffuseColorCorectSimple ]
+            - [ cbuffer, CBMaterial, [
+                0.17499999701976776, 0.13750000298023224, 0.02500000037252903, 1.0, 
+                2.0, 2.0, 1.0, 10.0, 
+                1.0, 0.0, 0.0, 0.0, 
+                0.0, 1.0, 0.0, 0.0, 
+                1.0, 0.0, 0.0, 0.0, 
+                0.0, 1.0, 0.0, 0.0, 
+                1.0, 0.0, 0.0, 0.0, 
+                0.0, 1.0, 0.0, 0.0, 
+              ]]
+            - [ flag, FSpecular, FSpecularMaskToon ]
+            - [ texture, tSpecularMap,  ]
+            - [ samplerstate, SSSpecularMap, SSSpecularMap ]
+            - [ flag, FUVSpecularMap, FUVPrimary ]
+            - [ flag, FReflect, FReflectSphereMap ]
+            - [ texture, tSphereMap, UserShader\spheremap00_CMM ]
+            - [ flag, FFresnel, FFresnel ]
+            - [ flag, FDistortion, FDistortion ]
+            - [ flag, FTransparency, FTransparency ]
