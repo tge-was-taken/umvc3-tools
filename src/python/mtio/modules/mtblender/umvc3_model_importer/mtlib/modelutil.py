@@ -1,4 +1,3 @@
-<<<<<<< Updated upstream
 '''
 Various model-related utility functions.
 '''
@@ -88,7 +87,6 @@ def calcBounds( vertices ) -> imModelBounds:
     b.radius = radius
     b.vminpoint = vminpoint
     b.vmaxpoint = vmaxpoint
-=======
 '''
 Various model-related utility functions.
 '''
@@ -178,5 +176,4 @@ def calcBounds( vertices ) -> imModelBounds:
     b.radius = radius
     b.vminpoint = vminpoint
     b.vmaxpoint = vmaxpoint
->>>>>>> Stashed changes
     return b

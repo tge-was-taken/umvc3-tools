@@ -1,4 +1,3 @@
-<<<<<<< Updated upstream
 ''' 
 Noesis compatibility lib.
 Wraps types in an interface mirroring that of Noesis' types.
@@ -492,7 +491,6 @@ if libtarget.noesis:
     _testNoesis() 
     
 if __name__ == '__main__':
-=======
 ''' 
 Noesis compatibility lib.
 Wraps types in an interface mirroring that of Noesis' types.
@@ -986,5 +984,4 @@ if libtarget.noesis:
     _testNoesis() 
     
 if __name__ == '__main__':
->>>>>>> Stashed changes
     _testGlm()

@@ -34,12 +34,11 @@ def syncExportConfigFromScene( config, mip ):
     # which gets loaded from a yml in %APPDATA% and was never updated from the UI.
     # Every checkbox on the export panel was doing nothing without this.
     config.flipUpAxis              = mip.export_flip_up_axis
-<<<<<<< Updated upstream
-    config.lukasCompat             = mip.export_compatwithlukasscript
-=======
     config.lukasCompat             = False
->>>>>>> Stashed changes
-
+    # DEPRECATED: export_compatwithlukasscript is commented out in properties.py, so
+    # reading it here raises AttributeError before any export can start.
+    # config.lukasCompat             = mip.export_compatwithlukasscript
+    config.lukasCompat             = False
     config.exportFilePath          = mip.export_modelpath
     # DEPRECATED: config.exportRoot was never read by anything
     # config.exportRoot              = mip.extracted_archive_directory
@@ -118,15 +117,12 @@ class SUB_PT_Model_Export(Panel):
 
             row = layout.row(align=True)
             row.prop(mip, 'export_flip_up_axis',text='Flip Up Axis')
-<<<<<<< Updated upstream
             row = layout.row(align=True)
             row.prop(mip, 'export_compatwithlukasscript',text='Compatibility With Lukas Script')        
-=======
             # DEPRECATED: every lukasCompat code path in base_exporter, base_importer
             # and blender_importer is commented out, so this checkbox does nothing.
             # row = layout.row(align=True)
             # row.prop(mip, 'export_compatwithlukasscript',text='Compatibility With Lukas Script')
->>>>>>> Stashed changes
             row = layout.row() 
 
             layout.separator()
@@ -298,7 +294,7 @@ class SUB_PT_MOD_OT_export(bpy.types.Operator):
 
             print("Model Scale: ",str(mip.export_model_scale))
             print("Flip Up Axis = ",mip.export_flip_up_axis)
-            print("Importing in the style of the old Maxscript = ",mip.export_compatwithlukasscript)
+            # print("Importing in the style of the old Maxscript = ",mip.export_compatwithlukasscript)
             print("Bake Scale Into Translation = ",mip.export_bake_scale)
             print("Convert Textures to Tex = ",mip.convert_tex_to_tex)
             print("Overwrite Existing Textures = ",mip.export_overwrite_textures)

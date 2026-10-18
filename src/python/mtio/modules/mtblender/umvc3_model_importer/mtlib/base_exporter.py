@@ -661,28 +661,19 @@ class ModelExporterBase(ABC):
             return material.getName()
             
     def iterMeshNodes( self ):
-<<<<<<< Updated upstream
-=======
 
         #Tweaked to only care about meshes in the same collection as the selected Armature.
         ChosenArmature = bpy.context.view_layer.objects.active
         armatureCollections = set(ChosenArmature.users_collection)
-
->>>>>>> Stashed changes
         for editorNode in self.getObjects():
             if not self.shouldExportNode( editorNode ):
                 continue
             
             if not editorNode.isMeshNode() and not editorNode.isSplineNode():
                 continue
-            
-<<<<<<< Updated upstream
-=======
             MeshNode = editorNode.node
             if not armatureCollections.intersection(MeshNode.users_collection):
                 continue
-
->>>>>>> Stashed changes
             yield editorNode
 
     def generatePrimitives( self, editorNode: EditorNodeProxy, attribs: PrimitiveCustomAttributeData, 
@@ -801,9 +792,19 @@ class ModelExporterBase(ABC):
             
     def iterGroupNodes( self ):
         # process all groups in the scene
+
+        #Let's get the Armature first, to get what collection it resides in and limit ourselves to only group nodes that reside in there.
+        ChosenArmature = bpy.context.view_layer.objects.active
+        armatureCollections = set(ChosenArmature.users_collection)
+
         for editorNode in self.getObjects():
             if not self.shouldExportNode( editorNode ) or not editorNode.isGroupNode():
                 continue
+
+            GroupNode = editorNode.node
+            if not armatureCollections.intersection(GroupNode.users_collection):
+                continue
+
             yield editorNode
 
     def processGroups( self, mip ):

@@ -386,23 +386,17 @@ class BlenderModelExporter(ModelExporterBase):
             mesh.calc_loop_triangles()
             triangles = mesh.loop_triangles
             if len( triangles ) == 0:
-<<<<<<< Updated upstream
-                self.logger.warning( f'mesh {obj.name} has no faces, skipping' )
-=======
                 self.logger.warn( f'mesh {obj.name} has no faces, skipping' )
->>>>>>> Stashed changes
+                self.logger.warn( f'mesh {obj.name} has no faces, skipping' )
                 return
 
             loopNormals = self._getLoopNormals( mesh )
             uvLayers = self._getUvLayers( mesh )
             colorLayer = self._getColorLayer( mesh )
-<<<<<<< Updated upstream
-=======
             # written by the importer as 1 - occlusion, see BlenderModelImporter.OCCLUSION_ATTRIBUTE
             occlusionLayer = mesh.attributes.get( 'mt_ao_darken' ) if hasattr( mesh, 'attributes' ) else None
             if occlusionLayer is not None and ( occlusionLayer.domain != 'POINT' or occlusionLayer.data_type != 'FLOAT' ):
                 occlusionLayer = None
->>>>>>> Stashed changes
 
             worldMtx = self._getSceneMtx( obj )
             normalMtx = worldMtx.to_3x3().inverted_safe().transposed()
@@ -477,8 +471,6 @@ class BlenderModelExporter(ModelExporterBase):
                         except Exception:
                             tempMesh.colors.append( ( 127.0/255.0, 127.0/255.0, 127.0/255.0, 1.0 ) )
 
-<<<<<<< Updated upstream
-=======
                     # always append, so a primitive built from several objects stays aligned
                     occ = 1.0
                     if occlusionLayer is not None:
@@ -488,7 +480,6 @@ class BlenderModelExporter(ModelExporterBase):
                             occ = 1.0
                     tempMesh.occlusions.append( min( 1.0, max( -1.0, occ ) ) )
 
->>>>>>> Stashed changes
                     if hasSkin:
                         tempMesh.weights.append( self._buildVertexWeight( vertex, boneIndexByGroup ) )
                     elif needsWeights:

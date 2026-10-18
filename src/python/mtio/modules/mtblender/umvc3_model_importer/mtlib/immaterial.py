@@ -447,107 +447,39 @@ class imMaterialInfo(object):
                 return cmd.data
         return None
 
-    # Member layout of the cbuffers MRLs carry, from UserShaderPackage.mfx:
-    # member -> ( cbuffer, float offset, component count ). Offsets are into the flat
-    # float list the cbuffer command stores, so row N of a cbuffer is offset 4N.
-    CBUFFER_MEMBERS = {
-        'fAlphaClipThreshold':      ( '$Globals', 0, 1 ),
-        'fAlbedoColor':             ( '$Globals', 1, 3 ),
-        'fAlbedoBlendColor':        ( '$Globals', 4, 4 ),
-        'fDetailNormalPower':       ( '$Globals', 8, 1 ),
-        'fDetailNormalUVScale':     ( '$Globals', 9, 1 ),
-        'fDetailNormal2Power':      ( '$Globals', 10, 1 ),
-        'fDetailNormal2UVScale':    ( '$Globals', 11, 1 ),
-        'fLightMapColor':           ( '$Globals', 20, 3 ),
-        'fFresnelSchlick':          ( '$Globals', 36, 1 ),
-        'fFresnelSchlickRGB':       ( '$Globals', 37, 3 ),
-        'fSpecularColor':           ( '$Globals', 40, 3 ),
-        'fShininess':               ( '$Globals', 43, 1 ),
-        'fEmissionColor':           ( '$Globals', 44, 3 ),
-        'fFresnelLegacyFactor':     ( '$Globals', 71, 1 ),
-        'fFresnelLegacyBias':       ( '$Globals', 72, 1 ),
-        'fDiffuseColor':            ( 'CBMaterial', 0, 3 ),
-        'fTransparency':            ( 'CBMaterial', 3, 1 ),
-        'fReflectiveColor':         ( 'CBMaterial', 4, 3 ),
-        'fTransparencyVolume':      ( 'CBMaterial', 7, 1 ),
-        'fHalfLambertRevise':       ( 'CBHalfLambert', 0, 1 ),
-        'fHalfLambertReviseRev':    ( 'CBHalfLambert', 1, 1 ),
-        'fToonFactor':              ( 'CBToon2', 0, 3 ),
-        'fUrokoFactor':             ( 'CBToon2', 3, 1 ),
-        'fDiffuseColorCorectValue': ( 'CBDiffuseColorCorect', 0, 1 ),
-        'fDiffuseColorCorectShadowColor': ( 'CBDiffuseColorCorect', 1, 3 ),
-    }
-
-    def getConstant( self, member, default=None ):
-        '''A cbuffer member by its shader name, e.g. getConstant('fShininess').
-        Floats for scalars, tuples for vectors, default when the mrl lacks it.'''
-        layout = imMaterialInfo.CBUFFER_MEMBERS.get( member )
-        if layout is None:
-            return default
-        cb, off, count = layout
-        v = self.getCBuffer( cb )
-        if v is None or len( v ) < off + count:
-            return default
-        vals = tuple( float( x ) for x in v[ off:off + count ] )
-        return vals[0] if count == 1 else vals
-
     def getDiffuseTint( self ):
-        '''CBMaterial fDiffuseColor. Multiplies the lit diffuse term.'''
-        return self.getConstant( 'fDiffuseColor' )
+        v = self.getCBuffer( 'CBMaterial' )
+        if v is None or len( v ) < 3:
+            return None
+        return ( float( v[0] ), float( v[1] ), float( v[2] ) )
 
     def getSpecularTint( self ):
-        '''$Globals fSpecularColor. (CBMaterial[4..6] is fReflectiveColor, the sphere
-        and env map tint, not specular.)'''
-        return self.getConstant( 'fSpecularColor' )
+        v = self.getCBuffer( 'CBMaterial' )
+        if v is None or len( v ) < 7:
+            return None
+        return ( float( v[4] ), float( v[5] ), float( v[6] ) )
 
     def getSpecularPower( self ):
-        '''$Globals fShininess, the Blinn exponent.'''
-        return self.getConstant( 'fShininess' )
-
-    def getReflectiveColor( self ):
-        return self.getConstant( 'fReflectiveColor' )
+        v = self.getCBuffer( 'CBMaterial' )
+        if v is None or len( v ) < 8:
+            return None
+        return float( v[7] )
 
     def getDiffuseColorCorrect( self ):
-        '''CBDiffuseColorCorect fDiffuseColorCorectValue. Not a brightness multiplier:
-        FDiffuseColorCorect uses it to boost albedo saturation depending on the light.'''
-        return self.getConstant( 'fDiffuseColorCorectValue' )
+        '''A flat albedo multiplier, 1.22 on every material seen that has it.'''
+        v = self.getCBuffer( 'CBDiffuseColorCorect' )
+        if v is None or len( v ) < 1:
+            return None
+        return float( v[0] )
 
     def getHalfLambert( self ):
-        '''CBHalfLambert ( fHalfLambertRevise, fHalfLambertReviseRev ). One spread per
-        ramp: the game samples u = max(0, s * N.L + saturate(1 - s)), .x for tToonMap and
-        .y for tToonRevMap. 0.5 is classic half lambert, 1 is plain N.L.'''
-        rev = self.getConstant( 'fHalfLambertRevise' )
-        rrev = self.getConstant( 'fHalfLambertReviseRev' )
-        if rev is None:
+        '''CBHalfLambert is (bias, scale, 0, 0) and drives the toon ramp lookup.
+        Dante ships 7 distinct pairs across 25 materials, so it is genuinely per
+        material rather than a constant.'''
+        v = self.getCBuffer( 'CBHalfLambert' )
+        if v is None or len( v ) < 2:
             return None
-        return ( rev, rrev if rrev is not None else 0.5 )
-
-    def getShaderVariant( self ):
-        '''Which shader building blocks the mrl flags pick, in the game's own terms.
-        Mirrors how sShader2 assembles the pixel shader from the flag overrides.'''
-        brdf = self.getFlagValue( 'FBRDF' ) or ''
-        spec = self.getFlagValue( 'FSpecular' ) or ''
-        diffuse = self.getFlagValue( 'FDiffuse' ) or ''
-        fres = self.getFlagValue( 'FFresnel' ) or ''
-        reflect = self.getFlagValue( 'FReflect' ) or ''
-        rim = self.getFlagValue( 'FCalcRimLight' ) or ''
-        return {
-            'toon':          brdf.startswith( 'FToonShader' ),
-            'toon_high':     brdf == 'FToonShaderHigh',
-            'uroko':         brdf == 'FToonShaderUroko',
-            'half':          self.getFlagValue( 'FToonLightCalc' ) == 'FToonLightCalcHalf',
-            'rev_half':      self.getFlagValue( 'FToonLightRevCalc' ) == 'FToonLightRevCalcHalf',
-            'rim':           rim != 'FCalcRimLightNone',
-            # 0 off, 1 FSpecularMaskToon, 2 FSpecularMap (also scaled by vertex occlusion)
-            'specular':      0 if spec == 'FSpecularDisable' else ( 2 if spec == 'FSpecularMap' else 1 ),
-            'color_correct': diffuse == 'FDiffuseColorCorect',
-            'vertex_occlusion_diffuse': diffuse == 'FDiffuseVertexColorOcclusion',
-            # 0 none, 1 FFresnelSchlick, 2 FFresnelLegacy
-            'fresnel':       1 if fres == 'FFresnelSchlick' else ( 2 if fres == 'FFresnelLegacy' else 0 ),
-            'reflect':       reflect,
-            'spec_view_uv':  self.getFlagValue( 'FUVSpecularMap' ) == 'FUVViewNormal',
-            'alpha_test':    self.getFlagValue( 'FAlphaTest' ) == 'FAlphaTestGreater',
-        }
+        return ( float( v[0] ), float( v[1] ) )
 
     def iterTextures( self ):
         for cmd in self.cmds:

@@ -321,10 +321,10 @@ class ModelMetadata:
         with open( path, 'r' ) as f:
             yamlText = f.read()
         
-        yamlObj = yaml.safe_load( yamlText )
-        if yamlObj is None:
-            # empty file
-            return
+        yamlInst = yaml.YAML(typ='safe', pure=True)
+        yamlObj = yamlInst.load(yamlText)
+		
+		
         
         if yamlObj['version'] > ModelMetadata.CURRENT_VERSION:
             raise Exception('Unsupported model metadata version')

@@ -14,11 +14,11 @@ def register():
     )
         
 class UMVC3ModelImportProperties(PropertyGroup):
-    import_compatwithlukasscript: BoolProperty(
-        name='Compatibility With Lukas'' script.',
-        description='Imports in a way that is compatible with the classic 3ds maxscript(Not full functional at the moment!)',
-        default=False,
-    )
+    # import_compatwithlukasscript: BoolProperty(
+    #     name='Compatibility With Lukas'' script.',
+    #     description='Imports in a way that is compatible with the classic 3ds maxscript(Not full functional at the moment!)',
+    #     default=False,
+    # )
     input_modelpath: StringProperty(
         name = 'Model File Path',  
         description = 'The UMVC3 .mod file to import',
