@@ -258,6 +258,10 @@ class ModelImporterBase(ABC):
             self.setGroupCustomAttributes( group, editorGroup )
             self.editorGroupArray.append( editorGroup )
             self.editorGroupLookup[ group.id ] = editorGroup
+            self.parentGroupToArmature( editorGroup )
+
+    def parentGroupToArmature( self, editorGroup ):
+        pass
 
     def importPrimitives( self ):
         self.logger.info('importing primitives')

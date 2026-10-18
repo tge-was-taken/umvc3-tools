@@ -1,0 +1,19 @@
+version: 1
+name: CapAmerica_w01
+joints:
+  id, name:
+  - [193, jnt_193]
+  - [194, jnt_194]
+  - [195, jnt_195]
+  - [196, jnt_196]
+  - [197, jnt_197]
+groups:
+  id, name:
+  - [6, grp_6]
+  - [7, grp_7]
+primitives:
+  id, name:
+  - [1, prm_1]
+  - [2, prm_2]
+  - [3, prm_3]
+  - [4, prm_4]

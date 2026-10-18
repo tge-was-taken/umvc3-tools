@@ -1,0 +1,10 @@
+version: 1
+name: Sword
+joints: {}
+groups:
+  id, name:
+  - [1, grp_1]
+primitives:
+  id, name:
+  - [1, prm_1]
+  - [2, prm_2]

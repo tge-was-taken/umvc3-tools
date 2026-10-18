@@ -1,0 +1,27 @@
+version: 1
+name: Linlin
+joints:
+  id, name:
+  - [1, root]
+  - [2, pelvis]
+  - [3, spine]
+  - [5, spine3]
+  - [6, neck]
+  - [7, head]
+  - [16, leg_l]
+  - [17, knee_l]
+  - [18, foot_l]
+  - [20, leg_r]
+  - [21, knee_r]
+  - [22, foot_r]
+groups:
+  id, name:
+  - [1, grp_1]
+  - [2, grp_2]
+  - [127, grp_debug_cube]
+primitives:
+  id, name:
+  - [1, prm_1]
+  - [2, prm_2]
+  - [3, prm_3]
+  - [4, prm_4]

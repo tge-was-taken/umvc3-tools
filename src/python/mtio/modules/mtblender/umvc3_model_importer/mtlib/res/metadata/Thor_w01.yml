@@ -1,0 +1,17 @@
+version: 1
+name: Thor_w01
+joints:
+  id, name:
+  - [196, jnt_196]
+  - [197, jnt_197]
+  - [198, jnt_198]
+  - [199, jnt_199]
+  - [200, knee_twist2_l]
+groups:
+  id, name:
+  - [0, grp_0]
+primitives:
+  id, name:
+  - [1, prm_1]
+  - [2, prm_2]
+  - [3, prm_3]

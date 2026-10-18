@@ -1,0 +1,6 @@
+pyyaml
+ruamel.yaml
+numpy
+pyglm==2.7.0
+ptvsd
+Pillow

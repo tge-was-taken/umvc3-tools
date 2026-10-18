@@ -1,0 +1,15 @@
+version: 1
+name: ga_hp_pos
+joints:
+  id, name:
+  - [0, jnt_0]
+  - [1, root]
+  - [2, pelvis]
+groups:
+  id, name:
+  - [0, grp_0]
+primitives:
+  id, name:
+  - [1, prm_1]
+  - [2, prm_2]
+  - [3, prm_3]

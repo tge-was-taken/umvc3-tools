@@ -1,0 +1,12 @@
+version: 1
+name: sunglasses
+joints:
+  id, name:
+  - [1, root]
+groups:
+  id, name:
+  - [1, grp_1]
+primitives:
+  id, name:
+  - [1, prm_1]
+  - [2, prm_2]

@@ -1,0 +1,20 @@
+version: 1
+name: Syokusyu
+joints:
+  id, name:
+  - [1, root]
+  - [2, pelvis]
+  - [3, spine]
+  - [4, spine2]
+  - [5, spine3]
+  - [6, neck]
+  - [7, head]
+  - [8, shoulder_l]
+  - [9, arm_l]
+  - [10, elbow_l]
+groups:
+  id, name:
+  - [0, grp_0]
+primitives:
+  id, name:
+  - [1, prm_1]

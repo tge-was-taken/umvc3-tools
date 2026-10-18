@@ -1,3 +1,8 @@
+This branch has extra features for the Blender version of the plugin. The main export is not complete, but there's support for character animations and Cameras as well.
+Original site facing README below.
+
+==========================================================================================================
+
 # umvc3-tools
 Ultimate Marvel vs Capcom 3 tools &amp; research
 
