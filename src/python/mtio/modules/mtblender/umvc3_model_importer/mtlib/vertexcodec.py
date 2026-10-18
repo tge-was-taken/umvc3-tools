@@ -25,6 +25,12 @@ if libtarget.noesis:
         return noesis.getFloat16( val )
 else:
     def encodeF16( float32 ):
+        # struct 'e' raises OverflowError past the half float range, and uvs coming
+        # from a badly scaled unwrap can exceed it. Clamp instead of failing the export.
+        if not math.isfinite( float32 ):
+            float32 = 0.0
+        elif float32 >  65504.0: float32 =  65504.0
+        elif float32 < -65504.0: float32 = -65504.0
         return int( struct.unpack( 'H', struct.pack( 'e', float32 ) )[0] )
     
     def decodeF16( float16 ):
@@ -119,6 +125,8 @@ def encodeS16( val ):
 # type 5
 def encodeFS16( val ):
     #assert( isNormalizedFloat( val ) )
+    if not math.isfinite( val ):
+        val = 0.0
     if val < 0:
         return int( ~int( abs( val ) * -0x8000 ) + 1 ) & 0xFFFF
     else:
@@ -139,11 +147,18 @@ def encodeU8( val ):
 # type 9
 def encodeFU8( val ):
     #assert( isNormalizedFloat( val ) )
+    if not math.isfinite( val ):
+        val = 0.0
     return int( round( val * 0xFF ) ) & 0xFF
 
 # type 10
 def encodeFS8( val ):
-    val = 0 if math.isnan( val ) else val
+    # The existing guard caught NaN but not infinity, so a degenerate normal took
+    # int() straight to 'cannot convert float infinity to integer'. These are all
+    # normalised quantities, so anything non finite is meaningless and 0 is the safe
+    # substitute; out of range values get clamped rather than wrapping via & 0xFF.
+    if not math.isfinite( val ):
+        val = 0.0
     if target.current.name in ['aa-pc']:
         return int( round( val * 127 ) ) & 0xFF
     else:

@@ -34,7 +34,11 @@ def syncExportConfigFromScene( config, mip ):
     # which gets loaded from a yml in %APPDATA% and was never updated from the UI.
     # Every checkbox on the export panel was doing nothing without this.
     config.flipUpAxis              = mip.export_flip_up_axis
+<<<<<<< Updated upstream
     config.lukasCompat             = mip.export_compatwithlukasscript
+=======
+    config.lukasCompat             = False
+>>>>>>> Stashed changes
 
     config.exportFilePath          = mip.export_modelpath
     # DEPRECATED: config.exportRoot was never read by anything
@@ -114,8 +118,15 @@ class SUB_PT_Model_Export(Panel):
 
             row = layout.row(align=True)
             row.prop(mip, 'export_flip_up_axis',text='Flip Up Axis')
+<<<<<<< Updated upstream
             row = layout.row(align=True)
             row.prop(mip, 'export_compatwithlukasscript',text='Compatibility With Lukas Script')        
+=======
+            # DEPRECATED: every lukasCompat code path in base_exporter, base_importer
+            # and blender_importer is commented out, so this checkbox does nothing.
+            # row = layout.row(align=True)
+            # row.prop(mip, 'export_compatwithlukasscript',text='Compatibility With Lukas Script')
+>>>>>>> Stashed changes
             row = layout.row() 
 
             layout.separator()

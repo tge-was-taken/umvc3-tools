@@ -362,6 +362,193 @@ class imMaterialInfo(object):
                     return cmd.data
         return None
     
+    def getFlagValue( self, flagName ):
+        '''Value of a 'flag' command, e.g. FUVAlbedoMap -> FUVPrimary. None if absent.'''
+        for cmd in self.cmds:
+            if cmd.type == 'flag' and cmd.name == flagName:
+                return cmd.data
+        return None
+
+    def hasFlag( self, flagName ):
+        '''Whether a flag command is present at all. Feature toggles like FBump are
+        present when the feature is on and absent when it is not.'''
+        return self.getFlagValue( flagName ) is not None
+
+    def getUVChannelForSlot( self, slotName ):
+        '''Which UV channel feeds a texture slot. The mrl pairs tAlbedoMap with a
+        FUVAlbedoMap flag whose value names the channel. Falls back to primary.'''
+        flag = 'FUV' + slotName[1:] if slotName.startswith( 't' ) else 'FUV' + slotName
+        value = self.getFlagValue( flag )
+        return {
+            'FUVPrimary':   'UVPrimary',
+            'FUVSecondary': 'UVSecondary',
+            'FUVUnique':    'UVUnique',
+            'FUVExtend':    'UVExtend',
+        }.get( value, 'UVPrimary' )
+
+    OPAQUE_BLEND_STATES = ( 'BSSolid', )
+
+    def isAlphaBlended( self ):
+        if self.blendState is None:
+            return False
+        if self.blendState in imMaterialInfo.OPAQUE_BLEND_STATES:
+            return False
+        # the material type is the second signal, the Alpha variants composite
+        if self.type is not None and self.type.endswith( 'Alpha' ):
+            return True
+        return 'Alpha' in self.blendState or 'Blend' in self.blendState
+
+    # Raster states seen in retail mrls. RSMesh is the default and culls backfaces.
+    # RSMeshCN is 'cull none', used on the two sided pieces (Dante's coat tails).
+    DOUBLE_SIDED_RASTER_STATES = ( 'RSMeshCN', 'RSMeshNoCull', 'RSNoCull' )
+
+    def isDoubleSided( self ):
+        if self.rasterizerState is None:
+            return False
+        return self.rasterizerState in imMaterialInfo.DOUBLE_SIDED_RASTER_STATES \
+            or 'NoCull' in self.rasterizerState
+
+    def getUVAnimation( self ):
+        '''-> dict(channel, direction, rate, blocks) or None.'''
+        if not self.animData:
+            return None
+        import struct
+        data = self.animData
+        if len( data ) < 0x9c:
+            return None
+        try:
+            rate = struct.unpack_from( '<I', data, 0x10 )[0]
+            u, v = struct.unpack_from( '<2f', data, 0x94 )
+        except Exception:
+            return None
+
+        # which channel the shader is allowed to offset. secondary wins when both are
+        # flagged, since that is where the scrolling blend map lives.
+        channel = 'UVPrimary'
+        for flag, name in ( ( 'FUVTransformSecondary', 'UVSecondary' ),
+                            ( 'FUVTransformUnique',    'UVUnique' ),
+                            ( 'FUVTransformExtend',    'UVExtend' ),
+                            ( 'FUVTransformPrimary',   'UVPrimary' ) ):
+            if self.getFlagValue( flag ) == 'FUVTransformOffset':
+                channel = name
+                break
+
+        return {
+            'channel':   channel,
+            'direction': ( u, v ),
+            'rate':      rate,
+            'blocks':    max( 0, ( len( data ) - 0x40 ) // 80 ),
+        }
+
+    def getCBuffer( self, name ):
+        '''Named constant buffer as a flat list of floats, or None.'''
+        for cmd in self.cmds:
+            if cmd.type == 'cbuffer' and cmd.name == name:
+                return cmd.data
+        return None
+
+    # Member layout of the cbuffers MRLs carry, from UserShaderPackage.mfx:
+    # member -> ( cbuffer, float offset, component count ). Offsets are into the flat
+    # float list the cbuffer command stores, so row N of a cbuffer is offset 4N.
+    CBUFFER_MEMBERS = {
+        'fAlphaClipThreshold':      ( '$Globals', 0, 1 ),
+        'fAlbedoColor':             ( '$Globals', 1, 3 ),
+        'fAlbedoBlendColor':        ( '$Globals', 4, 4 ),
+        'fDetailNormalPower':       ( '$Globals', 8, 1 ),
+        'fDetailNormalUVScale':     ( '$Globals', 9, 1 ),
+        'fDetailNormal2Power':      ( '$Globals', 10, 1 ),
+        'fDetailNormal2UVScale':    ( '$Globals', 11, 1 ),
+        'fLightMapColor':           ( '$Globals', 20, 3 ),
+        'fFresnelSchlick':          ( '$Globals', 36, 1 ),
+        'fFresnelSchlickRGB':       ( '$Globals', 37, 3 ),
+        'fSpecularColor':           ( '$Globals', 40, 3 ),
+        'fShininess':               ( '$Globals', 43, 1 ),
+        'fEmissionColor':           ( '$Globals', 44, 3 ),
+        'fFresnelLegacyFactor':     ( '$Globals', 71, 1 ),
+        'fFresnelLegacyBias':       ( '$Globals', 72, 1 ),
+        'fDiffuseColor':            ( 'CBMaterial', 0, 3 ),
+        'fTransparency':            ( 'CBMaterial', 3, 1 ),
+        'fReflectiveColor':         ( 'CBMaterial', 4, 3 ),
+        'fTransparencyVolume':      ( 'CBMaterial', 7, 1 ),
+        'fHalfLambertRevise':       ( 'CBHalfLambert', 0, 1 ),
+        'fHalfLambertReviseRev':    ( 'CBHalfLambert', 1, 1 ),
+        'fToonFactor':              ( 'CBToon2', 0, 3 ),
+        'fUrokoFactor':             ( 'CBToon2', 3, 1 ),
+        'fDiffuseColorCorectValue': ( 'CBDiffuseColorCorect', 0, 1 ),
+        'fDiffuseColorCorectShadowColor': ( 'CBDiffuseColorCorect', 1, 3 ),
+    }
+
+    def getConstant( self, member, default=None ):
+        '''A cbuffer member by its shader name, e.g. getConstant('fShininess').
+        Floats for scalars, tuples for vectors, default when the mrl lacks it.'''
+        layout = imMaterialInfo.CBUFFER_MEMBERS.get( member )
+        if layout is None:
+            return default
+        cb, off, count = layout
+        v = self.getCBuffer( cb )
+        if v is None or len( v ) < off + count:
+            return default
+        vals = tuple( float( x ) for x in v[ off:off + count ] )
+        return vals[0] if count == 1 else vals
+
+    def getDiffuseTint( self ):
+        '''CBMaterial fDiffuseColor. Multiplies the lit diffuse term.'''
+        return self.getConstant( 'fDiffuseColor' )
+
+    def getSpecularTint( self ):
+        '''$Globals fSpecularColor. (CBMaterial[4..6] is fReflectiveColor, the sphere
+        and env map tint, not specular.)'''
+        return self.getConstant( 'fSpecularColor' )
+
+    def getSpecularPower( self ):
+        '''$Globals fShininess, the Blinn exponent.'''
+        return self.getConstant( 'fShininess' )
+
+    def getReflectiveColor( self ):
+        return self.getConstant( 'fReflectiveColor' )
+
+    def getDiffuseColorCorrect( self ):
+        '''CBDiffuseColorCorect fDiffuseColorCorectValue. Not a brightness multiplier:
+        FDiffuseColorCorect uses it to boost albedo saturation depending on the light.'''
+        return self.getConstant( 'fDiffuseColorCorectValue' )
+
+    def getHalfLambert( self ):
+        '''CBHalfLambert ( fHalfLambertRevise, fHalfLambertReviseRev ). One spread per
+        ramp: the game samples u = max(0, s * N.L + saturate(1 - s)), .x for tToonMap and
+        .y for tToonRevMap. 0.5 is classic half lambert, 1 is plain N.L.'''
+        rev = self.getConstant( 'fHalfLambertRevise' )
+        rrev = self.getConstant( 'fHalfLambertReviseRev' )
+        if rev is None:
+            return None
+        return ( rev, rrev if rrev is not None else 0.5 )
+
+    def getShaderVariant( self ):
+        '''Which shader building blocks the mrl flags pick, in the game's own terms.
+        Mirrors how sShader2 assembles the pixel shader from the flag overrides.'''
+        brdf = self.getFlagValue( 'FBRDF' ) or ''
+        spec = self.getFlagValue( 'FSpecular' ) or ''
+        diffuse = self.getFlagValue( 'FDiffuse' ) or ''
+        fres = self.getFlagValue( 'FFresnel' ) or ''
+        reflect = self.getFlagValue( 'FReflect' ) or ''
+        rim = self.getFlagValue( 'FCalcRimLight' ) or ''
+        return {
+            'toon':          brdf.startswith( 'FToonShader' ),
+            'toon_high':     brdf == 'FToonShaderHigh',
+            'uroko':         brdf == 'FToonShaderUroko',
+            'half':          self.getFlagValue( 'FToonLightCalc' ) == 'FToonLightCalcHalf',
+            'rev_half':      self.getFlagValue( 'FToonLightRevCalc' ) == 'FToonLightRevCalcHalf',
+            'rim':           rim != 'FCalcRimLightNone',
+            # 0 off, 1 FSpecularMaskToon, 2 FSpecularMap (also scaled by vertex occlusion)
+            'specular':      0 if spec == 'FSpecularDisable' else ( 2 if spec == 'FSpecularMap' else 1 ),
+            'color_correct': diffuse == 'FDiffuseColorCorect',
+            'vertex_occlusion_diffuse': diffuse == 'FDiffuseVertexColorOcclusion',
+            # 0 none, 1 FFresnelSchlick, 2 FFresnelLegacy
+            'fresnel':       1 if fres == 'FFresnelSchlick' else ( 2 if fres == 'FFresnelLegacy' else 0 ),
+            'reflect':       reflect,
+            'spec_view_uv':  self.getFlagValue( 'FUVSpecularMap' ) == 'FUVViewNormal',
+            'alpha_test':    self.getFlagValue( 'FAlphaTest' ) == 'FAlphaTestGreater',
+        }
+
     def iterTextures( self ):
         for cmd in self.cmds:
             if cmd.type == 'texture':

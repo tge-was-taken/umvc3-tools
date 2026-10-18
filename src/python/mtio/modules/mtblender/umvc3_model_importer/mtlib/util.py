@@ -212,16 +212,30 @@ def resolveTexturePath( basePath, texturePath ):
     # normalize texture path
     texturePathNrm = texturePath.replace( '\\', '/' )
     
-    # find the root of the texture path relative to the current model directory
     texturePathParts = texturePathNrm.split( '/' )
-    relTexturePathRoot = ''
-    for i in range( 1, len( texturePathParts )):
-        relTexturePathRoot += '../'
-    fullRelTexturePathRoot = os.path.join( basePath, relTexturePathRoot ) 
-    texturePathRoot = os.path.realpath( fullRelTexturePathRoot )
+    firstSegment = texturePathParts[0] if len( texturePathParts ) > 1 else None
+
+    texturePathRoot = None
+    if firstSegment:
+        probe = os.path.realpath( basePath )
+        for _ in range( 12 ):
+            if os.path.isdir( os.path.join( probe, firstSegment ) ):
+                texturePathRoot = probe
+                break
+            parent = os.path.dirname( probe )
+            if parent == probe:
+                break
+            probe = parent
+
+    if texturePathRoot is None:
+        # nothing matched, fall back to the old segment counting behaviour
+        relTexturePathRoot = ''
+        for i in range( 1, len( texturePathParts )):
+            relTexturePathRoot += '../'
+        texturePathRoot = os.path.realpath( os.path.join( basePath, relTexturePathRoot ) )
     
     # find the real texture path
-    realTexturePath = os.path.join( texturePathRoot, texturePath )
+    realTexturePath = os.path.join( texturePathRoot, *texturePathParts )
     textureTEXPath, _ = getExtractedResourceFilePath( realTexturePath, '241f5deb', 'tex' )
     if textureTEXPath == None:
         # failsafe: try to look for the tex files in the current model directory in case we don't find it 

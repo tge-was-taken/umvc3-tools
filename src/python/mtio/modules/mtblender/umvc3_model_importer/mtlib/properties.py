@@ -83,10 +83,50 @@ class UMVC3ModelImportProperties(PropertyGroup):
         description='Converts Material to .YML',
         default=True,
     ) 
+    import_outline: BoolProperty(
+        name='Add Ink Outline (EXPERIMENTAL)',
+        description='DOES NOT CURRENTLY WORK',
+        default=False,
+    )
+    outline_thickness: FloatProperty(
+        name='Outline Thickness (EXPERIMENTAL)',
+        description='DOES NOT CURRENTLY WORK',
+        default=0.45,
+        min=0.0,
+        max=20.0,
+    )
+    import_exact_shading: BoolProperty(
+        name='Game Shaders (exact)',
+        description='Recreates games shaders from the game shaders (root.spkg). Needs the game folder',
+        default=True,
+    )
+    game_native_dir: StringProperty(
+        name='Game Folder',
+        description='UMvC3 install folder (or its nativePCx64 folder).',
+        default='',
+        subtype='DIR_PATH',
+    )
+    mt_point_light: PointerProperty(
+        name='Point Light',
+        description='Point light the game shaders use as their second light (FPointLightD). Strength is the game value, falloff from the light\'s mt_falloff_start / mt_falloff_end props. Rebuild the game shaders after setting it',
+        type=bpy.types.Object,
+        poll=lambda self, obj: obj.type == 'LIGHT' and obj.data.type == 'POINT',
+    )
+    mt_key_light: PointerProperty(
+        name='Key Light',
+        description='Sun lamp the MT materials take their light direction and colour from (colour times strength)',
+        type=bpy.types.Object,
+        poll=lambda self, obj: obj.type == 'LIGHT' and obj.data.type == 'SUN',
+    )
+    import_toon_shading: BoolProperty(
+        name='MT Shading',
+        description='Rebuild each material with the game\'s own shading (toon ramps, half lambert, rim light, specular, colour correct) from the mrl. Works in Eevee and Cycles. Sets the view transform to Standard so colours match the game',
+        default=False,
+    )
     inherit_scale: BoolProperty(
         name='Inherit Scale',
         description='Enables child bones to inherit scale of parents in animations. Recommended to leave unchecked or false if model is to be used for animation',
-        default=True,
+        default=False,
     )                    
     create_layer: BoolProperty(
         name='Create_Collection',
@@ -213,7 +253,7 @@ class UMVC3ModelImportProperties(PropertyGroup):
     )    
     existing_mrl_yml: StringProperty(
         name = 'Material YML File Path',  
-        description = 'The material YML to use to create the mrl.',
+        description = 'The material YML to use to create the mrl',
         default = '',
         maxlen=1024,
         #subtype='FILE_PATH',
@@ -252,4 +292,14 @@ class UMVC3ModelImportProperties(PropertyGroup):
         name='Generate Envelopes',
         description='Produces skin data for exporting. Leave unchecked if using a custom skeleton. Recommended to leave on for stages',
         default=True,
-    )    
+    )
+    bones_in_front: BoolProperty(
+        name='Display Model Bones In Front',
+        description='Sets the imported Models Armature to display its bones in front',
+        default=True,
+    )
+    material_to_filter_by: bpy.props.PointerProperty(
+        name="Material",
+        description='The Material to Filter Selection to.',
+        type=bpy.types.Material,
+    )
